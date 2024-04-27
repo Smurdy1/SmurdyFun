@@ -1,0 +1,61 @@
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: hsl(160, 100%, 92%);
+}
+#myH1 {
+    font-size: 4rem;
+    font-family: "verdana";
+    color: hsla(157, 10%, 16%, 0.678);
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 5px solid;
+    border-radius: 50px;
+    padding: 30px;
+    background-color: lightcyan;
+}
+#display {
+    font-size: 4rem;
+    font-family: "helvetica";
+    font-weight: bold;
+    color: rgb(40, 95, 95);
+    text-shadow: 3px 3px 3px rgb(0, 0, 0);
+}
+#controls button{
+    font-size: 2rem;
+    font-weight: bold;
+    font-family: "calibri";
+    padding: 10px 20px;
+    margin: 5px;
+    min-width: 125px;
+    border: 2px solid black;
+    border-radius: 10px;
+    cursor: pointer;
+    color:rgba(6, 15, 15, 0.87);
+    box-shadow: 2px 2px 2px;
+    transition: background-color 0.5s ease;
+}
+#startBtn {
+    background-color: hsla(113, 100%, 73%, 0.76);
+}
+#startBtn:hover {
+    background-color: hsl(113, 100%, 67%);
+}
+#stopBtn {
+    background-color: hsla(0, 100%, 56%, 0.438);
+}
+#stopBtn:hover {
+    background-color: hsla(0, 100%, 56%, 0.582);
+}
+#resetBtn {
+    background-color: hsla(207, 95%, 75%, 0.884);
+}
+#resetBtn:hover {
+    background-color: hsl(207, 100%, 68%);
+}
