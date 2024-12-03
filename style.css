@@ -10,11 +10,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 5px solid hsl(0, 0%, 10%);
+    border: 8px solid hsl(0, 0%, 10%);
+    border-radius: 10px;
     padding: 20px;
+    margin: 20px
 }
 
-.hello {
+.text {
     color: hsl(0, 0%, 80%);
     text-shadow: 3px 3px hsl(0, 0%, 10%);
     text-align: center;
@@ -32,4 +34,63 @@ body {
     text-decoration: none;
     text-shadow: none;
     font-weight: bold;
+}
+
+.container {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin: 20px;
+}
+
+.redirect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 10px solid hsl(0, 0%, 7%);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+}
+
+.redirect a {
+    color: hsl(0, 0%, 80%);
+    text-decoration: none;
+    text-shadow: none;
+    font-family: "Varela Round", sans-serif;
+    font-size: 50px;
+    margin: 10px;
+}
+
+#randomness {
+    background-color: hsl(5, 100%, 12%);
+}
+
+#misc_title {
+    margin-bottom: 0px;
+    font-size: 45px;
+}
+
+#animations_title {
+    margin-bottom: 0px;
+    font-size: 45px;
+}
+
+#circle_patterns {
+    background-color: hsl(219, 64%, 50%);
+}
+
+#ball_physics {
+    background-color: hsl(32, 100%, 40%);
+}
+
+#feedback_title {
+    font-size: 30px;
+}
+
+#feedback_text a {
+    color: hsl(194, 100%, 74%);
+    text-decoration: none;
+    text-shadow: none;
+    font-family: "Varela Round", sans-serif;
 }

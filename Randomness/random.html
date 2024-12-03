@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random</title>
+    <link rel="stylesheet" href="style_random.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="bool" class="random_item">
+        <h1 id="bool_title">Random True or False value:</h1>
+        <p id="bool_output">true</p>
+        <button id="bool_button" onclick="bool()">Reroll</button>
+    </div>
+
+    <div id="number" class="random_item">
+        <h1 id="number_title">Random number from 1 to 10:</h1>
+        <p id="number_output">1</p>
+
+        <button id="number_button" onclick="number()">Reroll</button>
+    </div>
+
+    <div id="number_choice" class="random_item">
+        <h1 id="number_choice_title">Random number of your choice:</h1>
+        <p id="number_choice_output">10</p>
+
+        <number_choice_input>Min:</number_choice_input>
+        <input id="number_choice_input1" type="number" min="0" max="1000" value="1">
+
+        <number_choice_input>Max:</number_choice_input>
+        <input id="number_choice_input2" type="number" min="0" max="1000" value="10">
+        
+        <br>
+
+        <button id="number_choice_button" onclick="number_choice()">Reroll</button>
+    </div>
+
+    <div id="random_letter" class="random_item">
+        <h1 id="random_letter_title">Random letter from A to Z:</h1>
+        <p id="random_letter_output">A</p>
+        <button id="random_letter_button" onclick="random_letter()">Reroll</button>
+    </div>
+
+    <div id="random_color" class="random_item">
+        <h1 id="random_color_title">Random color:</h1>
+        <p id="random_color_output" style="background-color: rgb(0, 0, 0);">     </p>
+        <button id="random_color_button" onclick="random_color()">Reroll</button>
+    </div>
+    
+    <div id="random_word" class="random_item">
+        <h1 id="random_word_title">Random word:</h1>
+        <p id="random_word_output">word</p>
+        <button id="random_word_button" onclick="random_word()">Reroll</button>
+    </div>
+
+    <div id="random_image" class="random_item">
+        <h1 id="random_image_title">Random image:</h1>
+        <img src="https://picsum.photos/id/237/200/300" alt="random image" id="random_image_output">
+        <button id="random_image_button" onclick="random_image()">Reroll</button>
+    </div>
+
+    <h1 id="coming_soon">More random stuff coming soon!</h1>
+
+    <script src="random.js"></script>
+</body>
+</html>

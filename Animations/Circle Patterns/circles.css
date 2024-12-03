@@ -1,0 +1,98 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 98vh;
+    width: 98vw;
+}
+
+#main_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    border: 8px solid hsl(0, 0%, 15%);
+    border-radius: 10px;
+    width: calc(min(90vw, 90vh));
+    height: calc(min(90vw, 90vh));
+    background-color: hsl(0, 0%, 40%);
+}
+
+circle {
+    display: block;
+    border: 4px solid hsl(0, 0%, 15%);
+    border-radius: 50%;
+    width: calc(min(4vw, 4vh));
+    height: calc(min(4vw, 4vh));
+    background-color: hsl(0, 0%, 60%);
+}
+
+#circle1 {
+    background-color: hsl(4, 70%, 30%)
+}
+#circle2 {
+    background-color: hsl(4, 63%, 47%)
+}
+#circle3 {
+    background-color: hsl(7, 84%, 58%)
+}
+#circle4 {
+    background-color: hsl(17, 87%, 58%)
+}
+#circle5 {
+    background-color: hsl(24, 98%, 55%)
+}
+#circle6 {
+    background-color: hsl(29, 87%, 63%)
+}
+#circle7 {
+    background-color: hsl(39, 90%, 60%)
+}
+#circle8 {
+    background-color: hsl(47, 84%, 63%)
+}
+#circle9 {
+    background-color: hsl(64, 84%, 63%)
+}
+#circle10 {
+    background-color: hsl(81, 74%, 60%)
+}
+#circle11 {
+    background-color: hsl(81, 70%, 56%)
+}
+#circle12 {
+    background-color: hsl(133, 100%, 60%)
+}
+#circle13 {
+    background-color: hsl(152, 79%, 63%)
+}
+#circle14 {
+    background-color: hsl(182, 84%, 63%)
+}
+#circle15 {
+    background-color: hsl(207, 92%, 60%)
+}
+#circle16 {
+    background-color: hsl(229, 87%, 63%)
+}
+#circle17 {
+    background-color: hsl(246, 70%, 56%)
+}
+#circle18 {
+    background-color: hsl(253, 50%, 52%)
+}
+#circle19 {
+    background-color: hsl(274, 79%, 63%)
+}
+#circle20 {
+    background-color: hsl(291, 53%, 55%)
+}
+#circle21 {
+    background-color: hsl(302, 92%, 60%)
+}
+#circle22 {
+    background-color: hsl(340, 67%, 56%)
+}
+#circle23 {
+    background-color: hsl(345, 66%, 46%)
+}

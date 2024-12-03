@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Ball Physics</title>
+  <link href="ballPhysics.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="body">
+  <div id="gui">
+    <div id="speed"> 
+        <h2 id="speed_label" class="label">Speed: 4/10</h2>
+        <input type="range" id="speed_slider" class="slider" min="0" max="10" value="4" oninput="updateSpeed()">
+    </div>
+
+    <div id="bounce">
+        <h2 id="bounce_label" class="label">Bounciness: 3.5/5</h2>
+        <input type="range" id="bounce_slider" class="slider" min="0" max="10" value="7" oninput="updateBounce()">
+    </div>
+
+    <div id="ball_count"> 
+        <h2 id="ball_count_label" class="label">                Ball Count: 20/100                </h2>
+        <input type="range" id="ball_count_slider" class="slider" min="1" max="100" value="20" oninput="updateBallCount()">
+    </div>
+
+    <div id="color">
+        <h2 id="color_label" class="label">Color: </h2>
+        <input type="color" id="color_picker" class="color" value="#e00000" oninput="updateColor()">
+    </div>
+
+    <div id="start">
+        <button id="start_button" onclick="start()">Start Animation</button>
+    </div>
+  </div>
+
+  <script src="ballPhysics.js"></script>
+</body>
+
+</html>
