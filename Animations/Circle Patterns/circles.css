@@ -4,6 +4,7 @@ body {
     align-items: center;
     height: 98vh;
     width: 98vw;
+    background-color: hsl(0, 0%, 26%);
 }
 
 #main_container {
