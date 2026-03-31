@@ -1,0 +1,521 @@
+{
+    "American Samoa": [
+        "American Samoa",
+        "Amerikaans-Samoa",
+        "Amerikan Samoası",
+        "Amerikanisch-Samoa",
+        "Amerikanska Samoa",
+        "Samoa américaines",
+        "Samoa Americana",
+        "Samoa Americane",
+        "Samoa Amerykańskie"
+    ],
+    "Anguilla": [
+        "Anguila",
+        "Anguilla"
+    ],
+    "Aruba": [
+        "Aruba"
+    ],
+    "Bermuda": [
+        "Bermuda",
+        "Bermudas",
+        "Bermudes",
+        "Bermudy"
+    ],
+    "Bouvet Island": [
+        "Bouvet Adası",
+        "Bouvet Eiland",
+        "Bouvet Island",
+        "Bouvetinsel",
+        "Bouvetön",
+        "Île Bouvet",
+        "Ilha Bouvet",
+        "Isla Bouvet",
+        "Isola Bouvet",
+        "Wyspa Bouveta"
+    ],
+    "British Indian Ocean Territory": [
+        "Britanya Hint Okyanusu Toprakları",
+        "Britisches Territorium im Indischen Ozean",
+        "British Indian Ocean Territory",
+        "Brits Indische oceaan",
+        "Brittiska territoriet i Indiska Oceanen",
+        "Brytyjskie Terytorium Oceanu Indyjskiego",
+        "Océan Indien Britannique",
+        "Territori Britannici dell'Oceano Indiano",
+        "Territorio Británico del Océano Índico",
+        "Território Britânico do Oceano Índico"
+    ],
+    "Cayman Islands": [
+        "Cayman Adaları",
+        "Cayman Islands",
+        "Caymanöarna",
+        "Îles Caïmans",
+        "Ilhas Caimão",
+        "Islas Caimán",
+        "Isole Cayman",
+        "Kaaimaneilanden",
+        "Kaimaninseln",
+        "Kajmany"
+    ],
+    "Christmas Island": [
+        "Christmas Adası",
+        "Christmas Island",
+        "Christmaseiland",
+        "Île Christmas",
+        "Ilha de Natal",
+        "Isla de Navidad",
+        "Isola del Natale",
+        "Julön",
+        "Weihnachtsinsel",
+        "Wyspa Bożego Narodzenia"
+    ],
+    "Cocos (Keeling) Islands": [
+        "Cocos (Keeling) Adaları",
+        "Cocos (Keeling) Islands",
+        "Cocoseilanden",
+        "Îles Cocos",
+        "Ilhas Cocos (Keeling)",
+        "Islas Cocos (Keeling)",
+        "Isole Cocos e Keeling",
+        "Kokosinseln",
+        "Kokosöarna",
+        "Wyspy Kokosowe"
+    ],
+    "Cook Islands": [
+        "Cook Adaları",
+        "Cook Islands",
+        "Cookeilanden",
+        "Cookinseln",
+        "Cooköarna",
+        "Îles Cook",
+        "Ilhas Cook",
+        "Islas Cook",
+        "Isole Cook",
+        "Wyspy Cooka"
+    ],
+    "Cote d'Ivoire": [
+        "Costa d'Avorio",
+        "Costa de Marfil",
+        "Costa do Marfim",
+        "Cote d'Ivoire",
+        "Elfenbeinküste",
+        "Elfenbenskusten",
+        "Fildişi Sahili",
+        "Republiek Ivoorkust",
+        "Wybrzeże Kości Słoniowej"
+    ],
+    "Czech Republic": [
+        "Çek Cumhuriyeti",
+        "Chéquia",
+        "Czech Republic",
+        "Czechy",
+        "Repubblica Ceca",
+        "República Checa",
+        "République Tchèque",
+        "Tjeckien",
+        "Tschechische Republik",
+        "Tsjechische Republiek"
+    ],
+    "Falkland Islands (Malvinas)": [
+        "Falkland Adaları",
+        "Falkland Islands (Malvinas)",
+        "Falklandeilanden",
+        "Falklandinseln",
+        "Falklandsöarna",
+        "Falklandy",
+        "Îles Malouines",
+        "Ilhas Malvinas",
+        "Islas Malvinas",
+        "Isole Falkland"
+    ],
+    "Faroe Islands": [
+        "Faeröer",
+        "Färöarna",
+        "Faroe Adaları",
+        "Faroe Islands",
+        "Färöer",
+        "Îles Féroé",
+        "Ilhas Faroé",
+        "Islas Feroe",
+        "Isole Fær Øer",
+        "Wyspy Owcze"
+    ],
+    "French Guiana": [
+        "Frans-Guyana",
+        "Fransız Guyanası",
+        "Franska Guyana",
+        "Französisch-Guayana",
+        "French Guiana",
+        "Guayana Francesa",
+        "Guiana Francesa",
+        "Gujana Francuska",
+        "Guyana Francese",
+        "Guyane française"
+    ],
+    "French Polynesia": [
+        "Frans-Polynesië",
+        "Fransız Polinezyası",
+        "Franska Polynesien",
+        "Französisch-Polynesien",
+        "French Polynesia",
+        "Polinesia Francesa",
+        "Polinesia Francese",
+        "Polinezja Francuska",
+        "Polynésie française"
+    ],
+    "French Southern Territories": [
+        "Francuskie Terytoria Południowe i Antarktyczne",
+        "Franse Zuidelijke Gebieden",
+        "Fransız Güney Toprakları",
+        "Franska södra territorierna",
+        "Französische Süd- und Antarktisgebiete",
+        "French Southern Territories",
+        "Terras Austrais e Antárticas Francesas",
+        "Terres australes françaises",
+        "Territori Francesi del Sud",
+        "Tierras Australes Francesas"
+    ],
+    "Gibraltar": [
+        "Cebelitarık",
+        "Gibilterra",
+        "Gibraltar"
+    ],
+    "Greenland": [
+        "Greenland",
+        "Grenlandia",
+        "Groenland",
+        "Groenlandia",
+        "Gronelândia",
+        "Grönland"
+    ],
+    "Guadeloupe": [
+        "Guadalupa",
+        "Guadalupe",
+        "Guadeloupe",
+        "Gwadelupa"
+    ],
+    "Guam": [
+        "Guam"
+    ],
+    "Heard Island and McDonald Islands": [
+        "Heard Adası ve McDonald Adaları",
+        "Heard e Islas McDonald",
+        "Heard en McDonaldeilanden",
+        "Heard Island and McDonald Islands",
+        "Heard und McDonaldinseln",
+        "Heard- och McDonaldsöarna",
+        "Îles Heard-et-MacDonald",
+        "Ilha Heard e Ilhas McDonald",
+        "Isole Heard e McDonald",
+        "Wyspy Heard i McDonalda"
+    ],
+    "Holy See (Vatican City State)": [
+        "Città del Vaticano",
+        "Holy See (Vatican City State)",
+        "Saint-Siège (Vatican)",
+        "Santa Sé",
+        "Santa Sede",
+        "Vaticaanstad",
+        "Vatikan",
+        "Vatikanstadt",
+        "Vatikanstaten",
+        "Watykan"
+    ],
+    "Hong Kong": [
+        "Çin Hong Kong ÖYB",
+        "Hong Kong",
+        "Hongkong"
+    ],
+    "Macao": [
+        "Çin Makao ÖYB",
+        "Macao",
+        "Macau",
+        "Makau"
+    ],
+    "Martinique": [
+        "Martinica",
+        "Martinik",
+        "Martinique",
+        "Martynika"
+    ],
+    "Mayotte": [
+        "Majotta",
+        "Mayotte"
+    ],
+    "Micronesia, Federated States of": [
+        "Federale Staten van Micronesië",
+        "Micronesia",
+        "Micronesia, Federated States of",
+        "Micronésie",
+        "Mikronesien",
+        "Mikronesiska federationen",
+        "Mikronezja",
+        "Mikronezya",
+        "Stati Federati di Micronesia"
+    ],
+    "Montserrat": [
+        "Monserrate",
+        "Montserrat"
+    ],
+    "New Caledonia": [
+        "Neukaledonien",
+        "New Caledonia",
+        "Nieuw-Caledonië",
+        "Nouvelle-Calédonie",
+        "Nova Caledónia",
+        "Nowa Kaledonia",
+        "Nueva Caledonia",
+        "Nuova Caledonia",
+        "Nya Kaledonien",
+        "Yeni Kaledonya"
+    ],
+    "Niue": [
+        "Niue"
+    ],
+    "Norfolk Island": [
+        "Île Norfolk",
+        "Ilha Norfolk",
+        "Isla Norfolk",
+        "Isola Norfolk",
+        "Norfolk",
+        "Norfolk Adası",
+        "Norfolk Island",
+        "Norfolkinsel",
+        "Norfolkön"
+    ],
+    "The Republic of North Macedonia": [
+        "Kuzey Makedonya",
+        "Macédoine du Nord",
+        "Macedonia del Nord",
+        "Macedonia del Norte",
+        "Macedónia do Norte",
+        "Macedonia Północna",
+        "Nordmakedonien",
+        "Nordmazedonien",
+        "Republiek Noord-Macedonië",
+        "The Republic of North Macedonia"
+    ],
+    "Northern Mariana Islands": [
+        "Îles Mariannes du Nord",
+        "Ilhas Marianas do Norte",
+        "Islas Marianas del Norte",
+        "Isole Marianne Settentrionali",
+        "Kuzey Mariana Adaları",
+        "Mariany Północne",
+        "Noordelijke Marianen",
+        "Nördliche Marianen",
+        "Nordmarianerna",
+        "Northern Mariana Islands"
+    ],
+    "State of Palestine": [
+        "Filistin Bölgeleri",
+        "Palestina",
+        "Palestine",
+        "Palestinska territoriet, ockuperade",
+        "Palestyna",
+        "Staat Palästina",
+        "Staat Palestina",
+        "State of Palestine",
+        "Stato di Palestina",
+        "Territórios palestinos"
+    ],
+    "Pitcairn": [
+        "Îles Pitcairn",
+        "Ilhas Pitcairn",
+        "Isole Pitcairn",
+        "Pitcairn",
+        "Pitcairn Adaları",
+        "Pitcairninseln",
+        "Pitcairnöarna"
+    ],
+    "Puerto Rico": [
+        "Porto Rico",
+        "Porto Riko",
+        "Portoryko",
+        "Puerto Rico"
+    ],
+    "Reunion": [
+        "Reunião",
+        "Reunion"
+    ],
+    "Saint Helena": [
+        "Saint Helena",
+        "Sainte-Hélène",
+        "Sankta Helena",
+        "Sant'Elena, Isola di Ascensione e Tristan da Cunha",
+        "Santa Helena",
+        "Santa Helena, Ascensión y Tristán de Acuña",
+        "Sint-Helena",
+        "St. Helena",
+        "Wyspa Świętej Heleny, Wyspa Wniebowstąpienia i Tristan da Cunha"
+    ],
+    "Saint Pierre and Miquelon": [
+        "Saint Pierre and Miquelon",
+        "Saint Pierre e Miquelon",
+        "Saint Pierre ve Miquelon",
+        "Saint-Pierre en Miquelon",
+        "Saint-Pierre i Miquelon",
+        "Saint-Pierre och Miquelon",
+        "Saint-Pierre und Miquelon",
+        "Saint-Pierre-et-Miquelon",
+        "San Pedro y Miquelón"
+    ],
+    "South Georgia and the South Sandwich Islands": [
+        "Georgia del Sud e isole Sandwich meridionali",
+        "Georgia del Sur y las Islas Sandwich del Sur",
+        "Geórgia do Sul e Ilhas Sandwich do Sul",
+        "Georgia Południowa i Sandwich Południowy",
+        "Géorgie du Sud-et-les Îles Sandwich du Sud",
+        "Güney Georgia ve Güney Sandwich Adaları",
+        "South Georgia and the South Sandwich Islands",
+        "Südgeorgien und die Südlichen Sandwichinseln",
+        "Sydgeorgien och Sydsandwichöarna",
+        "Zuid-Georgia en de Zuidelijke Sandwicheilanden"
+    ],
+    "Svalbard and Jan Mayen": [
+        "Spitsbergen en Jan Mayen",
+        "Svalbard and Jan Mayen",
+        "Svalbard e Jan Mayen",
+        "Svalbard et Île Jan Mayen",
+        "Svalbard i Jan Mayen",
+        "Svalbard och Jan Mayen",
+        "Svalbard und Jan Mayen",
+        "Svalbard ve Jan Mayen Adaları",
+        "Svalbard y Jan Mayen"
+    ],
+    "Tokelau": [
+        "Tokelau",
+        "Tokelauöarna"
+    ],
+    "Turks and Caicos Islands": [
+        "Îles Turques-et-Caïques",
+        "Ilhas Turcas e Caicos",
+        "Islas Turcas y Caicos",
+        "Isole Turks e Caicos",
+        "Turks and Caicos Islands",
+        "Turks i Caicos",
+        "Turks ve Caicos Adaları",
+        "Turks- en Caicoseilanden",
+        "Turks- och Caicosöarna",
+        "Turks- und Caicosinseln"
+    ],
+    "United States Minor Outlying Islands": [
+        "ABD Uzak Adaları",
+        "Amerikaanse Kleinere Afgelegen Eilanden",
+        "Dalekie Wyspy Mniejsze Stanów Zjednoczonych",
+        "Îles mineures éloignées des États-Unis",
+        "Ilhas Distantes dos EUA",
+        "Islas Ultramarinas Menores de los Estados Unidos",
+        "Isole minori esterne degli Stati Uniti",
+        "United States Minor Outlying Islands",
+        "USA:s yttre öar"
+    ],
+    "Virgin Islands, British": [
+        "Britanya Virjin Adaları",
+        "Britische Jungferninseln",
+        "Britse Maagdeneilanden",
+        "Brittiska Jungfruöarna",
+        "Brytyjskie Wyspy Dziewicze",
+        "Îles vierges britanniques",
+        "Ilhas Virgens Britânicas",
+        "Islas Vírgenes británicas",
+        "Isole Vergini Britanniche",
+        "Virgin Islands, British"
+    ],
+    "Virgin Islands, U.S.": [
+        "ABD Virjin Adaları",
+        "Amerikaanse Maagdeneilanden",
+        "Amerikanische Jungferninseln",
+        "Amerikanska Jungfruöarna",
+        "Îles vierges américaines",
+        "Ilhas Virgens Americanas",
+        "Islas Vírgenes de los Estados Unidos",
+        "Isole Vergini Americane",
+        "Virgin Islands, U.S.",
+        "Wyspy Dziewicze Stanów Zjednoczonych"
+    ],
+    "Wallis and Futuna": [
+        "Wallis and Futuna",
+        "Wallis e Futuna",
+        "Wallis en Futuna",
+        "Wallis i Futuna",
+        "Wallis und Futuna",
+        "Wallis ve Futuna Adaları",
+        "Wallis y Futuna",
+        "Wallis- och Futunaöarna",
+        "Wallis-et-Futuna"
+    ],
+    "Åland Islands": [
+        "Åland",
+        "Åland Adaları",
+        "Åland Islands",
+        "Ilhas Åland",
+        "Islas Åland",
+        "Isole Åland",
+        "Wyspy Alandzkie"
+    ],
+    "Bonaire, Sint Eustatius and Saba": [
+        "Bonaire",
+        "Bonaire, Saint Eustatius och Saba",
+        "Bonaire, Saint-Eustache et Saba",
+        "Bonaire, San Eustaquio y Saba",
+        "Bonaire, Sint Eustatius and Saba",
+        "Bonaire, Sint Eustatius en Saba",
+        "Bonaire, Sint Eustatius i Saba",
+        "Isole BES",
+        "Karayip Hollanda",
+        "Países Baixos Caribenhos"
+    ],
+    "Curaçao": [
+        "Curaçao"
+    ],
+    "Guernsey": [
+        "Guernesey",
+        "Guernsey"
+    ],
+    "Isle of Man": [
+        "Île de Man",
+        "Ilha de Man",
+        "Insel Man",
+        "Isla de Man",
+        "Isle of Man",
+        "Isola di Man",
+        "Man Adası",
+        "Man Eiland",
+        "Wyspa Man"
+    ],
+    "Jersey": [
+        "Jersey"
+    ],
+    "Saint Barthélemy": [
+        "Saint Barthélemy",
+        "São Bartolomeu"
+    ],
+    "Saint Martin (French part)": [
+        "Saint Martin (francesa)",
+        "Saint Martin (franska delen)",
+        "Saint Martin (French part)",
+        "Saint-Martin",
+        "Saint-Martin (partie française)",
+        "São Martinho",
+        "Sint-Maarten (Frans deel)"
+    ],
+    "Serbia": [
+        "Republiek Servië",
+        "Serbia",
+        "Serbie",
+        "Serbien",
+        "Sérvia",
+        "Sırbistan"
+    ],
+    "Sint Maarten (Dutch part)": [
+        "Saint-Martin (partie néerlandaise)",
+        "São Martinho",
+        "Sint Maarten",
+        "Sint Maarten (Dutch part)",
+        "Sint Maarten (nederländska delen)",
+        "Sint Maarten (neerlandesa)"
+    ]
+}
