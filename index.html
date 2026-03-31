@@ -8,6 +8,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+
+    <script>
+      (function () {
+        const canonical = '/SmurdyQuiz';
+        const p = decodeURIComponent(location.pathname || '/');
+        const hasTrailing = p.endsWith('/');
+        const pNormalized = p.toLowerCase();
+        const canonicalNormalized = canonical.toLowerCase();
+
+        // Redirect only when path exactly matches the canonical path (with or without trailing slash)
+        if (
+          (pNormalized === canonicalNormalized || pNormalized === canonicalNormalized + '/') &&
+          p !== canonical && p !== canonical + '/'
+        ) {
+          const search = location.search || '';
+          const hash = location.hash || '';
+          const trailing = hasTrailing ? '/' : '';
+          // replace so the history isn't polluted with the wrong-case entry
+          location.replace(canonical + trailing + search + hash);
+        }
+      })();
+    </script>
 </head>
 <body>
     <div id="main_container">
