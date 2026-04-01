@@ -1,0 +1,78 @@
+/* removed global body rule so it doesn't override the site font/layout */
+
+/* container for the project and centered square */
+.project-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 120px);
+    width: 100%;
+    background-color: transparent;
+}
+
+#main_container {
+    /* allow JS to set exact width/height; provide padding so circles have breathing room */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 6px solid rgba(0,0,0,0.25);
+    border-radius: 10px;
+    background-color: rgba(255,255,255,0.03);
+    padding: 18px;
+    box-sizing: border-box;
+    width: auto;          /* JS will set a pixel width */
+    height: auto;         /* JS will set a pixel height based on max circle */
+    overflow-x: auto;     /* on narrow viewports allow scrolling */
+}
+
+/* linear, single-row layout with a very small gap so circles are nearly touching */
+.circles-grid{
+    display: flex;
+    flex-direction: row;
+    gap: 4px;               /* small gap -> nearly touching */
+    width: auto;            /* shrink-wrap to the content */
+    align-items: center;    /* centers circles so height change goes up & down */
+    justify-content: flex-start;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* each item is a fixed-width "column" whose height will change */
+.circle {
+    display: block;
+    width: 36px;            /* fixed width -> no horizontal expansion */
+    height: 36px;           /* initial height; JS will update height only */
+    border: 3px solid rgba(0,0,0,0.25);
+    border-radius: 50%;
+    background-color: hsl(10, 60%, 60%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18) inset;
+    transition: height .12s linear;
+    will-change: height;
+    flex: 0 0 auto;
+    align-self: center;     /* ensure vertical centering inside flex row */
+}
+
+/* maintain the per-circle color palette */
+#circle1 { background-color: hsl(4, 70%, 30%) }
+#circle2 { background-color: hsl(4, 63%, 47%) }
+#circle3 { background-color: hsl(7, 84%, 58%) }
+#circle4 { background-color: hsl(17, 87%, 58%) }
+#circle5 { background-color: hsl(24, 98%, 55%) }
+#circle6 { background-color: hsl(29, 87%, 63%) }
+#circle7 { background-color: hsl(39, 90%, 60%) }
+#circle8 { background-color: hsl(47, 84%, 63%) }
+#circle9 { background-color: hsl(64, 84%, 63%) }
+#circle10 { background-color: hsl(81, 74%, 60%) }
+#circle11 { background-color: hsl(81, 70%, 56%) }
+#circle12 { background-color: hsl(133, 100%, 60%) }
+#circle13 { background-color: hsl(152, 79%, 63%) }
+#circle14 { background-color: hsl(182, 84%, 63%) }
+#circle15 { background-color: hsl(207, 92%, 60%) }
+#circle16 { background-color: hsl(229, 87%, 63%) }
+#circle17 { background-color: hsl(246, 70%, 56%) }
+#circle18 { background-color: hsl(253, 50%, 52%) }
+#circle19 { background-color: hsl(274, 79%, 63%) }
+#circle20 { background-color: hsl(291, 53%, 55%) }
+#circle21 { background-color: hsl(302, 92%, 60%) }
+#circle22 { background-color: hsl(340, 67%, 56%) }
+#circle23 { background-color: hsl(345, 66%, 46%) }

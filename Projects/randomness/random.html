@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="style_random.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +12,10 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="site-brand"><a href="/SmurdyQuiz">SmurdyFun</a></div>
-    <nav class="site-nav"><a href="/SmurdyQuiz">Back</a></nav>
+    <div class="site-brand"><a href="/">SmurdyFun</a></div>
+    <nav class="site-nav">
+      <a class="nav-link back" href="/">Back to landing</a>
+    </nav>
   </header>
   <main class="project-page">
     <div id="bool" class="random_item">
@@ -33,10 +35,10 @@
         <h1 id="number_choice_title">Random number of your choice:</h1>
         <p id="number_choice_output">10</p>
 
-        <number_choice_input>Min:</number_choice_input>
+        <label for="number_choice_input1" class="small-label">Min:</label>
         <input id="number_choice_input1" type="number" min="0" max="1000" value="1">
 
-        <number_choice_input>Max:</number_choice_input>
+        <label for="number_choice_input2" class="small-label">Max:</label>
         <input id="number_choice_input2" type="number" min="0" max="1000" value="10">
         
         <br>
