@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content="0;url=/SmurdyQuiz" />
+  <script>
+    // do a replace so the lowercase URL isn't kept in history
+    (function () {
+      const target = '/SmurdyQuiz' + (location.search || '') + (location.hash || '');
+      location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  Redirecting to <a href="/SmurdyQuiz">/SmurdyQuiz</a>.
+</body>
+</html>

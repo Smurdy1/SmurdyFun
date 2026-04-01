@@ -16,7 +16,7 @@
         const hasTrailing = p.endsWith('/');
         const pNormalized = p.toLowerCase();
         const canonicalNormalized = canonical.toLowerCase();
-
+        
         // Redirect only when path exactly matches the canonical path (with or without trailing slash)
         if (
           (pNormalized === canonicalNormalized || pNormalized === canonicalNormalized + '/') &&
