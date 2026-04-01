@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const countries = require("i18n-iso-countries");
+const countries = require("../src/js/i18n-iso-countries");
 
 // Pick the languages you want to include.
 // Keep this fairly small or you'll get a giant alias file.
