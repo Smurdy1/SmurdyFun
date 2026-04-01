@@ -3,8 +3,9 @@ html {
     width: 100%;
 }
 
-body {
-    overflow: hidden;
+/* scope to project container instead of global body */
+.project-page {
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
