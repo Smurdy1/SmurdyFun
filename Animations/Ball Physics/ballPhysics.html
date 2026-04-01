@@ -5,11 +5,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Ball Physics</title>
+  <link rel="stylesheet" href="../../style.css">
   <link href="ballPhysics.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body id="body">
-  <div id="gui">
+  <header class="site-header">
+    <div class="site-brand"><a href="/SmurdyQuiz">SmurdyFun</a></div>
+    <nav class="site-nav"><a href="/SmurdyQuiz">Back</a></nav>
+  </header>
+  <div id="gui" class="project-page">
     <div id="speed"> 
         <h2 id="speed_label" class="label">Speed: 4/10</h2>
         <input type="range" id="speed_slider" class="slider" min="0" max="10" value="4" oninput="updateSpeed()">
@@ -34,7 +39,6 @@
         <button id="start_button" onclick="start()">Start Animation</button>
     </div>
   </div>
-
   <script src="ballPhysics.js"></script>
 </body>
 

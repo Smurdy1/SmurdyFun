@@ -32,47 +32,64 @@
     </script>
 </head>
 <body>
-    <div id="main_container">
-        <h1 class="text">Hello, whoever found my (super secret) website</h1>
-        <p class="text" id="message">
-            While you wait for more projects, why not go check out my
-            <a id="youtube" href="https://www.youtube.com/@Smurdy1/videos"
-             target="_blank">youtube channel</a>?
-        </p>
-        <p class="text" style="font-size:20px; margin-top: 0px;">
-            (I have big plans for this website, so be sure to check it again later!)
-        </p>
-    </div>
+    <header class="site-header">
+      <div class="site-brand">
+        <a href="/" aria-label="SmurdyFun Home">SmurdyFun</a>
+      </div>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="/SmurdyQuiz" class="nav-link">SmurdyQuiz</a>
+        <a href="https://github.com/Smurdy1/SmurdyFun" class="nav-link" target="_blank">GitHub</a>
+      </nav>
+    </header>
+    <div id="main_container" class="hero">
+         <h1 class="text">Hello, whoever found my (super secret) website</h1>
+         <p class="text" id="message">
+             While you wait for more projects, why not go check out my
+             <a id="youtube" href="https://www.youtube.com/@Smurdy1/videos"
+              target="_blank">youtube channel</a>?
+         </p>
+         <p class="text" style="font-size:20px; margin-top: 0px;">
+             (I have big plans for this website, so be sure to check it again later!)
+         </p>
+     </div>
+ 
+    <section id="projects" class="container">
+      <h2 class="section-title">Projects</h2>
+      <div class="redirects">
+        <article class="card">
+          <a href="Animations/Circle Patterns/circles.html">
+            <div class="card-thumb accent-1" aria-hidden>🎨</div>
+            <h3 class="card-title">Circle Patterns</h3>
+            <p class="card-desc">Colorful circular arrangements and experiments.</p>
+          </a>
+        </article>
 
-    <div id="animations_container" class="container">
-        <h1 class="text" id="animations_title">Animations</h1>
-        <hr>
-        <br>
-        <div class="redirect" id="circle_patterns">
-            <a href="Animations/Circle Patterns/circles.html" target="_self">Circle Patterns</a>
-        </div>
-        <div class="redirect" id="ball_physics">
-            <a href="Animations/Ball Physics/ballPhysics.html" target="_self">Ball Physics</a>
-        </div>
-    </div>
+        <article class="card">
+          <a href="Animations/Ball Physics/ballPhysics.html">
+            <div class="card-thumb accent-2" aria-hidden>⚽</div>
+            <h3 class="card-title">Ball Physics</h3>
+            <p class="card-desc">Interactive bouncing balls with controls.</p>
+          </a>
+        </article>
 
-    <div id="misc_container" class="container">
-        <h1 class="text" id="misc_title">Miscellaneous</h1>
-        <hr>
-        <br>
-        <div class="redirect" id="randomness">
-            <a href="Randomness/random.html" target="_self">Randomness</a>
-        </div>
-    </div>
-
-    <br> <br> <br>
-
-    <div id="feedback">
-        <h1 class="text" id="feedback_title">Feedback</h1>
-        <p class="text" id="feedback_text">
-            If you found a bug or have any suggestions, please let me know! <br>
-            <a href="https://github.com/Smurdy1/SmurdyFun/issues" target="_blank">Github</a>
-        </p>
-    </div>
-</body>
+        <article class="card">
+          <a href="Randomness/random.html">
+            <div class="card-thumb accent-3" aria-hidden>🎲</div>
+            <h3 class="card-title">Randomness</h3>
+            <p class="card-desc">Random values, colors, letters and more.</p>
+          </a>
+        </article>
+      </div>
+    </section>
+ 
+     <br> <br> <br>
+ 
+     <div id="feedback">
+         <h1 class="text" id="feedback_title">Feedback</h1>
+         <p class="text" id="feedback_text">
+             If you found a bug or have any suggestions, please let me know! <br>
+             <a href="https://github.com/Smurdy1/SmurdyFun/issues" target="_blank">Github</a>
+         </p>
+     </div>
+ </body>
 </html>
