@@ -36,8 +36,8 @@ const TINY_COUNTRIES = new Set([
 
 const MODE_CONFIGS = {
     countries: {
-        dataFile: "./countries.json",
-        tinyFile: "./tiny_countries.json",
+        dataFile: "/src/data/countries.json",
+        tinyFile: "/src/data/tiny_countries.json",
         mapCenter: [0, 20],
         mapZoom: 1.8,
         minZoom: 1,
@@ -47,46 +47,26 @@ const MODE_CONFIGS = {
         outlineLayerId: null,
         usesTinyPoints: true,
 
-        getRawFeatureName(feature) {
-            if (!feature || !feature.properties) return "Unknown";
-            const p = feature.properties;
-            return (
-                p.ADMIN ||
-                p.NAME_LONG ||
-                p.NAME_EN ||
-                p.NAME ||
-                p.name ||
-                "Unknown"
-            );
-        },
-
         getCanonicalFeatureName(feature) {
-            if (!feature || !feature.properties) return "Unknown";
-            const p = feature.properties;
+            const p = (feature && feature.properties) ? feature.properties : {};
+            // prefer human-readable sovereign/long names, fall back to NAME and common fields
+            const candidates = [
+                p.SOVEREIGNT,
+                p.BRK_NAME,
+                p.NAME_LONG,
+                p.NAME,
+                p.admin,
+                p.ADMIN
+            ].filter(Boolean);
 
-            const rawName =
-                p.ADMIN ||
-                p.NAME_LONG ||
-                p.NAME_EN ||
-                p.NAME ||
-                p.name ||
-                "Unknown";
+            let raw = (candidates.length ? String(candidates[0]) : "").trim();
+            // if still empty, try other common fields
+            if (!raw && p.iso_a3) raw = String(p.iso_a3).trim();
 
-            const sovereign =
-                p.SOVEREIGNT ||
-                p.BRK_NAME ||
-                p.NAME_LONG ||
-                rawName;
+            // Normalize: remove parenthetical suffixes, trim commas/spaces
+            raw = raw.replace(/\s*\(.*\)\s*/g, "").replace(/\s*,\s*/g, ", ").trim();
 
-            const typeString =
-                typeof p.TYPE === "string" ? p.TYPE.toLowerCase() : "";
-
-            const isTerritory =
-                p.ADM0_DIF === 1 ||
-                typeString.includes("dependency") ||
-                typeString.includes("territory");
-
-            return isTerritory ? sovereign : rawName;
+            return raw || "Unknown";
         },
 
         filterFeatures(features) {
@@ -94,17 +74,26 @@ const MODE_CONFIGS = {
         },
 
         filterTinyFeatures(features) {
+            // Use the canonical-name helper (safe fallback) to decide which tiny features to keep.
+            // Example: exclude Antarctica or other non-country records.
+            if (!Array.isArray(features)) return [];
             return features.filter(feature => {
-                const rawName = this.getRawFeatureName(feature);
-                const canonicalName = this.getCanonicalFeatureName(feature);
-                const isMergedTerritory = rawName !== canonicalName;
-                return !isMergedTerritory && TINY_COUNTRIES.has(canonicalName);
+                try {
+                    const name = String(MODE_CONFIGS.countries.getCanonicalFeatureName(feature) || "").trim();
+                    if (!name) return false;
+                    // exclude Antarctica and other obvious non-playable entries
+                    if (/antarctica/i.test(name)) return false;
+                    // keep everything else
+                    return true;
+                } catch (e) {
+                    return false;
+                }
             });
         }
     },
 
     states: {
-        dataFile: "./states.json",
+        dataFile: "/src/data/states.json",
         tinyFile: null,
         mapCenter: [-96, 37.8],
         mapZoom: 3.3,
@@ -194,6 +183,176 @@ const SmurdyQuiz = {
     aliases: {},
     groups: {},
     currentGroupId: quizGroupId,
+    showBordersInitial: showBorders,
+    currentShowBorders: showBorders,
+
+    // Return true if a feature should be considered part of the current group.
+    // This is used when setting feature-state "inGroup".
+    isFeatureInCurrentGroup(feature) {
+        if (!feature || !feature.properties) return false;
+
+        const groupId = this.currentGroupId || (this.currentQuiz && this.currentQuiz.group) || null;
+        const group = this.getCurrentGroup();
+
+        // World means everything is in-group (no dimming)
+        if (String(groupId).toLowerCase() === "world") return true;
+
+        // 1) If the group explicitly lists countries, match against that (normalized + aliases)
+        if (group && Array.isArray(group.countries) && group.countries.length > 0) {
+            const allowed = this.getAllowedNamesForCurrentGroup();
+            if (!allowed) return false;
+
+            const canon = this.getFeatureName(feature) || "";
+            const canonNorm = this.normalizeAnswer(canon);
+
+            // exact canonical or exact alias match only (preferred)
+            if (allowed.has(canonNorm)) return true;
+            const aliases = this.aliases?.[canon] || [];
+            for (const a of aliases) {
+                const an = this.normalizeAnswer(a);
+                if (an && allowed.has(an)) return true;
+            }
+
+            // permissive check: only allow substring matches when the allowed token is
+            // sufficiently specific (length >= 4 and not in a small stoplist)
+            const stoplist = new Set(["united", "republic", "kingdom", "states", "state", "of", "the", "and", "islands", "island", "isle"]);
+            for (const a of allowed) {
+                if (!a || a.length < 4) continue;
+                // skip if token composed entirely of stoplist words
+                const tokens = a.split(/\s+/).filter(Boolean);
+                if (tokens.every(t => stoplist.has(t))) continue;
+                if (canonNorm.includes(a) || a.includes(canonNorm)) return true;
+            }
+
+            return false;
+        }
+
+        // 2) continent fallback (if groupId maps to continent(s))
+        const gid = (groupId || "").toString().toLowerCase();
+        const continentMap = {
+            "africa": ["Africa"],
+            "europe": ["Europe"],
+            "asia": ["Asia"],
+            "north_america": ["North America"],
+            "south_america": ["South America"],
+            "americas": ["North America", "South America"],
+            "eurasia": ["Europe", "Asia"],
+            "oceania": ["Oceania"],
+            "latin_america": ["South America", "North America"]
+        };
+        const wantedContinents = continentMap[gid] || (group && group.continents) || null;
+        if (Array.isArray(wantedContinents) && wantedContinents.length > 0) {
+            const cont = feature.properties.CONTINENT || feature.properties.continent || "";
+            if (cont && wantedContinents.includes(cont)) return true;
+        }
+
+        // 3) admin / sovereign fallback for state-like groups (e.g. us_states)
+        if (gid === "us_states" || (group && String(group.borderset || "").toLowerCase() === "states")) {
+            const sov = feature.properties.SOVEREIGNT || feature.properties.sovereignt || "";
+            if (sov && this.normalizeAnswer(sov) === this.normalizeAnswer("United States of America")) return true;
+            const admin = feature.properties.ADMIN || feature.properties.admin || "";
+            if (admin && this.normalizeAnswer(admin).includes("united states")) return true;
+        }
+
+        return false;
+    },
+
+    // return a list of normalized name candidates for a feature to improve matching
+    getFeatureNameCandidates(feature) {
+        const p = (feature && feature.properties) ? feature.properties : {};
+        const candidates = [];
+        // canonical getter (human-friendly)
+        try { candidates.push(this.getFeatureName(feature)); } catch (e) {}
+        // fallbacks from common properties
+        [
+            p.SOVEREIGNT,
+            p.BRK_NAME,
+            p.NAME_LONG,
+            p.NAME,
+            p.ADMIN,
+            p.SUBUNIT,
+            p.SUBUNIT || p.SUBUNIT,
+            p.FORMAL_EN || p.FORMAL,
+            p.GEOUNIT
+        ].forEach(x => { if (x) candidates.push(String(x)); });
+
+        // include resolved aliases for canonical candidate(s)
+        const uniq = new Set(candidates.map(c => this.normalizeAnswer(c)));
+        for (const c of Array.from(uniq)) {
+            const canonical = this.normalizeAnswer(c);
+            // try to find the canonical key as stored in aliases (aliases keys are original canonical strings)
+            const aliasEntries = Object.entries(this.aliases || {});
+            for (const [can, aliasList] of aliasEntries) {
+                if (this.normalizeAnswer(can) === canonical) {
+                    uniq.add(canonical);
+                    for (const a of aliasList) uniq.add(this.normalizeAnswer(a));
+                }
+            }
+        }
+
+        return Array.from(uniq);
+    },
+
+    // build the fill-color expression used for the main fill layer.
+    // If `dimOutside` is true, non-group features are drawn as a muted gray.
+    buildFillColorExpression(dimOutside = false) {
+        const normalMatch = [
+            "match",
+            ["feature-state", "quizState"],
+            "target", "#ffd54f",
+            "correct", "#4caf50",
+            "wrong", "#f44336",
+            // explicit default fill for in-group, previously transparent — make it the site base fill
+            "#e8e3d3"
+        ];
+
+        if (!dimOutside) return normalMatch;
+
+        // If dimOutside: use inGroup feature-state to decide between normal coloring or muted gray.
+        return [
+            "case",
+            ["==", ["feature-state", "inGroup"], true],
+            normalMatch,
+            /* else */ "#777777ff"
+        ];
+    },
+
+    // runtime API: toggle base/outline borders without reloading the page
+    setShowBorders(show) {
+        const effective = typeof show === "boolean" ? show : this.showBordersInitial;
+        this.currentShowBorders = effective;
+
+        try {
+            if (this.map.getLayer(this.mainFillLayerId)) {
+                // keep paint deterministic and driven by inGroup/quizState
+                this.map.setPaintProperty(this.mainFillLayerId, "fill-color", [
+                    "case",
+                    ["==", ["feature-state", "inGroup"], true],
+                        ["case",
+                            ["==", ["feature-state", "quizState"], "correct"], "#4CAF50",
+                            ["==", ["feature-state", "quizState"], "incorrect"], "#E53935",
+                            // default in-group color (matches earlier theme)
+                            "#e8e3d3"
+                        ],
+                    "#777777ff"
+                ]);
+                this.map.setPaintProperty(this.mainFillLayerId, "fill-opacity", [
+                    "case",
+                    ["==", ["feature-state", "inGroup"], true], 0.7,
+                    ["!=", ["feature-state", "quizState"], null], 0.7,
+                    0.16
+                ]);
+             }
+
+            // toggle outline layer opacity if an outline layer id exists for this mode
+            if (MODE.outlineLayerId && this.map.getLayer(MODE.outlineLayerId)) {
+                this.map.setPaintProperty(MODE.outlineLayerId, "line-opacity", Boolean(effective) ? 1 : 0);
+            }
+
+        } catch (e) {
+            // ignore errors if layers/sources are not yet ready
+        }
+    },
 
     normalizeAnswer(text) {
         return String(text)
@@ -208,48 +367,39 @@ const SmurdyQuiz = {
 
     buildResolvedAliases() {
         const resolved = {};
-        const canonicalNames = this.getAllNames();
+        // canonical names from loaded dataset (or fallback)
+        const canonicalNames = (this.mainData && Array.isArray(this.mainData.features))
+            ? this.mainData.features.map(f => this.getFeatureName(f)).filter(Boolean)
+            : this.getAllNames();
 
         const canonicalByNormalized = new Map();
-        for (const name of canonicalNames) {
-            canonicalByNormalized.set(this.normalizeAnswer(name), name);
-        }
+        for (const name of canonicalNames) canonicalByNormalized.set(this.normalizeAnswer(name), name);
 
         for (const [key, value] of Object.entries(this.rawAliases || {})) {
-            const aliasList = Array.isArray(value) ? value : [value];
-
-            const matchedCanonical =
-                canonicalByNormalized.get(this.normalizeAnswer(key)) || null;
-
+            let matchedCanonical = canonicalByNormalized.get(this.normalizeAnswer(key)) || null;
+            // quickly try to find a canonical name that contains the key (permissive)
             if (!matchedCanonical) {
-                console.warn(`Alias key "${key}" did not match any canonical feature name.`);
-                continue;
+                const k = this.normalizeAnswer(key);
+                for (const [norm, can] of canonicalByNormalized.entries()) {
+                    if (norm.includes(k) || k.includes(norm)) { matchedCanonical = can; break; }
+                }
             }
-
-            if (!resolved[matchedCanonical]) {
-                resolved[matchedCanonical] = [];
-            }
-
-            const allAliases = [key, ...aliasList];
-
-            for (const alias of allAliases) {
-                const normalizedAlias = this.normalizeAnswer(alias);
-                const normalizedCanonical = this.normalizeAnswer(matchedCanonical);
-
-                if (
-                    normalizedAlias &&
-                    normalizedAlias !== normalizedCanonical &&
-                    !resolved[matchedCanonical].some(
-                        existing => this.normalizeAnswer(existing) === normalizedAlias
-                    )
-                ) {
-                    resolved[matchedCanonical].push(alias);
+            if (!matchedCanonical) continue;
+            if (!resolved[matchedCanonical]) resolved[matchedCanonical] = [];
+            const aliasList = Array.isArray(value) ? value : [value];
+            const all = [key, ...aliasList];
+            for (const a of all) {
+                if (!a) continue;
+                const an = this.normalizeAnswer(a);
+                if (!an) continue;
+                if (an === this.normalizeAnswer(matchedCanonical)) continue;
+                if (!resolved[matchedCanonical].some(existing => this.normalizeAnswer(existing) === an)) {
+                    resolved[matchedCanonical].push(a);
                 }
             }
         }
-
         this.aliases = resolved;
-    },
+     },
 
     isAcceptedAnswer(canonicalName, userAnswer) {
         const normalizedUser = this.normalizeAnswer(userAnswer);
@@ -278,14 +428,15 @@ const SmurdyQuiz = {
     },
 
     clearAllStates() {
-        if (this.mainData) {
+        if (this.mainData && Array.isArray(this.mainData.features)) {
             for (const feature of this.mainData.features) {
-                this.map.setFeatureState(
-                    { source: MODE.sourceId, id: feature.id },
-                    { quizState: null }
-                );
+                const inGroup = this.isFeatureInCurrentGroup(feature);
+                this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup });
             }
         }
+        
+        // Re-apply paint logic now that inGroup states exist so dimming and borders update
+        try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
 
         if (this.tinyData) {
             for (const feature of this.tinyData.features) {
@@ -298,35 +449,26 @@ const SmurdyQuiz = {
     },
 
     setFeatureStateByName(name, quizState) {
-        const target = String(name).toLowerCase();
+        const targetNorm = this.normalizeAnswer(name);
         let found = false;
-
         if (this.mainData) {
             for (const feature of this.mainData.features) {
                 const featureName = this.getFeatureName(feature);
-                if (featureName.toLowerCase() === target) {
-                    this.map.setFeatureState(
-                        { source: MODE.sourceId, id: feature.id },
-                        { quizState }
-                    );
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
                     found = true;
                 }
             }
         }
-
         if (this.tinyData) {
             for (const feature of this.tinyData.features) {
                 const featureName = this.getFeatureName(feature);
-                if (featureName.toLowerCase() === target) {
-                    this.map.setFeatureState(
-                        { source: "quiz-tiny-source", id: feature.id },
-                        { quizState }
-                    );
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { quizState });
                     found = true;
                 }
             }
         }
-
         return found;
     },
 
@@ -484,7 +626,7 @@ const SmurdyQuiz = {
         });
     },
 
-    loadQuizScript(path) {
+    loadQuizScript(quizRef) {
         const oldQuizScript = document.getElementById("active-quiz-script");
         if (oldQuizScript) oldQuizScript.remove();
 
@@ -492,28 +634,84 @@ const SmurdyQuiz = {
         if (oldRunnerScript) oldRunnerScript.remove();
 
         const runner = document.createElement("script");
-        runner.src = "./quizzes/quiz_runner.js";
+        // load the runner from the new location
+        runner.src = "/src/js/quiz_runner.js";
         runner.id = "quiz-runner-script";
 
         runner.onload = () => {
-            const script = document.createElement("script");
-            script.src = path;
-            script.id = "active-quiz-script";
-            document.body.appendChild(script);
+            try {
+                // If caller passed an inline config object, call runNameQuiz directly after runner is ready
+                if (quizRef && typeof quizRef === "object") {
+                    // give the runner a tick to initialize its globals
+                    setTimeout(() => {
+                        if (typeof window.runNameQuiz === "function") {
+                            window.runNameQuiz(quizRef);
+                        } else {
+                            console.error("Quiz runner loaded but runNameQuiz() is not available.");
+                        }
+                    }, 8);
+                    return;
+                }
+
+                // manifest:ID references — resolve to manifest entry and either use its config or file
+                if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) {
+                    const id = quizRef.split(":")[1];
+                    const def = (window.SmurdyQuizManifest || []).find(m => m.id === id);
+                    if (!def) {
+                        console.error("Manifest quiz not found:", id);
+                        return;
+                    }
+
+                    if (def.config && typeof def.config === "object") {
+                        setTimeout(() => {
+                            if (typeof window.runNameQuiz === "function") {
+                                window.runNameQuiz(def.config);
+                            } else {
+                                console.error("Quiz runner loaded but runNameQuiz() is not available.");
+                            }
+                        }, 8);
+                        return;
+                    }
+
+                    // fallback: if manifest still references an external file, load it (backwards compatible)
+                    if (def.file && typeof def.file === "string") {
+                        const quizScript = document.createElement("script");
+                        quizScript.src = def.file;
+                        quizScript.id = "active-quiz-script";
+                        document.body.appendChild(quizScript);
+                        return;
+                    }
+
+                    console.error("Manifest entry has no config or file:", id);
+                    return;
+                }
+
+                // legacy: direct path string
+                if (typeof quizRef === "string") {
+                    const quizScript = document.createElement("script");
+                    quizScript.src = quizRef;
+                    quizScript.id = "active-quiz-script";
+                    document.body.appendChild(quizScript);
+                }
+            } catch (err) {
+                console.error("Failed to load quiz script", err);
+            }
         };
 
         document.body.appendChild(runner);
+
+        // ensure borders reflect currentShowBorders after (re)loading runner/resources
+        runner.addEventListener("load", () => {
+            try { this.setShowBorders(this.currentShowBorders); } catch (e) { /* ignore */ }
+        });
     },
 
     getQuizFeaturePool() {
-        let features = this.mainData.features;
-
-        if (!this.currentQuiz?.group) {
-            return features;
-        }
-
-        const allowedNames = new Set(this.groups?.[this.currentQuiz.group] || []);
-        return features.filter(f => allowedNames.has(this.getFeatureName(f)));
+        const features = (this.mainData && this.mainData.features) || [];
+        if (!this.currentQuiz?.group) return features;
+        const allowed = this.getAllowedNamesForCurrentGroup();
+        if (!allowed) return features;
+        return features.filter(f => allowed.has(this.normalizeAnswer(this.getFeatureName(f))));
     },
 
     getCurrentGroup() {
@@ -524,23 +722,95 @@ const SmurdyQuiz = {
         const group = this.getCurrentGroup();
         if (!group) return null;
 
-        if (!Array.isArray(group.countries) || group.countries.length === 0) {
-            return null;
+        // If explicit country list exists, build allowed set from it (including aliases)
+        if (Array.isArray(group.countries) && group.countries.length > 0) {
+            const allowed = new Set();
+            const allFeatures = (this.mainData && Array.isArray(this.mainData.features)) ? this.mainData.features : [];
+
+            for (const rawName of group.countries) {
+                const normRaw = this.normalizeAnswer(rawName);
+                if (!normRaw) continue;
+                // don't add obviously tiny tokens (e.g. "of", "the", single letters)
+                if (normRaw.length < 2) continue;
+                allowed.add(normRaw);
+
+                // try to find matching canonical feature and include its canonical + aliases
+                const feat = allFeatures.find(f => this.normalizeAnswer(this.getFeatureName(f)) === normRaw);
+                if (feat) {
+                    const canonical = this.getFeatureName(feat);
+                    allowed.add(this.normalizeAnswer(canonical));
+                    const aliases = this.aliases?.[canonical] || [];
+                    for (const a of aliases) {
+                        const an = this.normalizeAnswer(a);
+                        // skip too-generic or empty aliases
+                        if (!an || an.length < 2) continue;
+                        allowed.add(an);
+                    }
+                } else {
+                    // also include any canonical names that contain the raw term (word-boundary)
+                    for (const f of allFeatures) {
+                        const canon = this.getFeatureName(f) || "";
+                        const canonNorm = this.normalizeAnswer(canon);
+                        if (canonNorm.includes(normRaw) || normRaw.includes(canonNorm)) {
+                            allowed.add(canonNorm);
+                            const aliases = this.aliases?.[canon] || [];
+                            for (const a of aliases) {
+                                const an = this.normalizeAnswer(a);
+                                if (!an || an.length < 2) continue;
+                                allowed.add(an);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return allowed.size ? allowed : null;
         }
 
-        return new Set(group.countries);
+        // Fallback: derive groups by common continent/region if no explicit country list is provided.
+        // Map common group ids to CONTINENT values in the GeoJSON.
+        const gid = (this.currentGroupId || "").toString().toLowerCase();
+        const continentMap = {
+            "africa": ["Africa"],
+            "europe": ["Europe"],
+            "asia": ["Asia"],
+            "north_america": ["North America"],
+            "south_america": ["South America"],
+            "americas": ["North America", "South America"],
+            "eurasia": ["Europe", "Asia"],
+            "oceania": ["Oceania"],
+            "australia": ["Oceania"],
+            "latin_america": ["South America", "North America"]
+        };
+
+        const continents = continentMap[gid] || (group.continents || null);
+        if (Array.isArray(continents) && continents.length > 0) {
+            const allowed = new Set();
+            const allFeatures = (this.mainData && Array.isArray(this.mainData.features)) ? this.mainData.features : [];
+            for (const f of allFeatures) {
+                const p = f.properties || {};
+                const cont = p.CONTINENT || p.continent || "";
+                if (!cont) continue;
+                if (continents.includes(cont)) {
+                    const canonical = this.getFeatureName(f);
+                    allowed.add(this.normalizeAnswer(canonical));
+                    const aliases = this.aliases?.[canonical] || [];
+                    for (const a of aliases) allowed.add(this.normalizeAnswer(a));
+                }
+            }
+            return allowed.size ? allowed : null;
+        }
+
+        return null;
     },
 
     getQuizFeatures() {
         if (!this.mainData?.features) return [];
 
-        const allowedNames = this.getAllowedNamesForCurrentGroup();
-        if (!allowedNames) {
-            return this.mainData.features;
-        }
-
+        const allowed = this.getAllowedNamesForCurrentGroup();
+        if (!allowed) return this.mainData.features;
         return this.mainData.features.filter(feature =>
-            allowedNames.has(this.getFeatureName(feature))
+            allowed.has(this.normalizeAnswer(this.getFeatureName(feature)))
         );
     },
 
@@ -551,15 +821,11 @@ const SmurdyQuiz = {
     },
 
     getFeatureByName(name) {
-        const target = String(name).toLowerCase();
-
+        const targetNorm = this.normalizeAnswer(name);
         for (const feature of this.getQuizFeatures()) {
             const featureName = this.getFeatureName(feature);
-            if (featureName.toLowerCase() === target) {
-                return feature;
-            }
+            if (this.normalizeAnswer(featureName) === targetNorm) return feature;
         }
-
         return null;
     }
 }
@@ -570,7 +836,7 @@ map.on("load", async () => {
     const style = map.getStyle();
 
     try {
-        const aliasesResponse = await fetch("./aliases.json");
+        const aliasesResponse = await fetch("/src/data/aliases.json");
         SmurdyQuiz.rawAliases = await aliasesResponse.json();
     } catch (err) {
         console.warn("Could not load aliases.json, continuing without aliases.", err);
@@ -578,7 +844,7 @@ map.on("load", async () => {
     }
 
     try {
-        const groupsResponse = await fetch("./country_groups.json");
+        const groupsResponse = await fetch("/src/data/country_groups.json");
         SmurdyQuiz.groups = await groupsResponse.json();
     } catch (err) {
         console.warn("Could not load country_groups.json, continuing without groups.", err);
@@ -627,18 +893,30 @@ map.on("load", async () => {
         return;
     }
 
+    // keep the full dataset but allow mode-specific filtering (e.g. remove non-US states)
     SmurdyQuiz.mainData.features = MODE.filterFeatures(SmurdyQuiz.mainData.features);
 
+    // do NOT filter the mainData to the group; we'll dim non-group features via feature-state.
     const allowedNames = SmurdyQuiz.getAllowedNamesForCurrentGroup();
-    if (allowedNames) {
-        SmurdyQuiz.mainData.features = SmurdyQuiz.mainData.features.filter(feature =>
-            allowedNames.has(SmurdyQuiz.getFeatureName(feature))
-        );
-    }
 
-    SmurdyQuiz.mainData.features.forEach((feature, index) => {
-        feature.id = index;
-    });
+    // dedupe mainData features by normalized canonical name (keep first occurrence)
+    {
+        const seen = new Set();
+        const deduped = [];
+        for (const rawFeature of (SmurdyQuiz.mainData.features || [])) {
+            const canon = SmurdyQuiz.getFeatureName(rawFeature) || "";
+            const norm = SmurdyQuiz.normalizeAnswer(canon);
+            if (!norm) continue;
+            if (seen.has(norm)) {
+                // skip duplicate canonical entries (keeps first)
+                continue;
+            }
+            seen.add(norm);
+            deduped.push(rawFeature);
+        }
+        SmurdyQuiz.mainData.features = deduped;
+        SmurdyQuiz.mainData.features.forEach((feature, index) => { feature.id = index; });
+    }
 
     SmurdyQuiz.buildResolvedAliases();
 
@@ -664,36 +942,75 @@ map.on("load", async () => {
         type: "fill",
         source: MODE.sourceId,
         paint: {
+            // Use the theme expression for in-group features, dim gray for out-of-group.
             "fill-color": [
-                "match",
-                ["feature-state", "quizState"],
-                "target", "#ffd54f",
-                "correct", "#4caf50",
-                "wrong", "#f44336",
-                "completed", "#64b5f6",
-                "rgba(0,0,0,0)"
+                "case",
+                ["==", ["feature-state", "inGroup"], true],
+                    SmurdyQuiz.buildFillColorExpression(Boolean(showBorders)),
+                "#777777ff"
             ],
             "fill-opacity": [
                 "case",
-                ["!=", ["feature-state", "quizState"], null],
-                0.6,
-                0
+                ["==", ["feature-state", "inGroup"], true], 0.7,
+                ["!=", ["feature-state", "quizState"], null], 0.7,
+                0.16
             ]
-        }
-    });
+         }
+     });
 
-    if (MODE.outlineLayerId && showBorders) {
+    // Ensure an outline layer exists for borders (some MODEs may not set outlineLayerId)
+    if (!MODE.outlineLayerId) {
+        MODE.outlineLayerId = `${MODE.sourceId}-outline`;
+    }
+    
+    if (!map.getLayer(MODE.outlineLayerId)) {
         map.addLayer({
             id: MODE.outlineLayerId,
             type: "line",
             source: MODE.sourceId,
             paint: {
-                "line-color": "#666666",
-                "line-width": 1.2,
-                "line-opacity": 0.9
+                "line-color": "#444",
+                "line-width": 0.8,
+                "line-opacity": showBorders ? 1 : 0
             }
         });
     }
+
+    // set per-feature inGroup feature-state now (so expressions using feature-state work)
+    try {
+        const allowed = allowedNames;
+        // Batch feature-state writes to avoid blocking the main thread for large feature sets
+        if (SmurdyQuiz.mainData && Array.isArray(SmurdyQuiz.mainData.features)) {
+            const features = SmurdyQuiz.mainData.features;
+            const batchSize = 250;
+            let i = 0;
+            const writeBatch = () => {
+                const end = Math.min(i + batchSize, features.length);
+                for (; i < end; i++) {
+                    const f = features[i];
+                    const inGroup = this.isFeatureInCurrentGroup(f);
+                    this.map.setFeatureState({ source: MODE.sourceId, id: f.id }, { inGroup });
+                }
+                if (i < features.length) {
+                    // yield to the browser briefly
+                    setTimeout(writeBatch, 8);
+                } else {
+                    // once all states set, re-apply paint so borders/opacity update
+                    try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
+                    // deterministic final pass to correct any mismatched feature-states
+                    finalizeFeatureStates();
+                }
+            };
+            writeBatch();
+        }
+    } catch (e) {
+        // ignore if source/layers not ready
+    }
+
+    // Re-apply borders/dimming now that per-feature inGroup states exist
+    try {
+        SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders);
+    } catch (e) { /* ignore */ }
 
     if (MODE.usesTinyPoints && MODE.tinyFile) {
         const tinyResponse = await fetch(MODE.tinyFile);
@@ -705,16 +1022,23 @@ map.on("load", async () => {
         ) {
             SmurdyQuiz.tinyData.features = MODE.filterTinyFeatures(SmurdyQuiz.tinyData.features);
             
-            const tinyAllowedNames = SmurdyQuiz.getAllowedNamesForCurrentGroup();
-            if (tinyAllowedNames) {
-                SmurdyQuiz.tinyData.features = SmurdyQuiz.tinyData.features.filter(feature =>
-                    tinyAllowedNames.has(SmurdyQuiz.getFeatureName(feature))
-                );
-            }
+            // do not filter tinyData — mark inGroup via feature-state below so we can dim non-group dots
 
-            SmurdyQuiz.tinyData.features.forEach((feature, index) => {
-                feature.id = index;
-            });
+            // When loading tinyData, apply similar dedupe before assigning IDs
+            {
+                const seenTiny = new Set();
+                const dedupTiny = [];
+                for (const rawFeature of (SmurdyQuiz.tinyData.features || [])) {
+                    const canon = SmurdyQuiz.getFeatureName(rawFeature) || "";
+                    const norm = SmurdyQuiz.normalizeAnswer(canon);
+                    if (!norm) continue;
+                    if (seenTiny.has(norm)) continue;
+                    seenTiny.add(norm);
+                    dedupTiny.push(rawFeature);
+                }
+                SmurdyQuiz.tinyData.features = dedupTiny;
+                SmurdyQuiz.tinyData.features.forEach((feature, index) => { feature.id = index; });
+            }
 
             if (map.getLayer("quiz-tiny-circle")) {
                 map.removeLayer("quiz-tiny-circle");
@@ -749,7 +1073,6 @@ map.on("load", async () => {
                         "target", "#ffd54f",
                         "correct", "#4caf50",
                         "wrong", "#f44336",
-                        "completed", "#64b5f6",
                         "#666666"
                     ],
                     "circle-opacity": [
@@ -775,8 +1098,28 @@ map.on("load", async () => {
             map.on("mouseleave", "quiz-tiny-circle", () => {
                 map.getCanvas().style.cursor = "";
             });
-        }
-    }
+
+            // set inGroup for tiny features as well
+            try {
+                if (SmurdyQuiz.tinyData && Array.isArray(SmurdyQuiz.tinyData.features)) {
+                    const tiny = SmurdyQuiz.tinyData.features;
+                    const batchSizeTiny = 300;
+                    let j = 0;
+                    const writeTiny = () => {
+                        const end = Math.min(j + batchSizeTiny, tiny.length);
+                        for (; j < end; j++) {
+                            const f = tiny[j];
+                            const inGroup = SmurdyQuiz.isFeatureInCurrentGroup(f);
+                            map.setFeatureState({ source: "quiz-tiny-source", id: f.id }, { inGroup });
+                        }
+                        if (j < tiny.length) setTimeout(writeTiny, 8);
+                        else try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
+                    };
+                    writeTiny();
+                }
+            } catch (e) {}
+         }
+     }
 
     map.on("mouseenter", MODE.fillLayerId, () => {
         map.getCanvas().style.cursor = "pointer";
@@ -791,12 +1134,43 @@ map.on("load", async () => {
         SmurdyQuiz.loadQuizScript(quizFile);
     } else {
         const manifestScript = document.createElement("script");
-        manifestScript.src = "./quizzes/manifest.js";
-        manifestScript.onload = () => {
-            const browseScript = document.createElement("script");
-            browseScript.src = "./browse.js";
-            document.body.appendChild(browseScript);
-        };
+        // ensure manifest comes from the new location
+        manifestScript.src = "/src/js/manifest.js";
+        manifestScript.id = "quiz-manifest-script";
         document.body.appendChild(manifestScript);
     }
 });
+
+// add helper to finalize and correct feature-states after batches
+function finalizeFeatureStates() {
+    try {
+        if (SmurdyQuiz.mainData && Array.isArray(SmurdyQuiz.mainData.features)) {
+            for (const feature of SmurdyQuiz.mainData.features) {
+                const expected = !!SmurdyQuiz.isFeatureInCurrentGroup(feature);
+                const state = map.getFeatureState({ source: MODE.sourceId, id: feature.id }) || {};
+                const current = !!state.inGroup;
+                if (current !== expected) {
+                    map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup: expected });
+                    // lightweight debug for persistent anomalies
+                    if (["united states of america","united kingdom","denmark","finland"].includes(SmurdyQuiz.normalizeAnswer(SmurdyQuiz.getFeatureName(feature)))) {
+                        console.debug("fix inGroup:", feature.id, SmurdyQuiz.getFeatureName(feature), "from", current, "to", expected);
+                    }
+                }
+            }
+        }
+        if (SmurdyQuiz.tinyData && Array.isArray(SmurdyQuiz.tinyData.features)) {
+            for (const feature of SmurdyQuiz.tinyData.features) {
+                const expected = !!SmurdyQuiz.isFeatureInCurrentGroup(feature);
+                const state = map.getFeatureState({ source: "quiz-tiny-source", id: feature.id }) || {};
+                const current = !!state.inGroup;
+                if (current !== expected) {
+                    map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { inGroup: expected });
+                }
+            }
+        }
+        // ensure paint uses latest states and outline visible
+        try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch(e){}
+    } catch (e) {
+        console.warn("finalizeFeatureStates failed", e);
+    }
+}

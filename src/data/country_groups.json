@@ -1,12 +1,14 @@
 {
     "world": {
         "label": "World",
-        "countries": [],
-        "allowedTypes": ["click", "type", "find"]
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries"
     },
 
     "africa": {
         "label": "Africa",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Algeria",
             "Angola",
@@ -48,26 +50,29 @@
             "Niger",
             "Nigeria",
             "Rwanda",
-            "Sao Tome and Principe",
+            "São Tomé and Principe",
             "Senegal",
             "Seychelles",
             "Sierra Leone",
             "Somalia",
+            "Somaliland",
             "South Africa",
             "South Sudan",
             "Sudan",
-            "Tanzania",
             "Togo",
             "Tunisia",
             "Uganda",
+            "United Republic of Tanzania",
+            "Western Sahara",
             "Zambia",
             "Zimbabwe"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "europe": {
         "label": "Europe",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Albania",
             "Andorra",
@@ -102,9 +107,9 @@
             "Norway",
             "Poland",
             "Portugal",
+            "Republic of Serbia",
             "Romania",
             "San Marino",
-            "Serbia",
             "Slovakia",
             "Slovenia",
             "Spain",
@@ -113,12 +118,13 @@
             "Ukraine",
             "United Kingdom",
             "Vatican"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "asia": {
         "label": "Asia",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Afghanistan",
             "Armenia",
@@ -130,6 +136,7 @@
             "Cambodia",
             "China",
             "Cyprus",
+            "East Timor",
             "Georgia",
             "India",
             "Indonesia",
@@ -149,12 +156,15 @@
             "Myanmar",
             "Nepal",
             "North Korea",
+            "Northern Cyprus",
             "Oman",
             "Pakistan",
             "Palestine",
             "Philippines",
             "Qatar",
+            "Russia",
             "Saudi Arabia",
+            "Siachen Glacier",
             "Singapore",
             "South Korea",
             "Sri Lanka",
@@ -162,22 +172,22 @@
             "Taiwan",
             "Tajikistan",
             "Thailand",
-            "Timor-Leste",
             "Turkey",
             "Turkmenistan",
             "United Arab Emirates",
             "Uzbekistan",
             "Vietnam",
             "Yemen"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "north_america": {
         "label": "North America",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Antigua and Barbuda",
-            "Bahamas",
+            "The Bahamas",
             "Barbados",
             "Belize",
             "Canada",
@@ -198,13 +208,14 @@
             "Saint Lucia",
             "Saint Vincent and the Grenadines",
             "Trinidad and Tobago",
-            "United States"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+            "United States of America"
+        ]
     },
 
     "south_america": {
         "label": "South America",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Argentina",
             "Bolivia",
@@ -218,12 +229,13 @@
             "Suriname",
             "Uruguay",
             "Venezuela"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "eurasia": {
         "label": "Eurasia",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Albania",
             "Andorra",
@@ -258,9 +270,9 @@
             "Norway",
             "Poland",
             "Portugal",
+            "Republic of Serbia",
             "Romania",
             "San Marino",
-            "Serbia",
             "Slovakia",
             "Slovenia",
             "Spain",
@@ -269,7 +281,6 @@
             "Ukraine",
             "United Kingdom",
             "Vatican",
-
             "Afghanistan",
             "Armenia",
             "Azerbaijan",
@@ -280,6 +291,7 @@
             "Cambodia",
             "China",
             "Cyprus",
+            "East Timor",
             "Georgia",
             "India",
             "Indonesia",
@@ -299,12 +311,15 @@
             "Myanmar",
             "Nepal",
             "North Korea",
+            "Northern Cyprus",
             "Oman",
             "Pakistan",
             "Palestine",
             "Philippines",
             "Qatar",
+            "Russia",
             "Saudi Arabia",
+            "Siachen Glacier",
             "Singapore",
             "South Korea",
             "Sri Lanka",
@@ -312,22 +327,22 @@
             "Taiwan",
             "Tajikistan",
             "Thailand",
-            "Timor-Leste",
             "Turkey",
             "Turkmenistan",
             "United Arab Emirates",
             "Uzbekistan",
             "Vietnam",
             "Yemen"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "americas": {
         "label": "Americas",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "countries",
         "countries": [
             "Antigua and Barbuda",
-            "Bahamas",
+            "The Bahamas",
             "Barbados",
             "Belize",
             "Canada",
@@ -348,8 +363,7 @@
             "Saint Lucia",
             "Saint Vincent and the Grenadines",
             "Trinidad and Tobago",
-            "United States",
-
+            "United States of America",
             "Argentina",
             "Bolivia",
             "Brazil",
@@ -362,12 +376,13 @@
             "Suriname",
             "Uruguay",
             "Venezuela"
-        ],
-        "allowedTypes": ["click", "type", "find"]
+        ]
     },
 
     "latin_america": {
         "label": "Latin America",
+        "allowedTypes": ["click", "type"],
+        "borderset": "countries",
         "countries": [
             "Mexico",
             "Guatemala",
@@ -390,12 +405,13 @@
             "Peru",
             "Uruguay",
             "Venezuela"
-        ],
-        "allowedTypes": ["click", "type"]
+        ]
     },
 
     "tiny_countries": {
         "label": "Tiny Countries",
+        "allowedTypes": ["click", "type"],
+        "borderset": "countries",
         "countries": [
             "Andorra",
             "Antigua and Barbuda",
@@ -419,21 +435,23 @@
             "Saint Vincent and the Grenadines",
             "Samoa",
             "San Marino",
-            "Sao Tome and Principe",
+            "São Tomé and Principe",
             "Seychelles",
             "Singapore",
+            "Siachen Glacier",
             "Tonga",
             "Tuvalu",
             "Vatican"
-        ],
-        "allowedTypes": ["click", "type"]
+        ]
     },
 
     "small_island_countries": {
         "label": "Small Island Countries",
+        "allowedTypes": ["click", "type"],
+        "borderset": "countries",
         "countries": [
             "Antigua and Barbuda",
-            "Bahamas",
+            "The Bahamas",
             "Barbados",
             "Cape Verde",
             "Comoros",
@@ -447,27 +465,29 @@
             "Mauritius",
             "Micronesia",
             "Nauru",
+            "New Caledonia",
             "Palau",
             "Saint Kitts and Nevis",
             "Saint Lucia",
             "Saint Vincent and the Grenadines",
             "Samoa",
-            "Sao Tome and Principe",
+            "São Tomé and Principe",
             "Seychelles",
             "Solomon Islands",
             "Tonga",
             "Trinidad and Tobago",
             "Tuvalu",
             "Vanuatu"
-        ],
-        "allowedTypes": ["click", "type"]
+        ]
     },
 
     "caribbean_islands": {
         "label": "Caribbean Islands",
+        "allowedTypes": ["click", "type"],
+        "borderset": "countries",
         "countries": [
             "Antigua and Barbuda",
-            "Bahamas",
+            "The Bahamas",
             "Barbados",
             "Cuba",
             "Dominica",
@@ -479,12 +499,13 @@
             "Saint Lucia",
             "Saint Vincent and the Grenadines",
             "Trinidad and Tobago"
-        ],
-        "allowedTypes": ["click", "type"]
+        ]
     },
 
     "pacific_islands": {
         "label": "Pacific Islands",
+        "allowedTypes": ["click", "type"],
+        "borderset": "countries",
         "countries": [
             "Fiji",
             "Kiribati",
@@ -498,64 +519,22 @@
             "Tonga",
             "Tuvalu",
             "Vanuatu"
-        ],
-        "allowedTypes": ["click", "type"]
+        ]
     },
 
-    "least_visited_50": {
-        "label": " Least Visited Countries",
+    "us_states": {
+        "label": "United States (states)",
+        "allowedTypes": ["click", "type", "find"],
+        "borderset": "states",
         "countries": [
-            "Tuvalu",
-            "Marshall Islands",
-            "Niue",
-            "Kiribati",
-            "Federated States of Micronesia",
-            "Montserrat",
-            "Solomon Islands",
-            "Sao Tome and Principe",
-            "Comoros",
-            "Guinea-Bissau",
-            "American Samoa",
-            "Sierra Leone",
-            "Chad",
-            "Timor-Leste",
-            "Central African Republic",
-            "Tonga",
-            "Palau",
-            "Liechtenstein",
-            "Burkina Faso",
-            "Anguilla",
-            "Cook Islands",
-            "Moldova",
-            "Samoa",
-            "Niger",
-            "Papua New Guinea",
-            "Mali",
-            "Angola",
-            "Vanuatu",
-            "French Polynesia",
-            "Guyana",
-            "Bhutan",
-            "Dominica",
-            "Bangladesh",
-            "Benin",
-            "Monaco",
-            "Saint Vincent and the Grenadines",
-            "Seychelles",
-            "New Caledonia",
-            "Trinidad and Tobago",
-            "Madagascar",
-            "Northern Mariana Islands",
-            "Grenada",
-            "Reunion",
-            "Mongolia",
-            "Gambia",
-            "North Macedonia",
-            "Cape Verde",
-            "Bermuda",
-            "Ethiopia",
-            "Togo"
-        ],
-        "allowedTypes": ["click", "type"]
+            "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
+            "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+            "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
+            "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire",
+            "New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio",
+            "Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota",
+            "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia",
+            "Wisconsin","Wyoming","District of Columbia"
+        ]
     }
 }

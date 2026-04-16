@@ -1,0 +1,1184 @@
+const urlParams = new URLSearchParams(window.location.search);
+const mode = urlParams.get("mode") || "countries";
+const showBorders = urlParams.get("borders") === "1";
+const quizGroupId = urlParams.get("group") || "world";
+
+const TINY_COUNTRIES = new Set([
+    "Andorra",
+    "Antigua and Barbuda",
+    "Bahrain",
+    "Barbados",
+    "Comoros",
+    "Dominica",
+    "Grenada",
+    "Liechtenstein",
+    "Luxembourg",
+    "Maldives",
+    "Malta",
+    "Marshall Islands",
+    "Mauritius",
+    "Micronesia",
+    "Monaco",
+    "Nauru",
+    "Palau",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Samoa",
+    "San Marino",
+    "Sao Tome and Principe",
+    "Seychelles",
+    "Singapore",
+    "Tonga",
+    "Tuvalu",
+    "Vatican"
+]);
+
+const MODE_CONFIGS = {
+    countries: {
+        dataFile: "/src/data/countries.json",
+        tinyFile: "/src/data/tiny_countries.json",
+        mapCenter: [0, 20],
+        mapZoom: 1.8,
+        minZoom: 1,
+        maxZoom: 12,
+        sourceId: "quiz-main",
+        fillLayerId: "quiz-main-fill",
+        outlineLayerId: null,
+        usesTinyPoints: true,
+
+        getRawFeatureName(feature) {
+            if (!feature || !feature.properties) return "Unknown";
+            const p = feature.properties;
+            return (
+                p.ADMIN ||
+                p.NAME_LONG ||
+                p.NAME_EN ||
+                p.NAME ||
+                p.name ||
+                "Unknown"
+            );
+        },
+
+        getCanonicalFeatureName(feature) {
+            if (!feature || !feature.properties) return "Unknown";
+            const p = feature.properties;
+
+            const rawName =
+                p.ADMIN ||
+                p.NAME_EN ||
+                p.NAME ||
+                p.name ||
+                "Unknown";
+
+            const sovereign =
+                p.SOVEREIGNT ||
+                p.BRK_NAME ||
+                p.NAME_LONG ||
+                rawName;
+
+            const typeString =
+                typeof p.TYPE === "string" ? p.TYPE.toLowerCase() : "";
+
+            const isTerritory =
+                p.ADM0_DIF === 1 ||
+                typeString.includes("dependency") ||
+                typeString.includes("territory");
+
+            return isTerritory ? sovereign : rawName;
+        },
+
+        filterFeatures(features) {
+            return features;
+        },
+
+        filterTinyFeatures(features) {
+            return features.filter(feature => {
+                const rawName = this.getRawFeatureName(feature);
+                const canonicalName = this.getCanonicalFeatureName(feature);
+                const isMergedTerritory = rawName !== canonicalName;
+                return !isMergedTerritory && TINY_COUNTRIES.has(canonicalName);
+            });
+        }
+    },
+
+    states: {
+        dataFile: "/src/data/states.json",
+        tinyFile: null,
+        mapCenter: [-96, 37.8],
+        mapZoom: 3.3,
+        minZoom: 2.5,
+        maxZoom: 12,
+        sourceId: "quiz-main",
+        fillLayerId: "quiz-main-fill",
+        outlineLayerId: "quiz-main-outline",
+        usesTinyPoints: false,
+
+        getRawFeatureName(feature) {
+            if (!feature || !feature.properties) return "Unknown";
+            const p = feature.properties;
+            return (
+                p.name ||
+                p.name_en ||
+                p.NAME ||
+                p.NAME_EN ||
+                p.postal ||
+                p.POSTAL ||
+                "Unknown"
+            );
+        },
+
+        getCanonicalFeatureName(feature) {
+            return this.getRawFeatureName(feature);
+        },
+
+        isWantedFeature(feature) {
+            if (!feature || !feature.properties) return false;
+            const p = feature.properties;
+
+            const isUS =
+                p.adm0_a3 === "USA" ||
+                p.ADM0_A3 === "USA" ||
+                p.admin === "United States of America" ||
+                p.ADMIN === "United States of America";
+
+            if (!isUS) return false;
+
+            const name = this.getRawFeatureName(feature).toLowerCase();
+
+            return ![
+                "district of columbia",
+                "puerto rico",
+                "guam",
+                "american samoa",
+                "united states virgin islands",
+                "northern mariana islands"
+            ].includes(name);
+        },
+
+        filterFeatures(features) {
+            return features.filter(feature => this.isWantedFeature(feature));
+        },
+
+        filterTinyFeatures(features) {
+            return features;
+        }
+    }
+};
+
+const MODE = MODE_CONFIGS[mode] || MODE_CONFIGS.countries;
+
+const map = new maplibregl.Map({
+    container: "map",
+    style: "https://demotiles.maplibre.org/style.json",
+    center: MODE.mapCenter,
+    zoom: MODE.mapZoom,
+    minZoom: MODE.minZoom,
+    maxZoom: MODE.maxZoom
+});
+
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+map.dragRotate.disable();
+map.touchZoomRotate.disableRotation();
+
+const SmurdyQuiz = {
+    map,
+    mode,
+    mainData: null,
+    tinyData: null,
+    mainFillLayerId: MODE.fillLayerId,
+    tinyCircleLayerId: "quiz-tiny-circle",
+    sourceId: MODE.sourceId,
+    rawAliases: {},
+    aliases: {},
+    groups: {},
+    currentGroupId: quizGroupId,
+    // remember the initial borders setting (from URL) so runtime toggles can fall back to it
+    showBordersInitial: showBorders,
+    currentShowBorders: showBorders,
+
+    // build the fill-color expression used for the main fill layer.
+    // If `dimOutside` is true, non-group features are drawn as a muted gray.
+    buildFillColorExpression(dimOutside = false) {
+        const normalMatch = [
+            "match",
+            ["feature-state", "quizState"],
+            "target", "#ffd54f",
+            "correct", "#4caf50",
+            "wrong", "#f44336",
+            "completed", "#64b5f6",
+            "rgba(0,0,0,0)"
+        ];
+
+        if (!dimOutside) return normalMatch;
+
+        // If dimOutside: use inGroup feature-state to decide between normal coloring or muted gray.
+        return [
+            "case",
+            ["==", ["feature-state", "inGroup"], true],
+            normalMatch,
+            /* else */ "#777777ff"
+        ];
+    },
+
+    // runtime API: toggle base/outline borders without reloading the page
+    setShowBorders(show) {
+        const effective = typeof show === "boolean" ? show : this.showBordersInitial;
+        this.currentShowBorders = effective;
+
+        // base dataset boundary + coastline (style names from demotiles)
+        if (this.map.getLayer("countries-boundary")) {
+            this.map.setPaintProperty("countries-boundary", "line-opacity", effective && this.mode !== "states" ? 0.35 : 0);
+        }
+        if (this.map.getLayer("coastline")) {
+            this.map.setPaintProperty("coastline", "line-opacity", effective && this.mode !== "states" ? 0.35 : 0);
+        }
+
+        // per-mode outline layer (e.g. MODE.outlineLayerId)
+        if (MODE.outlineLayerId && this.map.getLayer(MODE.outlineLayerId)) {
+            this.map.setPaintProperty(MODE.outlineLayerId, "line-opacity", effective ? 0.9 : 0);
+        }
+
+        // When borders are shown, dim features outside the current group.
+        // If borders are hidden, restore the normal coloring.
+        try {
+            const dimOutside = Boolean(effective);
+            if (this.map.getLayer(this.mainFillLayerId)) {
+                this.map.setPaintProperty(
+                    this.mainFillLayerId,
+                    "fill-color",
+                    this.buildFillColorExpression(dimOutside)
+                );
+                // also adjust opacity slightly when dimming
+                this.map.setPaintProperty(
+                    this.mainFillLayerId,
+                    "fill-opacity",
+                    dimOutside ? ["case", ["==", ["feature-state", "inGroup"], true], 0.6, 0.16] : ["case", ["!=", ["feature-state", "quizState"], null], 0.6, 0]
+                );
+            }
+
+            // update per-feature inGroup feature-state based on current group
+            const allowedNames = this.getAllowedNamesForCurrentGroup();
+            if (this.mainData && Array.isArray(this.mainData.features)) {
+                for (const feature of this.mainData.features) {
+                    const inGroup = !allowedNames || allowedNames.has(this.getFeatureName(feature));
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup });
+                }
+            }
+
+            if (this.tinyData && Array.isArray(this.tinyData.features)) {
+                for (const feature of this.tinyData.features) {
+                    const inGroup = !allowedNames || allowedNames.has(this.getFeatureName(feature));
+                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { inGroup });
+                }
+            }
+        } catch (e) {
+            // ignore errors if layers/sources are not yet ready
+        }
+    },
+
+    normalizeAnswer(text) {
+        return String(text)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/&/g, "and")
+            .replace(/[^a-z0-9 ]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    },
+
+    buildResolvedAliases() {
+        const resolved = {};
+        const canonicalNames = this.getAllNames();
+
+        const canonicalByNormalized = new Map();
+        for (const name of canonicalNames) {
+            canonicalByNormalized.set(this.normalizeAnswer(name), name);
+        }
+
+        for (const [key, value] of Object.entries(this.rawAliases || {})) {
+            const aliasList = Array.isArray(value) ? value : [value];
+
+            const matchedCanonical =
+                canonicalByNormalized.get(this.normalizeAnswer(key)) || null;
+
+            if (!matchedCanonical) {
+                console.warn(`Alias key "${key}" did not match any canonical feature name.`);
+                continue;
+            }
+
+            if (!resolved[matchedCanonical]) {
+                resolved[matchedCanonical] = [];
+            }
+
+            const allAliases = [key, ...aliasList];
+
+            for (const alias of allAliases) {
+                const normalizedAlias = this.normalizeAnswer(alias);
+                const normalizedCanonical = this.normalizeAnswer(matchedCanonical);
+
+                if (
+                    normalizedAlias &&
+                    normalizedAlias !== normalizedCanonical &&
+                    !resolved[matchedCanonical].some(
+                        existing => this.normalizeAnswer(existing) === normalizedAlias
+                    )
+                ) {
+                    resolved[matchedCanonical].push(alias);
+                }
+            }
+        }
+
+        this.aliases = resolved;
+    },
+
+    isAcceptedAnswer(canonicalName, userAnswer) {
+        const normalizedUser = this.normalizeAnswer(userAnswer);
+        const normalizedCanonical = this.normalizeAnswer(canonicalName);
+
+        if (normalizedUser === normalizedCanonical) {
+            return true;
+        }
+
+        const aliases = this.aliases?.[canonicalName] || [];
+        for (const alias of aliases) {
+            if (this.normalizeAnswer(alias) === normalizedUser) {
+                return true;
+            }
+        }
+
+        return false;
+    },
+
+    getRawFeatureName(feature) {
+        return MODE.getRawFeatureName(feature);
+    },
+
+    getFeatureName(feature) {
+        return MODE.getCanonicalFeatureName(feature);
+    },
+
+    clearAllStates() {
+        if (this.mainData) {
+            for (const feature of this.mainData.features) {
+                this.map.setFeatureState(
+                    { source: MODE.sourceId, id: feature.id },
+                    { quizState: null }
+                );
+            }
+        }
+
+        if (this.tinyData) {
+            for (const feature of this.tinyData.features) {
+                this.map.setFeatureState(
+                    { source: "quiz-tiny-source", id: feature.id },
+                    { quizState: null }
+                );
+            }
+        }
+    },
+
+    setFeatureStateByName(name, quizState) {
+        const targetNorm = this.normalizeAnswer(name);
+        let found = false;
+        if (this.mainData) {
+            for (const feature of this.mainData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        if (this.tinyData) {
+            for (const feature of this.tinyData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        return found;
+    },
+
+    setTargetText(text) {
+        document.getElementById("quiz-target").textContent = text;
+    },
+
+    setProgressText(text) {
+        document.getElementById("quiz-progress").textContent = text;
+    },
+
+    setAccuracyText(text) {
+        document.getElementById("quiz-accuracy").textContent = text;
+    },
+
+    setResultText(text) {
+        document.getElementById("quiz-result").textContent = text;
+    },
+
+    goToMainMenu() {
+        window.location.search = "";
+    },
+
+    getClickedMainFeature(point) {
+        // First check tiny-country dots
+        if (this.tinyData && this.map.getLayer(this.tinyCircleLayerId)) {
+            const tinyHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.tinyCircleLayerId]
+            });
+
+            if (tinyHits.length > 0) {
+                const tinyFeature = tinyHits[0];
+                const tinyName = this.getFeatureName(tinyFeature);
+
+                const mainFeature = this.getFeatureByName(tinyName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        // Then check normal land polygons
+        if (this.map.getLayer(this.mainFillLayerId)) {
+            const mainHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.mainFillLayerId]
+            });
+
+            if (mainHits.length > 0) {
+                const clickedName = this.getFeatureName(mainHits[0]);
+                const mainFeature = this.getFeatureByName(clickedName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        return null;
+    },
+
+    getRingBounds(ring) {
+        let minLng = Infinity;
+        let minLat = Infinity;
+        let maxLng = -Infinity;
+        let maxLat = -Infinity;
+
+        for (const coord of ring) {
+            const lng = coord[0];
+            const lat = coord[1];
+
+            if (lng < minLng) minLng = lng;
+            if (lat < minLat) minLat = lat;
+            if (lng > maxLng) maxLng = lng;
+            if (lat > maxLat) maxLat = lat;
+        }
+
+        return {
+            minLng,
+            minLat,
+            maxLng,
+            maxLat,
+            width: maxLng - minLng,
+            height: maxLat - minLat,
+            area: (maxLng - minLng) * (maxLat - minLat)
+        };
+    },
+
+    getBestFeatureBounds(geometry) {
+        if (!geometry) return null;
+
+        if (geometry.type === "Polygon") {
+            const outerRing = geometry.coordinates[0];
+            const b = this.getRingBounds(outerRing);
+            return [
+                [b.minLng, b.minLat],
+                [b.maxLng, b.maxLat]
+            ];
+        }
+
+        if (geometry.type === "MultiPolygon") {
+            let best = null;
+
+            for (const polygon of geometry.coordinates) {
+                const outerRing = polygon[0];
+                const b = this.getRingBounds(outerRing);
+
+                if (!best || b.area > best.area) {
+                    best = b;
+                }
+            }
+
+            if (!best) return null;
+
+            return [
+                [best.minLng, best.minLat],
+                [best.maxLng, best.maxLat]
+            ];
+        }
+
+        return null;
+    },
+
+    zoomToFeatureByName(name) {
+        const feature = this.getFeatureByName(name);
+        if (!feature || !feature.geometry) return false;
+
+        const bounds = this.getBestFeatureBounds(feature.geometry);
+        if (!bounds) return false;
+
+        const [[minLng, minLat], [maxLng, maxLat]] = bounds;
+
+        const lngSpan = Math.abs(maxLng - minLng);
+        const latSpan = Math.abs(maxLat - minLat);
+        const biggestSpan = Math.max(lngSpan, latSpan);
+
+        let maxZoom = 3.4;
+        if (biggestSpan < 8) maxZoom = 3.8;
+        if (biggestSpan < 4) maxZoom = 4.2;
+        if (biggestSpan < 2) maxZoom = 4.6;
+        if (biggestSpan < 1) maxZoom = 5;
+
+        this.map.fitBounds(bounds, {
+            padding: { top: 90, right: 90, bottom: 90, left: 90 },
+            maxZoom,
+            duration: 700
+        });
+
+        return true;
+    },
+
+    resetView() {
+        this.map.easeTo({
+            center: MODE.mapCenter,
+            zoom: MODE.mapZoom,
+            duration: 700
+        });
+    },
+
+    loadQuizScript(path) {
+        const oldQuizScript = document.getElementById("active-quiz-script");
+        if (oldQuizScript) oldQuizScript.remove();
+
+        const oldRunnerScript = document.getElementById("quiz-runner-script");
+        if (oldRunnerScript) oldRunnerScript.remove();
+
+        const runner = document.createElement("script");
+        // load the runner from the new location
+        runner.src = "/src/js/quizzes/quiz_runner.js";
+        runner.id = "quiz-runner-script";
+
+        runner.onload = () => {
+            // after runner is ready, load the quiz file (path can be absolute or relative to site root)
+            try {
+                const quizScript = document.createElement("script");
+                quizScript.src = path;
+                quizScript.id = "active-quiz-script";
+                document.body.appendChild(quizScript);
+            } catch (err) {
+                console.error("Failed to load quiz script", err);
+            }
+        };
+
+        document.body.appendChild(runner);
+        // ensure borders reflect currentShowBorders after (re)loading runner/resources
+        runner.addEventListener("load", () => {
+            // apply stored border preference
+            try { this.setShowBorders(this.currentShowBorders); } catch (e) { /* ignore */ }
+        });
+    },
+
+    getQuizFeaturePool() {
+        let features = this.mainData.features || [];
+        if (!this.currentQuiz?.group) return features;
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) return features;
+        return features.filter(f => allowedNames.has(this.normalizeAnswer(this.getFeatureName(f))));
+    },
+
+    getCurrentGroup() {
+        return this.groups?.[this.currentGroupId] || null;
+    },
+
+    getAllowedNamesForCurrentGroup() {
+        const group = this.getCurrentGroup();
+        if (!group) return null;
+
+        if (!Array.isArray(group.countries) || group.countries.length === 0) {
+            return null;
+        }
+
+        // return normalized set for reliable matching
+        return new Set(group.countries.map(n => this.normalizeAnswer(n)));
+    },
+
+    getQuizFeatures() {
+        if (!this.mainData?.features) return [];
+
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) {
+            return this.mainData.features;
+        }
+
+        return this.mainData.features.filter(feature =>
+            allowedNames.has(this.normalizeAnswer(this.getFeatureName(feature)))
+        );
+    },
+
+    getAllNames() {
+        return this.getQuizFeatures()
+            .map(feature => this.getFeatureName(feature))
+            .filter(name => name !== "Unknown");
+    },
+
+    getFeatureByName(name) {
+        const targetNorm = this.normalizeAnswer(name);
+        for (const feature of this.getQuizFeatures()) {
+            const featureName = this.getFeatureName(feature);
+            if (this.normalizeAnswer(featureName) === targetNorm) return feature;
+        }
+ 
+         return null;
+     },
+
+    setFeatureStateByName(name, quizState) {
+        const targetNorm = this.normalizeAnswer(name);
+        let found = false;
+        if (this.mainData) {
+            for (const feature of this.mainData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        if (this.tinyData) {
+            for (const feature of this.tinyData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        return found;
+     },
+
+    setTargetText(text) {
+        document.getElementById("quiz-target").textContent = text;
+    },
+
+    setProgressText(text) {
+        document.getElementById("quiz-progress").textContent = text;
+    },
+
+    setAccuracyText(text) {
+        document.getElementById("quiz-accuracy").textContent = text;
+    },
+
+    setResultText(text) {
+        document.getElementById("quiz-result").textContent = text;
+    },
+
+    goToMainMenu() {
+        window.location.search = "";
+    },
+
+    getClickedMainFeature(point) {
+        // First check tiny-country dots
+        if (this.tinyData && this.map.getLayer(this.tinyCircleLayerId)) {
+            const tinyHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.tinyCircleLayerId]
+            });
+
+            if (tinyHits.length > 0) {
+                const tinyFeature = tinyHits[0];
+                const tinyName = this.getFeatureName(tinyFeature);
+
+                const mainFeature = this.getFeatureByName(tinyName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        // Then check normal land polygons
+        if (this.map.getLayer(this.mainFillLayerId)) {
+            const mainHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.mainFillLayerId]
+            });
+
+            if (mainHits.length > 0) {
+                const clickedName = this.getFeatureName(mainHits[0]);
+                const mainFeature = this.getFeatureByName(clickedName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        return null;
+    },
+
+    getRingBounds(ring) {
+        let minLng = Infinity;
+        let minLat = Infinity;
+        let maxLng = -Infinity;
+        let maxLat = -Infinity;
+
+        for (const coord of ring) {
+            const lng = coord[0];
+            const lat = coord[1];
+
+            if (lng < minLng) minLng = lng;
+            if (lat < minLat) minLat = lat;
+            if (lng > maxLng) maxLng = lng;
+            if (lat > maxLat) maxLat = lat;
+        }
+
+        return {
+            minLng,
+            minLat,
+            maxLng,
+            maxLat,
+            width: maxLng - minLng,
+            height: maxLat - minLat,
+            area: (maxLng - minLng) * (maxLat - minLat)
+        };
+    },
+
+    getBestFeatureBounds(geometry) {
+        if (!geometry) return null;
+
+        if (geometry.type === "Polygon") {
+            const outerRing = geometry.coordinates[0];
+            const b = this.getRingBounds(outerRing);
+            return [
+                [b.minLng, b.minLat],
+                [b.maxLng, b.maxLat]
+            ];
+        }
+
+        if (geometry.type === "MultiPolygon") {
+            let best = null;
+
+            for (const polygon of geometry.coordinates) {
+                const outerRing = polygon[0];
+                const b = this.getRingBounds(outerRing);
+
+                if (!best || b.area > best.area) {
+                    best = b;
+                }
+            }
+
+            if (!best) return null;
+
+            return [
+                [best.minLng, best.minLat],
+                [best.maxLng, best.maxLat]
+            ];
+        }
+
+        return null;
+    },
+
+    zoomToFeatureByName(name) {
+        const feature = this.getFeatureByName(name);
+        if (!feature || !feature.geometry) return false;
+
+        const bounds = this.getBestFeatureBounds(feature.geometry);
+        if (!bounds) return false;
+
+        const [[minLng, minLat], [maxLng, maxLat]] = bounds;
+
+        const lngSpan = Math.abs(maxLng - minLng);
+        const latSpan = Math.abs(maxLat - minLat);
+        const biggestSpan = Math.max(lngSpan, latSpan);
+
+        let maxZoom = 3.4;
+        if (biggestSpan < 8) maxZoom = 3.8;
+        if (biggestSpan < 4) maxZoom = 4.2;
+        if (biggestSpan < 2) maxZoom = 4.6;
+        if (biggestSpan < 1) maxZoom = 5;
+
+        this.map.fitBounds(bounds, {
+            padding: { top: 90, right: 90, bottom: 90, left: 90 },
+            maxZoom,
+            duration: 700
+        });
+
+        return true;
+    },
+
+    resetView() {
+        this.map.easeTo({
+            center: MODE.mapCenter,
+            zoom: MODE.mapZoom,
+            duration: 700
+        });
+    },
+
+    loadQuizScript(path) {
+        const oldQuizScript = document.getElementById("active-quiz-script");
+        if (oldQuizScript) oldQuizScript.remove();
+
+        const oldRunnerScript = document.getElementById("quiz-runner-script");
+        if (oldRunnerScript) oldRunnerScript.remove();
+
+        const runner = document.createElement("script");
+        // load the runner from the new location
+        runner.src = "/src/js/quizzes/quiz_runner.js";
+        runner.id = "quiz-runner-script";
+
+        runner.onload = () => {
+            // after runner is ready, load the quiz file (path can be absolute or relative to site root)
+            try {
+                const quizScript = document.createElement("script");
+                quizScript.src = path;
+                quizScript.id = "active-quiz-script";
+                document.body.appendChild(quizScript);
+            } catch (err) {
+                console.error("Failed to load quiz script", err);
+            }
+        };
+
+        document.body.appendChild(runner);
+        // ensure borders reflect currentShowBorders after (re)loading runner/resources
+        runner.addEventListener("load", () => {
+            // apply stored border preference
+            try { this.setShowBorders(this.currentShowBorders); } catch (e) { /* ignore */ }
+        });
+    },
+
+    getQuizFeaturePool() {
+        let features = this.mainData.features || [];
+        if (!this.currentQuiz?.group) return features;
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) return features;
+        return features.filter(f => allowedNames.has(this.normalizeAnswer(this.getFeatureName(f))));
+    },
+
+    getCurrentGroup() {
+        return this.groups?.[this.currentGroupId] || null;
+    },
+
+    getAllowedNamesForCurrentGroup() {
+        const group = this.getCurrentGroup();
+        if (!group) return null;
+
+        if (!Array.isArray(group.countries) || group.countries.length === 0) {
+            return null;
+        }
+
+        // return normalized set for reliable matching
+        return new Set(group.countries.map(n => this.normalizeAnswer(n)));
+    },
+
+    getQuizFeatures() {
+        if (!this.mainData?.features) return [];
+
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) {
+            return this.mainData.features;
+        }
+
+        return this.mainData.features.filter(feature =>
+            allowedNames.has(this.normalizeAnswer(this.getFeatureName(feature)))
+        );
+    },
+
+    getAllNames() {
+        return this.getQuizFeatures()
+            .map(feature => this.getFeatureName(feature))
+            .filter(name => name !== "Unknown");
+    },
+
+    getFeatureByName(name) {
+        const targetNorm = this.normalizeAnswer(name);
+        for (const feature of this.getQuizFeatures()) {
+            const featureName = this.getFeatureName(feature);
+            if (this.normalizeAnswer(featureName) === targetNorm) return feature;
+        }
+ 
+         return null;
+     },
+
+    setFeatureStateByName(name, quizState) {
+        const targetNorm = this.normalizeAnswer(name);
+        let found = false;
+        if (this.mainData) {
+            for (const feature of this.mainData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        if (this.tinyData) {
+            for (const feature of this.tinyData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        return found;
+     },
+
+    setTargetText(text) {
+        document.getElementById("quiz-target").textContent = text;
+    },
+
+    setProgressText(text) {
+        document.getElementById("quiz-progress").textContent = text;
+    },
+
+    setAccuracyText(text) {
+        document.getElementById("quiz-accuracy").textContent = text;
+    },
+
+    setResultText(text) {
+        document.getElementById("quiz-result").textContent = text;
+    },
+
+    goToMainMenu() {
+        window.location.search = "";
+    },
+
+    getClickedMainFeature(point) {
+        // First check tiny-country dots
+        if (this.tinyData && this.map.getLayer(this.tinyCircleLayerId)) {
+            const tinyHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.tinyCircleLayerId]
+            });
+
+            if (tinyHits.length > 0) {
+                const tinyFeature = tinyHits[0];
+                const tinyName = this.getFeatureName(tinyFeature);
+
+                const mainFeature = this.getFeatureByName(tinyName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        // Then check normal land polygons
+        if (this.map.getLayer(this.mainFillLayerId)) {
+            const mainHits = this.map.queryRenderedFeatures(point, {
+                layers: [this.mainFillLayerId]
+            });
+
+            if (mainHits.length > 0) {
+                const clickedName = this.getFeatureName(mainHits[0]);
+                const mainFeature = this.getFeatureByName(clickedName);
+                if (mainFeature) {
+                    return mainFeature;
+                }
+            }
+        }
+
+        return null;
+    },
+
+    getRingBounds(ring) {
+        let minLng = Infinity;
+        let minLat = Infinity;
+        let maxLng = -Infinity;
+        let maxLat = -Infinity;
+
+        for (const coord of ring) {
+            const lng = coord[0];
+            const lat = coord[1];
+
+            if (lng < minLng) minLng = lng;
+            if (lat < minLat) minLat = lat;
+            if (lng > maxLng) maxLng = lng;
+            if (lat > maxLat) maxLat = lat;
+        }
+
+        return {
+            minLng,
+            minLat,
+            maxLng,
+            maxLat,
+            width: maxLng - minLng,
+            height: maxLat - minLat,
+            area: (maxLng - minLng) * (maxLat - minLat)
+        };
+    },
+
+    getBestFeatureBounds(geometry) {
+        if (!geometry) return null;
+
+        if (geometry.type === "Polygon") {
+            const outerRing = geometry.coordinates[0];
+            const b = this.getRingBounds(outerRing);
+            return [
+                [b.minLng, b.minLat],
+                [b.maxLng, b.maxLat]
+            ];
+        }
+
+        if (geometry.type === "MultiPolygon") {
+            let best = null;
+
+            for (const polygon of geometry.coordinates) {
+                const outerRing = polygon[0];
+                const b = this.getRingBounds(outerRing);
+
+                if (!best || b.area > best.area) {
+                    best = b;
+                }
+            }
+
+            if (!best) return null;
+
+            return [
+                [best.minLng, best.minLat],
+                [best.maxLng, best.maxLat]
+            ];
+        }
+
+        return null;
+    },
+
+    zoomToFeatureByName(name) {
+        const feature = this.getFeatureByName(name);
+        if (!feature || !feature.geometry) return false;
+
+        const bounds = this.getBestFeatureBounds(feature.geometry);
+        if (!bounds) return false;
+
+        const [[minLng, minLat], [maxLng, maxLat]] = bounds;
+
+        const lngSpan = Math.abs(maxLng - minLng);
+        const latSpan = Math.abs(maxLat - minLat);
+        const biggestSpan = Math.max(lngSpan, latSpan);
+
+        let maxZoom = 3.4;
+        if (biggestSpan < 8) maxZoom = 3.8;
+        if (biggestSpan < 4) maxZoom = 4.2;
+        if (biggestSpan < 2) maxZoom = 4.6;
+        if (biggestSpan < 1) maxZoom = 5;
+
+        this.map.fitBounds(bounds, {
+            padding: { top: 90, right: 90, bottom: 90, left: 90 },
+            maxZoom,
+            duration: 700
+        });
+
+        return true;
+    },
+
+    resetView() {
+        this.map.easeTo({
+            center: MODE.mapCenter,
+            zoom: MODE.mapZoom,
+            duration: 700
+        });
+    },
+
+    loadQuizScript(path) {
+        const oldQuizScript = document.getElementById("active-quiz-script");
+        if (oldQuizScript) oldQuizScript.remove();
+
+        const oldRunnerScript = document.getElementById("quiz-runner-script");
+        if (oldRunnerScript) oldRunnerScript.remove();
+
+        const runner = document.createElement("script");
+        // load the runner from the new location
+        runner.src = "/src/js/quizzes/quiz_runner.js";
+        runner.id = "quiz-runner-script";
+
+        runner.onload = () => {
+            // after runner is ready, load the quiz file (path can be absolute or relative to site root)
+            try {
+                const quizScript = document.createElement("script");
+                quizScript.src = path;
+                quizScript.id = "active-quiz-script";
+                document.body.appendChild(quizScript);
+            } catch (err) {
+                console.error("Failed to load quiz script", err);
+            }
+        };
+
+        document.body.appendChild(runner);
+        // ensure borders reflect currentShowBorders after (re)loading runner/resources
+        runner.addEventListener("load", () => {
+            // apply stored border preference
+            try { this.setShowBorders(this.currentShowBorders); } catch (e) { /* ignore */ }
+        });
+    },
+
+    getQuizFeaturePool() {
+        let features = this.mainData.features || [];
+        if (!this.currentQuiz?.group) return features;
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) return features;
+        return features.filter(f => allowedNames.has(this.normalizeAnswer(this.getFeatureName(f))));
+    },
+
+    getCurrentGroup() {
+        return this.groups?.[this.currentGroupId] || null;
+    },
+
+    getAllowedNamesForCurrentGroup() {
+        const group = this.getCurrentGroup();
+        if (!group) return null;
+
+        if (!Array.isArray(group.countries) || group.countries.length === 0) {
+            return null;
+        }
+
+        // return normalized set for reliable matching
+        return new Set(group.countries.map(n => this.normalizeAnswer(n)));
+    },
+
+    getQuizFeatures() {
+        if (!this.mainData?.features) return [];
+
+        const allowedNames = this.getAllowedNamesForCurrentGroup();
+        if (!allowedNames) {
+            return this.mainData.features;
+        }
+
+        return this.mainData.features.filter(feature =>
+            allowedNames.has(this.normalizeAnswer(this.getFeatureName(feature)))
+        );
+    },
+
+    getAllNames() {
+        return this.getQuizFeatures()
+            .map(feature => this.getFeatureName(feature))
+            .filter(name => name !== "Unknown");
+    },
+
+    getFeatureByName(name) {
+        const targetNorm = this.normalizeAnswer(name);
+        for (const feature of this.getQuizFeatures()) {
+            const featureName = this.getFeatureName(feature);
+            if (this.normalizeAnswer(featureName) === targetNorm) return feature;
+        }
+ 
+         return null;
+     },
+
+    setFeatureStateByName(name, quizState) {
+        const targetNorm = this.normalizeAnswer(name);
+        let found = false;
+        if (this.mainData) {
+            for (const feature of this.mainData.features) {
+                const featureName = this.getFeatureName(feature);
+                if (this.normalizeAnswer(featureName) === targetNorm) {
+                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
+                    found = true;
+                }
+            }
+        }
+        if (this.tinyData) {
+            for (const feature of this.tinyData.features
