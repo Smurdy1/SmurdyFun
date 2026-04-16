@@ -185,76 +185,43 @@ const SmurdyQuiz = {
     currentGroupId: quizGroupId,
     showBordersInitial: showBorders,
     currentShowBorders: showBorders,
+    // Batch feature-state writer to avoid blocking the main thread.
+    // Accepts array of { source, id, state } and applies them in small chunks.
+    batchSetFeatureStates(entries, chunkSize = 60) {
+        if (!Array.isArray(entries) || entries.length === 0) return Promise.resolve();
+        return new Promise(resolve => {
+            let i = 0;
+            const step = () => {
+                const end = Math.min(i + chunkSize, entries.length);
+                for (; i < end; i++) {
+                    const e = entries[i];
+                    try { map.setFeatureState({ source: e.source, id: e.id }, e.state); } catch (err) { /* ignore */ }
+                }
+                if (i < entries.length) {
+                    // yield to render loop
+                    requestAnimationFrame(step);
+                } else {
+                    // slight pause to let the style settle before resolving
+                    setTimeout(resolve, 8);
+                }
+            };
+            requestAnimationFrame(step);
+        });
+    },
 
     // Return true if a feature should be considered part of the current group.
     // This is used when setting feature-state "inGroup".
     isFeatureInCurrentGroup(feature) {
-        if (!feature || !feature.properties) return false;
-
+        if (!feature) return false;
         const groupId = this.currentGroupId || (this.currentQuiz && this.currentQuiz.group) || null;
-        const group = this.getCurrentGroup();
-
-        // World means everything is in-group (no dimming)
         if (String(groupId).toLowerCase() === "world") return true;
 
-        // 1) If the group explicitly lists countries, match against that (normalized + aliases)
-        if (group && Array.isArray(group.countries) && group.countries.length > 0) {
-            const allowed = this.getAllowedNamesForCurrentGroup();
-            if (!allowed) return false;
+        const allowed = this.getAllowedNamesForCurrentGroup();
+        if (!allowed) return true; // no explicit group -> treat as world (no dimming)
 
-            const canon = this.getFeatureName(feature) || "";
-            const canonNorm = this.normalizeAnswer(canon);
-
-            // exact canonical or exact alias match only (preferred)
-            if (allowed.has(canonNorm)) return true;
-            const aliases = this.aliases?.[canon] || [];
-            for (const a of aliases) {
-                const an = this.normalizeAnswer(a);
-                if (an && allowed.has(an)) return true;
-            }
-
-            // permissive check: only allow substring matches when the allowed token is
-            // sufficiently specific (length >= 4 and not in a small stoplist)
-            const stoplist = new Set(["united", "republic", "kingdom", "states", "state", "of", "the", "and", "islands", "island", "isle"]);
-            for (const a of allowed) {
-                if (!a || a.length < 4) continue;
-                // skip if token composed entirely of stoplist words
-                const tokens = a.split(/\s+/).filter(Boolean);
-                if (tokens.every(t => stoplist.has(t))) continue;
-                if (canonNorm.includes(a) || a.includes(canonNorm)) return true;
-            }
-
-            return false;
-        }
-
-        // 2) continent fallback (if groupId maps to continent(s))
-        const gid = (groupId || "").toString().toLowerCase();
-        const continentMap = {
-            "africa": ["Africa"],
-            "europe": ["Europe"],
-            "asia": ["Asia"],
-            "north_america": ["North America"],
-            "south_america": ["South America"],
-            "americas": ["North America", "South America"],
-            "eurasia": ["Europe", "Asia"],
-            "oceania": ["Oceania"],
-            "latin_america": ["South America", "North America"]
-        };
-        const wantedContinents = continentMap[gid] || (group && group.continents) || null;
-        if (Array.isArray(wantedContinents) && wantedContinents.length > 0) {
-            const cont = feature.properties.CONTINENT || feature.properties.continent || "";
-            if (cont && wantedContinents.includes(cont)) return true;
-        }
-
-        // 3) admin / sovereign fallback for state-like groups (e.g. us_states)
-        if (gid === "us_states" || (group && String(group.borderset || "").toLowerCase() === "states")) {
-            const sov = feature.properties.SOVEREIGNT || feature.properties.sovereignt || "";
-            if (sov && this.normalizeAnswer(sov) === this.normalizeAnswer("United States of America")) return true;
-            const admin = feature.properties.ADMIN || feature.properties.admin || "";
-            if (admin && this.normalizeAnswer(admin).includes("united states")) return true;
-        }
-
-        return false;
+        const canon = this.getFeatureName(feature) || "";
+        const canonNorm = this.normalizeAnswer(canon);
+        return allowed.has(canonNorm);
     },
 
     // return a list of normalized name candidates for a feature to improve matching
@@ -366,39 +333,9 @@ const SmurdyQuiz = {
     },
 
     buildResolvedAliases() {
-        const resolved = {};
-        // canonical names from loaded dataset (or fallback)
-        const canonicalNames = (this.mainData && Array.isArray(this.mainData.features))
-            ? this.mainData.features.map(f => this.getFeatureName(f)).filter(Boolean)
-            : this.getAllNames();
-
-        const canonicalByNormalized = new Map();
-        for (const name of canonicalNames) canonicalByNormalized.set(this.normalizeAnswer(name), name);
-
-        for (const [key, value] of Object.entries(this.rawAliases || {})) {
-            let matchedCanonical = canonicalByNormalized.get(this.normalizeAnswer(key)) || null;
-            // quickly try to find a canonical name that contains the key (permissive)
-            if (!matchedCanonical) {
-                const k = this.normalizeAnswer(key);
-                for (const [norm, can] of canonicalByNormalized.entries()) {
-                    if (norm.includes(k) || k.includes(norm)) { matchedCanonical = can; break; }
-                }
-            }
-            if (!matchedCanonical) continue;
-            if (!resolved[matchedCanonical]) resolved[matchedCanonical] = [];
-            const aliasList = Array.isArray(value) ? value : [value];
-            const all = [key, ...aliasList];
-            for (const a of all) {
-                if (!a) continue;
-                const an = this.normalizeAnswer(a);
-                if (!an) continue;
-                if (an === this.normalizeAnswer(matchedCanonical)) continue;
-                if (!resolved[matchedCanonical].some(existing => this.normalizeAnswer(existing) === an)) {
-                    resolved[matchedCanonical].push(a);
-                }
-            }
-        }
-        this.aliases = resolved;
+        // Simple fast path: disable complex alias expansion.
+        // Keep rawAliases available for manual edits, but don't expand them automatically.
+        this.aliases = {};
      },
 
     isAcceptedAnswer(canonicalName, userAnswer) {
@@ -450,26 +387,34 @@ const SmurdyQuiz = {
 
     setFeatureStateByName(name, quizState) {
         const targetNorm = this.normalizeAnswer(name);
-        let found = false;
-        if (this.mainData) {
-            for (const feature of this.mainData.features) {
-                const featureName = this.getFeatureName(feature);
-                if (this.normalizeAnswer(featureName) === targetNorm) {
-                    this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { quizState });
-                    found = true;
+        if (!targetNorm) return false;
+
+        // Build entries to write; do not perform heavy synchronous writes.
+        const entry = this.nameIndex?.[targetNorm];
+        const entries = [];
+        if (entry) {
+            for (const id of (entry.main || [])) entries.push({ source: MODE.sourceId, id, state: { quizState } });
+            for (const id of (entry.tiny || [])) entries.push({ source: "quiz-tiny-source", id, state: { quizState } });
+        } else {
+            // fallback minimal scan
+            if (this.mainData) {
+                for (const feature of this.mainData.features) {
+                    const featureName = this.getFeatureName(feature);
+                    if (this.normalizeAnswer(featureName) === targetNorm) entries.push({ source: MODE.sourceId, id: feature.id, state: { quizState } });
+                }
+            }
+            if (this.tinyData) {
+                for (const feature of this.tinyData.features) {
+                    const featureName = this.getFeatureName(feature);
+                    if (this.normalizeAnswer(featureName) === targetNorm) entries.push({ source: "quiz-tiny-source", id: feature.id, state: { quizState } });
                 }
             }
         }
-        if (this.tinyData) {
-            for (const feature of this.tinyData.features) {
-                const featureName = this.getFeatureName(feature);
-                if (this.normalizeAnswer(featureName) === targetNorm) {
-                    this.map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { quizState });
-                    found = true;
-                }
-            }
-        }
-        return found;
+
+        if (entries.length === 0) return false;
+        // fire-and-forget but keep quick response: schedule the batch and return true immediately.
+        this.batchSetFeatureStates(entries, 60).catch(()=>{});
+        return true;
     },
 
     setTargetText(text) {
@@ -899,23 +844,16 @@ map.on("load", async () => {
     // do NOT filter the mainData to the group; we'll dim non-group features via feature-state.
     const allowedNames = SmurdyQuiz.getAllowedNamesForCurrentGroup();
 
-    // dedupe mainData features by normalized canonical name (keep first occurrence)
-    {
-        const seen = new Set();
-        const deduped = [];
-        for (const rawFeature of (SmurdyQuiz.mainData.features || [])) {
-            const canon = SmurdyQuiz.getFeatureName(rawFeature) || "";
-            const norm = SmurdyQuiz.normalizeAnswer(canon);
-            if (!norm) continue;
-            if (seen.has(norm)) {
-                // skip duplicate canonical entries (keeps first)
-                continue;
-            }
-            seen.add(norm);
-            deduped.push(rawFeature);
-        }
-        SmurdyQuiz.mainData.features = deduped;
-        SmurdyQuiz.mainData.features.forEach((feature, index) => { feature.id = index; });
+    // assign ids and build a fast nameIndex: normalized canonical -> { main: [ids], tiny: [ids] }
+    SmurdyQuiz.mainData.features.forEach((feature, index) => { feature.id = index; });
+    SmurdyQuiz.nameIndex = SmurdyQuiz.nameIndex || {};
+    for (const feature of (SmurdyQuiz.mainData.features || [])) {
+        const canon = SmurdyQuiz.getFeatureName(feature) || "";
+        const norm = SmurdyQuiz.normalizeAnswer(canon);
+        if (!norm) continue;
+        if (!SmurdyQuiz.nameIndex[norm]) SmurdyQuiz.nameIndex[norm] = { canonicalName: canon, main: [], tiny: [] };
+        SmurdyQuiz.nameIndex[norm].main.push(feature.id);
+        feature._canonicalNorm = norm;
     }
 
     SmurdyQuiz.buildResolvedAliases();
@@ -979,33 +917,18 @@ map.on("load", async () => {
     // set per-feature inGroup feature-state now (so expressions using feature-state work)
     try {
         const allowed = allowedNames;
-        // Batch feature-state writes to avoid blocking the main thread for large feature sets
-        if (SmurdyQuiz.mainData && Array.isArray(SmurdyQuiz.mainData.features)) {
-            const features = SmurdyQuiz.mainData.features;
-            const batchSize = 250;
-            let i = 0;
-            const writeBatch = () => {
-                const end = Math.min(i + batchSize, features.length);
-                for (; i < end; i++) {
-                    const f = features[i];
-                    const inGroup = this.isFeatureInCurrentGroup(f);
-                    this.map.setFeatureState({ source: MODE.sourceId, id: f.id }, { inGroup });
-                }
-                if (i < features.length) {
-                    // yield to the browser briefly
-                    setTimeout(writeBatch, 8);
-                } else {
-                    // once all states set, re-apply paint so borders/opacity update
-                    try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
-                    // deterministic final pass to correct any mismatched feature-states
-                    finalizeFeatureStates();
-                }
-            };
-            writeBatch();
-        }
-    } catch (e) {
-        // ignore if source/layers not ready
-    }
+        // progressive, non-blocking outline build in worker
+        try { SmurdyQuiz.requestGroupOutline(allowed); } catch (e) { /* ignore */ }
+
+        // Minimal, fast behavior: avoid thousands of setFeatureState calls.
+        // Option A (recommended): rely on data-driven paint expressions (updateLayerStyles) and skip per-feature writes entirely.
+        // Option B: if you still need per-feature states, run finalizeFeatureStates() asynchronously late so UI stays responsive.
+        setTimeout(() => {
+            try { finalizeFeatureStates(); } catch (e) { /* ignore */ }
+        }, 400);
+     } catch (e) {
+         // ignore if source/layers not ready
+     }
 
     // Re-apply borders/dimming now that per-feature inGroup states exist
     try {
@@ -1143,34 +1066,44 @@ map.on("load", async () => {
 
 // add helper to finalize and correct feature-states after batches
 function finalizeFeatureStates() {
-    try {
-        if (SmurdyQuiz.mainData && Array.isArray(SmurdyQuiz.mainData.features)) {
-            for (const feature of SmurdyQuiz.mainData.features) {
+    // Batch corrections to avoid main-thread stalls on large datasets.
+    const main = SmurdyQuiz.mainData?.features || [];
+    const tiny = SmurdyQuiz.tinyData?.features || [];
+    const batchSize = 400;
+
+    let mi = 0;
+    const processMain = () => {
+        const end = Math.min(mi + batchSize, main.length);
+        for (; mi < end; mi++) {
+            const feature = main[mi];
+            try {
                 const expected = !!SmurdyQuiz.isFeatureInCurrentGroup(feature);
                 const state = map.getFeatureState({ source: MODE.sourceId, id: feature.id }) || {};
                 const current = !!state.inGroup;
-                if (current !== expected) {
-                    map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup: expected });
-                    // lightweight debug for persistent anomalies
-                    if (["united states of america","united kingdom","denmark","finland"].includes(SmurdyQuiz.normalizeAnswer(SmurdyQuiz.getFeatureName(feature)))) {
-                        console.debug("fix inGroup:", feature.id, SmurdyQuiz.getFeatureName(feature), "from", current, "to", expected);
-                    }
-                }
-            }
+                if (current !== expected) map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup: expected });
+            } catch (e) { /* ignore per-feature errors */ }
         }
-        if (SmurdyQuiz.tinyData && Array.isArray(SmurdyQuiz.tinyData.features)) {
-            for (const feature of SmurdyQuiz.tinyData.features) {
+        if (mi < main.length) setTimeout(processMain, 8);
+        else processTiny();
+    };
+
+    let ti = 0;
+    const processTiny = () => {
+        const end = Math.min(ti + batchSize, tiny.length);
+        for (; ti < end; ti++) {
+            const feature = tiny[ti];
+            try {
                 const expected = !!SmurdyQuiz.isFeatureInCurrentGroup(feature);
                 const state = map.getFeatureState({ source: "quiz-tiny-source", id: feature.id }) || {};
                 const current = !!state.inGroup;
-                if (current !== expected) {
-                    map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { inGroup: expected });
-                }
-            }
+                if (current !== expected) map.setFeatureState({ source: "quiz-tiny-source", id: feature.id }, { inGroup: expected });
+            } catch (e) { /* ignore per-feature errors */ }
         }
-        // ensure paint uses latest states and outline visible
-        try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch(e){}
-    } catch (e) {
-        console.warn("finalizeFeatureStates failed", e);
-    }
+        if (ti < tiny.length) setTimeout(processTiny, 8);
+        else {
+            try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch(e){}
+        }
+    };
+
+    try { processMain(); } catch (e) { console.warn("finalizeFeatureStates failed", e); }
 }
