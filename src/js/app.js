@@ -187,6 +187,144 @@ const SmurdyQuiz = {
     currentShowBorders: showBorders,
     // currently-highlighted target name (normalized string stored as given)
     currentTargetName: null,
+
+    // Enable in-console debug: set SmurdyQuiz.debugTargets = true
+    debugTargets: false,
+    log(...args) { if (this.debugTargets) console.log("SmurdyQuiz:", ...args); },
+
+    // small authoritative lists used by paint expressions (literal arrays)
+    _allowedList: [],
+    _correctList: [],
+    _wrongList: [],
+    _targetName: null,
+
+    // Update the map paint expressions using small literal arrays (instant).
+    updateLayerStyles() {
+        try {
+            const allowed = Array.from(this._allowedList || []);
+            const correct = Array.from(this._correctList || []);
+            const wrong = Array.from(this._wrongList || []);
+            const target = this._targetName ? [this._targetName] : [];
+
+            // main fill (color + opacity)
+            if (this.map.getLayer(this.mainFillLayerId)) {
+                const fillColorExpr = [
+                    "case",
+                    // quizState-like priority via property matching: target -> yellow, correct->green, wrong->red
+                    ["in", ["get", "_canon"], ["literal", target]], "#ffd54f",
+                    ["in", ["get", "_canon"], ["literal", correct]], "#4caf50",
+                    ["in", ["get", "_canon"], ["literal", wrong]], "#f44336",
+                    // in-group normal
+                    ["in", ["get", "_canon"], ["literal", allowed]], "#e8e3d3",
+                    // out-of-group dim
+                    "#777777ff"
+                ];
+                const fillOpacityExpr = [
+                    "case",
+                    ["in", ["get", "_canon"], ["literal", target]], 0.8,
+                    ["in", ["get", "_canon"], ["literal", correct]], 0.8,
+                    ["in", ["get", "_canon"], ["literal", wrong]], 0.8,
+                    ["in", ["get", "_canon"], ["literal", allowed]], 0.7,
+                    0.16
+                ];
+                this.map.setPaintProperty(this.mainFillLayerId, "fill-color", fillColorExpr);
+                this.map.setPaintProperty(this.mainFillLayerId, "fill-opacity", fillOpacityExpr);
+            }
+
+            // tiny circles
+            if (this.map.getLayer(this.tinyCircleLayerId)) {
+                const tinyColor = [
+                    "case",
+                    ["in", ["get", "_canon"], ["literal", target]], "#ffd54f",
+                    ["in", ["get", "_canon"], ["literal", correct]], "#4caf50",
+                    ["in", ["get", "_canon"], ["literal", wrong]], "#f44336",
+                    // use same in-group color as main fill for tiny dots
+                    ["in", ["get", "_canon"], ["literal", allowed]], "#e8e3d3",
+                    "#666666"
+                ];
+                this.map.setPaintProperty(this.tinyCircleLayerId, "circle-color", tinyColor);
+            }
+        } catch (e) {
+            // ignore if layers not ready
+        }
+    },
+
+    // API: set lists / states (fast)
+    setAllowedList(normSet) {
+        this._allowedList = Array.from(normSet || []);
+        this.updateLayerStyles();
+    },
+
+    setAnswerState(name, state) {
+        // state: "correct" | "wrong" | null
+        const norm = this.normalizeAnswer(name);
+        // remove from both sets first
+        this._correctList = (this._correctList || []).filter(x => x !== norm);
+        this._wrongList = (this._wrongList || []).filter(x => x !== norm);
+        if (state === "correct") this._correctList.push(norm);
+        else if (state === "wrong") this._wrongList.push(norm);
+        this.updateLayerStyles();
+    },
+
+    setTargetByNameSimple(name) {
+        // immediate target highlight (name can be canonical or display)
+        if (!name) {
+            this._targetName = null;
+            this.updateLayerStyles();
+            return;
+        }
+        const resolved = this.resolveCanonicalName ? this.resolveCanonicalName(name) : name;
+        const norm = this.normalizeAnswer(resolved || name);
+        this._targetName = norm;
+        this.updateLayerStyles();
+    },
+
+    // Resolve arbitrary display text to a canonical feature name (or null).
+    // Uses nameIndex exact lookup, then getFeatureByName, then a safe single-candidate substring search.
+    resolveCanonicalName(text) {
+        try {
+            const raw = String(text || "").trim();
+            const norm = this.normalizeAnswer(raw);
+            this.log("resolveCanonicalName()", { raw, norm });
+            if (!norm) return null;
+
+            // 1) fast exact lookup in nameIndex
+            const idx = this.nameIndex?.[norm];
+            if (idx && idx.canonicalName) {
+                this.log("resolve -> exact nameIndex", idx.canonicalName);
+                return idx.canonicalName;
+            }
+
+            // 2) try getFeatureByName (respects current group filter)
+            const f = this.getFeatureByName(raw);
+            if (f) {
+                const cn = this.getFeatureName(f);
+                this.log("resolve -> getFeatureByName", cn);
+                return cn;
+            }
+
+            // 3) very conservative substring search — accept only a single candidate
+            const keys = Object.keys(this.nameIndex || {});
+            const candidates = [];
+            for (const k of keys) {
+                if (!k) continue;
+                if (k === norm || k.includes(norm) || norm.includes(k)) candidates.push(k);
+                if (candidates.length > 3) break; // too ambiguous
+            }
+            this.log("resolve candidates", candidates.slice(0,8));
+            if (candidates.length === 1) {
+                const entry = this.nameIndex[candidates[0]];
+                this.log("resolve -> single candidate", entry?.canonicalName);
+                return entry?.canonicalName || null;
+            }
+
+            return null;
+        } catch (e) {
+            console.error("SmurdyQuiz.resolveCanonicalName error", e);
+            return null;
+        }
+    },
+
     // Batch feature-state writer to avoid blocking the main thread.
     // Accepts array of { source, id, state } and applies them in small chunks.
     batchSetFeatureStates(entries, chunkSize = 60) {
@@ -292,32 +430,14 @@ const SmurdyQuiz = {
         this.currentShowBorders = effective;
 
         try {
-            if (this.map.getLayer(this.mainFillLayerId)) {
-                // keep paint deterministic and driven by inGroup/quizState
-                this.map.setPaintProperty(this.mainFillLayerId, "fill-color", [
-                    "case",
-                    ["==", ["feature-state", "inGroup"], true],
-                        ["case",
-                            ["==", ["feature-state", "quizState"], "correct"], "#4CAF50",
-                            ["==", ["feature-state", "quizState"], "incorrect"], "#E53935",
-                            // default in-group color (matches earlier theme)
-                            "#e8e3d3"
-                        ],
-                    "#777777ff"
-                ]);
-                this.map.setPaintProperty(this.mainFillLayerId, "fill-opacity", [
-                    "case",
-                    ["==", ["feature-state", "inGroup"], true], 0.7,
-                    ["!=", ["feature-state", "quizState"], null], 0.7,
-                    0.16
-                ]);
-             }
+            // Do NOT overwrite the main fill paint (that would reintroduce slow feature-state logic).
+            // Instead, refresh the data-driven paint expressions so allowed/correct/wrong/target lists take effect.
+            try { this.updateLayerStyles(); } catch (e) { /* ignore */ }
 
             // toggle outline layer opacity if an outline layer id exists for this mode
             if (MODE.outlineLayerId && this.map.getLayer(MODE.outlineLayerId)) {
                 this.map.setPaintProperty(MODE.outlineLayerId, "line-opacity", Boolean(effective) ? 1 : 0);
             }
-
         } catch (e) {
             // ignore errors if layers/sources are not yet ready
         }
@@ -367,129 +487,117 @@ const SmurdyQuiz = {
     },
 
     clearAllStates() {
-        if (this.mainData && Array.isArray(this.mainData.features)) {
-            for (const feature of this.mainData.features) {
-                const inGroup = this.isFeatureInCurrentGroup(feature);
-                this.map.setFeatureState({ source: MODE.sourceId, id: feature.id }, { inGroup });
-            }
-        }
-        
-        // Re-apply paint logic now that inGroup states exist so dimming and borders update
-        try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
+        // Avoid per-feature feature-state writes. Update the allowed list used by expressions
+        // and clear any per-answer/target lists so visuals reset instantly.
+        try {
+            const allowed = this.getAllowedNamesForCurrentGroup() || new Set(Object.keys(this.nameIndex || {}));
+            this.setAllowedList(allowed);
+        } catch (e) { /* ignore */ }
 
-        if (this.tinyData) {
-            for (const feature of this.tinyData.features) {
-                this.map.setFeatureState(
-                    { source: "quiz-tiny-source", id: feature.id },
-                    { quizState: null }
-                );
-            }
-        }
-    },
+        // clear answer/target lists and refresh paints
+        this._correctList = [];
+        this._wrongList = [];
+        this._targetName = null;
+        this.updateLayerStyles();
+
+        // Re-apply border visibility
+        try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
+     },
 
     setFeatureStateByName(name, quizState) {
-        const targetNorm = this.normalizeAnswer(name);
-        if (!targetNorm) return false;
-
-        // Build entries to write; do not perform heavy synchronous writes.
-        const entry = this.nameIndex?.[targetNorm];
-        const entries = [];
-        if (entry) {
-            for (const id of (entry.main || [])) entries.push({ source: MODE.sourceId, id, state: { quizState } });
-            for (const id of (entry.tiny || [])) entries.push({ source: "quiz-tiny-source", id, state: { quizState } });
-        } else {
-            // fallback minimal scan
-            if (this.mainData) {
-                for (const feature of this.mainData.features) {
-                    const featureName = this.getFeatureName(feature);
-                    if (this.normalizeAnswer(featureName) === targetNorm) entries.push({ source: MODE.sourceId, id: feature.id, state: { quizState } });
-                }
-            }
-            if (this.tinyData) {
-                for (const feature of this.tinyData.features) {
-                    const featureName = this.getFeatureName(feature);
-                    if (this.normalizeAnswer(featureName) === targetNorm) entries.push({ source: "quiz-tiny-source", id: feature.id, state: { quizState } });
-                }
-            }
-        }
-
-        if (entries.length === 0) return false;
-        // fire-and-forget but keep quick response: schedule the batch and return true immediately.
-        this.batchSetFeatureStates(entries, 60).catch(()=>{});
-        return true;
-    },
-
-    setTargetByName(name) {
-        // highlight by canonical feature name (normalized)
+        // Simplified: update small lists used by paint expressions instead of per-feature state writes.
         try {
+            const resolved = this.resolveCanonicalName ? this.resolveCanonicalName(name) : name;
+            if (!resolved) return false;
+            const norm = this.normalizeAnswer(resolved);
+            if (!norm) return false;
+
+            // quizState: "correct" | "wrong" | "target" | null
+            if (quizState === "target") {
+                this.setTargetByNameSimple(resolved);
+                return true;
+            }
+            if (quizState === "correct") {
+                this.setAnswerState(resolved, "correct");
+                return true;
+            }
+            if (quizState === "wrong") {
+                this.setAnswerState(resolved, "wrong");
+                return true;
+            }
+            // null -> clear both sets / target
+            this.setAnswerState(resolved, null);
+            return true;
+        } catch (e) {
+            console.warn("setFeatureStateByName simplified failed", e);
+            return false;
+        }
+    },
+ 
+    // Highlight/clear a target by canonical name (string). Clears previous target.
+    setTargetByName(name) {
+        try {
+            this.log("setTargetByName()", name);
+            // clear previous tracking
+            this.currentTargetName = null;
             if (!name) {
-                // clear previous target highlight
-                if (this.currentTargetName) {
-                    try { this.setFeatureStateByName(this.currentTargetName, null); } catch (e) {}
-                    this.currentTargetName = null;
-                }
+                this.setTargetByNameSimple(null);
                 return;
             }
-            const canon = String(name).trim();
-            const norm = this.normalizeAnswer(canon);
-            if (!norm) return;
-            // clear previous
-            if (this.currentTargetName && this.currentTargetName !== canon) {
-                try { this.setFeatureStateByName(this.currentTargetName, null); } catch (e) {}
+            const resolved = this.resolveCanonicalName(name) || name;
+            if (!resolved) {
+                console.warn("SmurdyQuiz: could not resolve target name:", name);
+                return;
             }
-            // set new target state (quizState = "target")
-            try { this.setFeatureStateByName(canon, "target"); } catch (e) {}
-            this.currentTargetName = canon;
-        } catch (e) { /* ignore */ }
-    },
-
+            // drive highlight from the small list-based api (instant)
+            this.setTargetByNameSimple(resolved);
+            this.currentTargetName = resolved;
+        } catch (e) {
+            console.error("SmurdyQuiz.setTargetByName error", e);
+        }
+     },
+ 
+    // Set the displayed target text; optional canonicalName to force highlight.
     setTargetText(text, canonicalName) {
-        // text: displayed label; canonicalName (optional): actual country name to highlight
-        document.getElementById("quiz-target").textContent = text;
-
         try {
-            // if a canonicalName was provided, prefer it for highlighting
+            document.getElementById("quiz-target").textContent = text;
+            this.log("setTargetText()", { text, canonicalName });
             if (canonicalName) {
+                this.log("setTargetText -> canonicalName provided, setting target", canonicalName);
                 this.setTargetByName(canonicalName);
                 return;
             }
 
-            // If the provided text exactly matches a canonical feature name, highlight it.
-            const possibleCanon = String(text || "").trim();
-            if (possibleCanon) {
-                const matched = this.getFeatureByName(possibleCanon);
-                if (matched) {
-                    this.setTargetByName(possibleCanon);
-                    return;
-                }
-            }
-
             // If text looks like a generic instruction (contains words like "guess" or "type"),
-            // do not attempt to use it as a canonical name. Just clear any previous highlight.
+            // do NOT clear an already-set target. Also do NOT clear when no target exists:
+            // leaving the current state intact allows the quiz runner to set target elsewhere
+            // (and avoids removing a pending highlight). Log to help debug missing target.
             const lower = String(text || "").toLowerCase();
             if (/\b(guess|type|highlighted|find|click)\b/.test(lower)) {
-                this.setTargetByName(null);
+                this.log("setTargetText -> detected instruction text");
+                if (this.currentTargetName) {
+                    this.log("setTargetText -> keeping existing target", this.currentTargetName);
+                    return; // keep highlight
+                }
+                // Previously we cleared here. That removed targets before the runner set them.
+                // Now we leave things as-is and emit a debug hint so you can inspect why no target exists.
+                this.log("setTargetText -> no existing target to keep; not clearing. If you expect a highlight, ensure the quiz runner calls setTargetByName() or passes canonicalName.");
                 return;
             }
 
-            // Fallback: try to find a feature by normalized text and highlight if found.
-            const norm = this.normalizeAnswer(text || "");
-            if (norm) {
-                // search nameIndex first for speed
-                const entry = this.nameIndex?.[norm];
-                if (entry) {
-                    this.setTargetByName(entry.canonicalName || text);
-                    return;
-                }
-                // fallback scan
-                const f = this.getFeatureByName(text);
-                if (f) this.setTargetByName(this.getFeatureName(f));
+            // otherwise attempt to resolve the displayed text to a canonical name
+            const resolved = this.resolveCanonicalName(text);
+            if (resolved) {
+                this.log("setTargetText -> resolved canonical", resolved);
+                this.setTargetByName(resolved);
+            } else {
+                this.log("setTargetText: no canonical resolved for", text);
             }
         } catch (e) {
-            // ignore
+            console.error("SmurdyQuiz.setTargetText error", e);
         }
     },
-
+ 
     setProgressText(text) {
         document.getElementById("quiz-progress").textContent = text;
     },
@@ -922,6 +1030,9 @@ map.on("load", async () => {
         if (!norm) continue;
         if (!SmurdyQuiz.nameIndex[norm]) SmurdyQuiz.nameIndex[norm] = { canonicalName: canon, main: [], tiny: [] };
         SmurdyQuiz.nameIndex[norm].main.push(feature.id);
+        // expose normalized canonical on feature.properties for expression-driven styling
+        if (!feature.properties) feature.properties = {};
+        feature.properties._canon = norm;
         feature._canonicalNorm = norm;
     }
 
@@ -949,17 +1060,31 @@ map.on("load", async () => {
         type: "fill",
         source: MODE.sourceId,
         paint: {
-            // Use the theme expression for in-group features, dim gray for out-of-group.
+            // Prioritize quizState colors (target/correct/wrong) regardless of inGroup,
+            // then fall back to in-group color or dimmed gray.
             "fill-color": [
                 "case",
-                ["==", ["feature-state", "inGroup"], true],
-                    SmurdyQuiz.buildFillColorExpression(Boolean(showBorders)),
+                // 1) If there is a quizState, color by it immediately
+                ["!=", ["feature-state", "quizState"], null],
+                    ["match",
+                        ["feature-state", "quizState"],
+                        "target", "#ffd54f",
+                        "correct", "#4caf50",
+                        "wrong", "#f44336",
+                        // fallback default when quizState exists
+                        "#e8e3d3"
+                    ],
+                // 2) Else if feature is inGroup, use normal in-group fill
+                ["==", ["feature-state", "inGroup"], true], "#e8e3d3",
+                // 3) Else dimmed out-of-group color
                 "#777777ff"
             ],
             "fill-opacity": [
                 "case",
-                ["==", ["feature-state", "inGroup"], true], 0.7,
+                // show colored opacity for any quizState
                 ["!=", ["feature-state", "quizState"], null], 0.7,
+                // otherwise show full opacity for in-group, dim for out-of-group
+                ["==", ["feature-state", "inGroup"], true], 0.7,
                 0.16
             ]
          }
@@ -985,16 +1110,13 @@ map.on("load", async () => {
 
     // set per-feature inGroup feature-state now (so expressions using feature-state work)
     try {
-        const allowed = allowedNames;
-        // progressive, non-blocking outline build in worker
+        // If allowedNames is null/undefined that means "world" (allow everything).
+        // Use all nameIndex keys as the allowed set in that case so nothing is dimmed.
+        const allowed = allowedNames || new Set(Object.keys(SmurdyQuiz.nameIndex || {}));
+        SmurdyQuiz.setAllowedList(allowed);
+        // still build progressive outline in worker (non-blocking) if available
         try { SmurdyQuiz.requestGroupOutline(allowed); } catch (e) { /* ignore */ }
-
-        // Minimal, fast behavior: avoid thousands of setFeatureState calls.
-        // Option A (recommended): rely on data-driven paint expressions (updateLayerStyles) and skip per-feature writes entirely.
-        // Option B: if you still need per-feature states, run finalizeFeatureStates() asynchronously late so UI stays responsive.
-        setTimeout(() => {
-            try { finalizeFeatureStates(); } catch (e) { /* ignore */ }
-        }, 400);
+        // skip finalizeFeatureStates/any per-feature setFeatureState work to keep load fast
      } catch (e) {
          // ignore if source/layers not ready
      }
@@ -1029,7 +1151,16 @@ map.on("load", async () => {
                     dedupTiny.push(rawFeature);
                 }
                 SmurdyQuiz.tinyData.features = dedupTiny;
-                SmurdyQuiz.tinyData.features.forEach((feature, index) => { feature.id = index; });
+                SmurdyQuiz.tinyData.features.forEach((feature, index) => {
+                    feature.id = index;
+                    try {
+                        const canon = SmurdyQuiz.getFeatureName(feature) || "";
+                        const norm = SmurdyQuiz.normalizeAnswer(canon);
+                        if (!feature.properties) feature.properties = {};
+                        feature.properties._canon = norm || "";
+                        feature._canonicalNorm = norm || "";
+                    } catch (e) { /* ignore */ }
+                });
             }
 
             if (map.getLayer("quiz-tiny-circle")) {
@@ -1059,29 +1190,21 @@ map.on("load", async () => {
                         5, 6,
                         8, 9
                     ],
+                    // initial paint uses property-driven expressions to match main layer behavior
                     "circle-color": [
-                        "match",
-                        ["feature-state", "quizState"],
-                        "target", "#ffd54f",
-                        "correct", "#4caf50",
-                        "wrong", "#f44336",
+                        "case",
+                        ["in", ["get", "_canon"], ["literal", []]], "#ffd54f", // target literal will be replaced by updateLayerStyles
                         "#666666"
                     ],
-                    "circle-opacity": [
-                        "case",
-                        ["==", ["feature-state", "quizState"], null],
-                        0.8,
-                        0.95
-                    ],
-                    "circle-stroke-color": "#222222",
-                    "circle-stroke-width": [
-                        "case",
-                        ["==", ["feature-state", "quizState"], null],
-                        0.8,
-                        1.4
-                    ]
-                }
-            });
+                    "circle-opacity": 0.9,
+                     "circle-stroke-color": "#222222",
+                     "circle-stroke-width": [
+                         "case",
+                        ["in", ["get", "_canon"], ["literal", []]], 1.4,
+                        0.8
+                     ]
+                 }
+             });
 
             map.on("mouseenter", "quiz-tiny-circle", () => {
                 map.getCanvas().style.cursor = "pointer";
@@ -1091,25 +1214,9 @@ map.on("load", async () => {
                 map.getCanvas().style.cursor = "";
             });
 
-            // set inGroup for tiny features as well
-            try {
-                if (SmurdyQuiz.tinyData && Array.isArray(SmurdyQuiz.tinyData.features)) {
-                    const tiny = SmurdyQuiz.tinyData.features;
-                    const batchSizeTiny = 300;
-                    let j = 0;
-                    const writeTiny = () => {
-                        const end = Math.min(j + batchSizeTiny, tiny.length);
-                        for (; j < end; j++) {
-                            const f = tiny[j];
-                            const inGroup = SmurdyQuiz.isFeatureInCurrentGroup(f);
-                            map.setFeatureState({ source: "quiz-tiny-source", id: f.id }, { inGroup });
-                        }
-                        if (j < tiny.length) setTimeout(writeTiny, 8);
-                        else try { SmurdyQuiz.setShowBorders(SmurdyQuiz.currentShowBorders); } catch (e) {}
-                    };
-                    writeTiny();
-                }
-            } catch (e) {}
+            // No per-tiny-feature map.setFeatureState here — styling is driven by updateLayerStyles()
+            // which uses properties._canon + the small literal lists (allowed/correct/wrong/target).
+            // This keeps loading fast and the UI responsive.
          }
      }
 
