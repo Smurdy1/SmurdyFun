@@ -185,6 +185,8 @@ const SmurdyQuiz = {
     currentGroupId: quizGroupId,
     showBordersInitial: showBorders,
     currentShowBorders: showBorders,
+    // currently-highlighted target name (normalized string stored as given)
+    currentTargetName: null,
     // Batch feature-state writer to avoid blocking the main thread.
     // Accepts array of { source, id, state } and applies them in small chunks.
     batchSetFeatureStates(entries, chunkSize = 60) {
@@ -417,8 +419,75 @@ const SmurdyQuiz = {
         return true;
     },
 
-    setTargetText(text) {
+    setTargetByName(name) {
+        // highlight by canonical feature name (normalized)
+        try {
+            if (!name) {
+                // clear previous target highlight
+                if (this.currentTargetName) {
+                    try { this.setFeatureStateByName(this.currentTargetName, null); } catch (e) {}
+                    this.currentTargetName = null;
+                }
+                return;
+            }
+            const canon = String(name).trim();
+            const norm = this.normalizeAnswer(canon);
+            if (!norm) return;
+            // clear previous
+            if (this.currentTargetName && this.currentTargetName !== canon) {
+                try { this.setFeatureStateByName(this.currentTargetName, null); } catch (e) {}
+            }
+            // set new target state (quizState = "target")
+            try { this.setFeatureStateByName(canon, "target"); } catch (e) {}
+            this.currentTargetName = canon;
+        } catch (e) { /* ignore */ }
+    },
+
+    setTargetText(text, canonicalName) {
+        // text: displayed label; canonicalName (optional): actual country name to highlight
         document.getElementById("quiz-target").textContent = text;
+
+        try {
+            // if a canonicalName was provided, prefer it for highlighting
+            if (canonicalName) {
+                this.setTargetByName(canonicalName);
+                return;
+            }
+
+            // If the provided text exactly matches a canonical feature name, highlight it.
+            const possibleCanon = String(text || "").trim();
+            if (possibleCanon) {
+                const matched = this.getFeatureByName(possibleCanon);
+                if (matched) {
+                    this.setTargetByName(possibleCanon);
+                    return;
+                }
+            }
+
+            // If text looks like a generic instruction (contains words like "guess" or "type"),
+            // do not attempt to use it as a canonical name. Just clear any previous highlight.
+            const lower = String(text || "").toLowerCase();
+            if (/\b(guess|type|highlighted|find|click)\b/.test(lower)) {
+                this.setTargetByName(null);
+                return;
+            }
+
+            // Fallback: try to find a feature by normalized text and highlight if found.
+            const norm = this.normalizeAnswer(text || "");
+            if (norm) {
+                // search nameIndex first for speed
+                const entry = this.nameIndex?.[norm];
+                if (entry) {
+                    this.setTargetByName(entry.canonicalName || text);
+                    return;
+                }
+                // fallback scan
+                const f = this.getFeatureByName(text);
+                if (f) this.setTargetByName(this.getFeatureName(f));
+            }
+        } catch (e) {
+            // ignore
+        }
     },
 
     setProgressText(text) {
