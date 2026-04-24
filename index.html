@@ -15,15 +15,28 @@
 </head>
 <body>
     <div id="quiz-panel">
-        <div id="quiz-target">Loading quiz...</div>
-        <div id="quiz-timer">00:00</div>
-        <div id="quiz-progress"></div>
-        <div id="quiz-accuracy"></div>
-        <div id="quiz-result"></div>
+        <div id="quiz-target">Smurdy — Geography quizzes</div>
+
+        <div id="quiz-desc">
+            <p>
+                Smurdy is a personal map-quiz project to help learn geography:
+                countries, states, and other regions. It's intentionally simple:
+                play quick rounds, learn names and locations, and have a little fun with maps.
+            </p>
+            <p>
+                Found a bug, want a new feature, or have wording suggestions? Please tell me.
+                I read suggestions and will likely make the change if it improves the site.
+            </p>
+        </div>
+
+        <div id="quiz-result" aria-live="polite"></div>
 
         <div id="quiz-buttons">
-            <button id="quiz-restart">Restart</button>
-            <button id="quiz-back">Back</button>
+            <!-- suggestion is an anchor to the feedback form so it behaves like a normal link -->
+            <a id="quiz-suggest" class="qb-btn primary" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Give Suggestions</a>
+            <!-- keep these present for the app JS (hidden on the homepage) -->
+            <button id="quiz-restart" style="display:none">Restart</button>
+            <button id="quiz-back" style="display:none">Back</button>
         </div>
     </div>
 
@@ -32,5 +45,17 @@
     <script src="/src/js/app.js" defer></script>
     <script src="/src/js/manifest.js" defer></script>
     <script src="/src/js/browse.js" defer></script>
+
+    <script>
+    // keep a no-op listener so older JS expecting an element id doesn't error
+    document.addEventListener('DOMContentLoaded', () => {
+        const suggestEl = document.getElementById('quiz-suggest');
+        if (!suggestEl) return;
+        // ensure link opens in new tab when activated by keyboard / script
+        suggestEl.addEventListener('click', (e) => {
+            // normal navigation handled by the anchor; nothing else required
+        });
+    });
+    </script>
 </body>
 </html>

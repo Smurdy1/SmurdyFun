@@ -18,10 +18,18 @@ html, body {
     left: 16px;
     z-index: 1000;
     background: white;
-    padding: 12px 16px;
     border-radius: 10px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    min-width: 220px;
+    /* size to content but don't exceed viewport or a sane maximum */
+    display: inline-block;
+    width: auto;
+    max-width: min(420px, 92vw);
+    min-width: 240px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    box-sizing: border-box;
 }
 
 #quiz-target {
@@ -31,36 +39,58 @@ html, body {
 }
 
 #quiz-result {
-    font-size: 15px;
+    font-size: 16px;
     min-height: 20px;
+    margin-top: 8px;
 }
 
 #quiz-progress,
 #quiz-accuracy,
 #quiz-result {
     margin-top: 6px;
+    font-size: 15px;
 }
 
 #quiz-buttons {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     gap: 8px;
+    align-items: center;
 }
 
-#quiz-restart,
-#quiz-back {
+#quiz-buttons .qb-btn,
+#quiz-buttons button {
     padding: 8px 12px;
-    border: none;
     border-radius: 8px;
-    background: #222;
-    color: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #f5f5f5;
+    color: #111;
     cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
 }
+#quiz-buttons .qb-btn:hover,
+#quiz-buttons button:hover { filter: brightness(0.95); }
 
-#quiz-restart:hover,
-#quiz-back:hover {
-    background: #444;
+/* primary style (used for Give Suggestions) */
+#quiz-buttons .qb-btn.primary {
+    background: #0077cc;
+    color: #fff;
+    border-color: rgba(0,0,0,0.06);
 }
+#quiz-buttons .qb-btn.primary:hover { background: #005fa3; }
+
+/* hide the old restart/back controls on the homepage */
+#quiz-restart[style*="display:none"],
+#quiz-back[style*="display:none"] { display: none !important; }
+
+/* keep existing quiz-panel layout rules for when a quiz loads */
+#quiz-target { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
+#quiz-result { font-size: 15px; min-height: 20px; margin-top: 8px; }
 
 #quiz-timer {
     margin-top: 6px;
@@ -68,3 +98,7 @@ html, body {
     font-weight: 700;
     line-height: 1;
 }
+
+/* homepage description */
+#quiz-desc { margin-top: 8px; color: #333; font-size: 15px; line-height: 1.45; }
+#quiz-desc p { margin: 8px 0; }
