@@ -309,10 +309,13 @@
         "Tsjechische Republiek"
     ],
     "Democratic Republic of the Congo": [
+        "Congo",
         "Congo (República Democrática del)",
+        "Democratic Republic of Congo",
         "Democratische Republiek Congo",
         "Demokratiska republiken Kongo",
         "Demokratyczna Republika Konga",
+        "DRC",
         "Kongo",
         "Kongo - Kinşasa",
         "Repubblica Democratica del Congo",
@@ -502,6 +505,7 @@
     ],
     "Guinea-Bissau": [
         "Gine-Bissau",
+        "Guinea Bissau",
         "Guiné-Bissau",
         "Guinée-Bissau",
         "Gwinea Bissau",
@@ -522,6 +526,7 @@
         "Saint-Siège (Vatican)",
         "Santa Sé",
         "Santa Sede",
+        "The Vatican",
         "Vatican",
         "Vatican City",
         "Vaticaanstad",
@@ -981,7 +986,8 @@
         "República Democrática do Congo",
         "Republiek Congo",
         "Republik Kongo",
-        "République du Congo"
+        "République du Congo",
+        "Republic of Congo"
     ],
     "Romania": [
         "Roemeense Republiek",
@@ -1048,6 +1054,7 @@
         "São Tomé und Príncipe",
         "São Tomé ve Príncipe",
         "São Tomé-et-Principe",
+        "Sao Tome and Principe",
         "Wyspy Świętego Tomasza i Książęca"
     ],
     "Saudi Arabia": [
@@ -1290,6 +1297,7 @@
     ],
     "Turkey": [
         "Türkiye",
+        "Turkiye",
         "Republiek Turkije",
         "Turchia",
         "Turcja",
@@ -1345,6 +1353,7 @@
         "Tansania, Vereinigte Republik",
         "Tanzania",
         "Tanzanya",
+        "United Republic of Tanzania",
         "Verenigde Republiek Tanzania"
     ],
     "United States of America": [

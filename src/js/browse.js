@@ -1,5 +1,46 @@
 (() => {
-    const baseManifest = window.SmurdyQuizManifest || [];
+    // manifest will be populated at init (try global first, then fetch JSON)
+    let baseManifest = window.SmurdyQuizManifest || [];
+
+    async function loadManifest() {
+        // 1) prefer an inlined global manifest if present
+        if (window.SmurdyQuizManifest && Array.isArray(window.SmurdyQuizManifest) && window.SmurdyQuizManifest.length) {
+            return window.SmurdyQuizManifest;
+        }
+
+        // 2) try to load the JS manifest by injecting a script tag (manifest.js)
+        try {
+            await new Promise((resolve, reject) => {
+                // avoid injecting twice
+                if (document.querySelector('script[data-manifest="true"]')) return resolve();
+                const s = document.createElement("script");
+                s.src = "/src/js/manifest.js";
+                s.async = true;
+                s.setAttribute("data-manifest", "true");
+                s.onload = () => resolve();
+                s.onerror = (e) => reject(new Error("failed to load manifest.js"));
+                document.head.appendChild(s);
+            });
+            if (window.SmurdyQuizManifest && Array.isArray(window.SmurdyQuizManifest) && window.SmurdyQuizManifest.length) {
+                return window.SmurdyQuizManifest;
+            }
+        } catch (e) {
+            // swallow and fallback
+        }
+
+        // 3) final fallback: try fetching JSON (if you ever keep manifest.json)
+        try {
+            const res = await fetch("/src/data/manifest.json", { cache: "no-cache" });
+            if (res.ok) {
+                const json = await res.json();
+                if (Array.isArray(json) && json.length) return json;
+            }
+        } catch (e) { /* ignore */ }
+
+        // 4) empty fallback
+        return [];
+    }
+
     let groups = {};
 
     /* Utility ------------------------------------------------------------- */
@@ -74,13 +115,12 @@
                 display:flex; flex-direction:column; font-family: Arial, sans-serif; }
             #qb-header { padding:14px 16px; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; gap:8px; }
             #qb-title { font-weight:700; font-size:18px; color:#111; flex:1; }
-            #qb-back { background:transparent; border:0; color:#0077cc; cursor:pointer; font-weight:600; }
             #qb-search { padding:12px 16px; border-bottom:1px solid rgba(0,0,0,0.06); }
             #qb-search input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e0e0e0; }
             #qb-list { overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
             .qb-card { background:#fbfbfb; border:1px solid #eee; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; }
             .qb-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-            .qb-title { font-weight:700; color:#111; margin:0; font-size:15px; }
+            .qb-title { font-weight:700; color:#111; margin:0 0 6px 0; font-size:15px; }
             .qb-sub { color:#666; font-size:13px; margin:0; }
             .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
             .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
@@ -93,57 +133,111 @@
     /* Views --------------------------------------------------------------- */
     let currentView = "types"; // "types" or "groups"
     let activeType = null;
+    let pendingManifestToLaunch = null; // when non-null, renderGroupsView will launch this manifest item
 
     function renderTypesView(filter = "") {
-        currentView = "types";
-        activeType = null;
-        const panel = ensureBrowserUI();
-        const types = buildTypeCards();
-        const tokens = tokenize(filter);
+        // Simplified: show the manifest list as the single browse UI.
+        // Keep the same filter semantics by delegating to renderManifestView.
+        renderManifestView(filter);
+     }
 
-        const filtered = types.filter(t => {
+    // Render the raw manifest list (individual quiz entries)
+    function renderManifestView(filter = "") {
+        const panel = ensureBrowserUI();
+        const tokens = tokenize(filter);
+        const q = (baseManifest || []).map(m => {
+            const title = m.title || m.file || m.id;
+            let desc = "";
+            if (typeof m.descriptionTemplate === "string") desc = m.descriptionTemplate.replace(/\{group\}/g, "").trim();
+            else if (m.file) desc = m.file;
+            return { id: m.id, title, desc, tags: m.tags || [], raw: m };
+        }).filter(t => {
             if (!tokens.length) return true;
-            const hay = [t.type, ...(t.tags || [])].join(" ").toLowerCase();
+            const hay = [t.id, t.title, t.desc, ...(t.tags || [])].join(" ").toLowerCase();
             return tokens.every(tok => hay.includes(tok));
         });
 
         panel.innerHTML = `
             <div id="qb-header">
-                <div id="qb-title">Choose quiz type</div>
+                <div id="qb-title">All quizzes</div>
             </div>
-            <div id="qb-search"><input id="qb-filter" placeholder="Search types or tags (e.g. map, typing)" value="${escapeHtml(filter)}"/></div>
+            <div id="qb-search"><input id="qb-filter" placeholder="Search quizzes or tags" value="${escapeHtml(filter)}"/></div>
             <div id="qb-list">
-                ${filtered.length ? filtered.map(t => `
-                    <div class="qb-card" data-type="${escapeHtml(t.type)}">
+                ${q.length ? q.map(t => `
+                    <div class="qb-card" data-manifest-id="${escapeHtml(t.id)}">
                         <div class="qb-row">
                             <div>
-                                <div class="qb-title">${escapeHtml(getFriendlyTypeLabel(t.type))}</div>
-                                <div class="qb-sub">${escapeHtml((t.examples[0] && (t.examples[0].description || "")) || "")}</div>
+                                <div class="qb-title">${escapeHtml(t.title)}</div>
+                                <div class="qb-sub">${escapeHtml(t.desc||"")}</div>
                             </div>
                             <div>
-                                <button class="qb-play" data-type="${escapeHtml(t.type)}">Choose</button>
+                                <button class="qb-play" data-manifest-id="${escapeHtml(t.id)}">Choose</button>
                             </div>
                         </div>
                         <div class="qb-tags">
                             ${(t.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
                         </div>
                     </div>
-                `).join("") : `<div class="qb-empty">No types match your search.</div>`}
+                `).join("") : `<div class="qb-empty">No quizzes match your search.</div>`}
             </div>
         `;
 
-        panel.querySelector("#qb-filter").addEventListener("input", (e) => {
-            renderTypesView(e.target.value);
-        });
+        panel.querySelector("#qb-filter").addEventListener("input", (e) => renderManifestView(e.target.value));
 
         panel.querySelectorAll(".qb-play").forEach(btn => {
             btn.addEventListener("click", () => {
-                const type = btn.dataset.type;
-                renderGroupsView(type);
+                const id = btn.dataset.manifestId;
+                const manifestItem = (baseManifest || []).find(m => m.id === id);
+                if (!manifestItem) return;
+
+                // If the manifest entry references groups, open group selector but ensure
+                // the chosen group launches this specific manifest item.
+                if (manifestItem.groupSet && Object.keys(groups || {}).length) {
+                    pendingManifestToLaunch = manifestItem;
+                    renderGroupsView(manifestItem.type || manifestItem.type || "type", "");
+                    return;
+                }
+
+                // launch immediately (no group selection)
+                const runMode = (manifestItem.config && manifestItem.config.mode) || (manifestItem.mode) || "countries";
+                if (typeof window.launchQuiz === "function") {
+                    const extra = { group: "", borders: manifestItem.borders };
+                    window.launchQuiz(manifestItem.file, runMode, extra);
+                } else {
+                    const params = new URLSearchParams();
+                    params.set("mode", runMode);
+                    params.set("quiz", manifestItem.file);
+                    if (typeof manifestItem.borders !== "undefined") params.set("borders", String(Boolean(manifestItem.borders)));
+                    window.location.search = params.toString();
+                }
             });
         });
     }
 
+    // Launch a specific manifest entry with a selected group
+    function startQuizForManifest(manifestItem, groupId) {
+        if (!manifestItem) return;
+        const g = groups[groupId] || {};
+        const borderset = (typeof g.borderset !== "undefined") ? g.borderset : (manifestItem.borders ? "countries" : "none");
+        const bs = String(borderset).toLowerCase();
+        let bordersFlag = 0;
+        if (bs === "states" || bs === "countries") bordersFlag = 1;
+        if ((manifestItem.type || "") === "find") bordersFlag = 0;
+        const mode = (bs === "states") ? "states" : "countries";
+        const extra = { group: groupId, borders: String(bordersFlag) };
+        if (typeof window.launchQuiz === "function") {
+            window.launchQuiz(manifestItem.file, mode, extra);
+        } else {
+            const params = new URLSearchParams();
+            params.set("mode", mode);
+            params.set("quiz", manifestItem.file);
+            params.set("group", groupId);
+            params.set("borders", String(bordersFlag));
+            window.location.search = params.toString();
+        }
+    }
+
+    /* UI navigation ------------------------------------------------------ */
     function getFriendlyTypeLabel(type) {
         if (type === "click") return "Click";
         if (type === "type") return "Type";
@@ -152,58 +246,61 @@
     }
 
     function renderGroupsView(type, filter = "") {
-        currentView = "groups";
-        activeType = type;
-        const panel = ensureBrowserUI();
-        const groupsList = buildGroupCardsForType(type);
-        const tokens = tokenize(filter);
+         currentView = "groups";
+         activeType = type;
+         const panel = ensureBrowserUI();
+         const groupsList = buildGroupCardsForType(type);
+         const tokens = tokenize(filter);
 
-        const filtered = groupsList.filter(g => {
-            if (!tokens.length) return true;
-            const hay = [g.label, g.id, ...(g.tags||[])].join(" ").toLowerCase();
-            return tokens.every(tok => hay.includes(tok));
-        });
+         const filtered = groupsList.filter(g => {
+             if (!tokens.length) return true;
+             const hay = [g.label, g.id, ...(g.tags||[])].join(" ").toLowerCase();
+             return tokens.every(tok => hay.includes(tok));
+         });
 
-        panel.innerHTML = `
-            <div id="qb-header">
-                <button id="qb-back">← Back</button>
-                <div id="qb-title">${escapeHtml(getFriendlyTypeLabel(type))} — select group</div>
-            </div>
-            <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
-            <div id="qb-list">
-                ${filtered.length ? filtered.map(g => `
-                    <div class="qb-card" data-group="${escapeHtml(g.id)}">
-                        <div class="qb-row">
-                            <div>
-                                <div class="qb-title">${escapeHtml(g.label)}</div>
-                                <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
-                            </div>
-                            <div>
-                                <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
-                            </div>
-                        </div>
-                        <div class="qb-tags">
-                            ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
-                        </div>
-                    </div>
-                `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
-            </div>
-        `;
+         panel.innerHTML = `
+             <div id="qb-header">
+                 <div id="qb-title">${escapeHtml(getFriendlyTypeLabel(type))} — select group</div>
+             </div>
+             <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
+             <div id="qb-list">
+                 ${filtered.length ? filtered.map(g => `
+                     <div class="qb-card" data-group="${escapeHtml(g.id)}">
+                         <div class="qb-row">
+                             <div>
+                                 <div class="qb-title">${escapeHtml(g.label)}</div>
+                                 <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
+                             </div>
+                             <div>
+                                 <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
+                             </div>
+                         </div>
+                         <div class="qb-tags">
+                             ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
+                         </div>
+                     </div>
+                 `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
+             </div>
+         `;
 
-        panel.querySelector("#qb-back").addEventListener("click", () => renderTypesView(""));
+         panel.querySelector("#qb-filter").addEventListener("input", (e) => {
+             renderGroupsView(type, e.target.value);
+         });
 
-        panel.querySelector("#qb-filter").addEventListener("input", (e) => {
-            renderGroupsView(type, e.target.value);
-        });
-
-        panel.querySelectorAll(".qb-play").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const group = btn.dataset.group;
-                const type = btn.dataset.type;
-                startQuizFor(type, group);
-            });
-        });
-    }
+         panel.querySelectorAll(".qb-play").forEach(btn => {
+             btn.addEventListener("click", () => {
+                 const group = btn.dataset.group;
+                 const type = btn.dataset.type;
+                 if (pendingManifestToLaunch) {
+                     // launch the previously chosen manifest entry for this group
+                     startQuizForManifest(pendingManifestToLaunch, group);
+                     pendingManifestToLaunch = null;
+                 } else {
+                     startQuizFor(type, group);
+                 }
+             });
+         });
+     }
 
     /* Start quiz ---------------------------------------------------------- */
     function startQuizFor(type, groupId) {
@@ -248,6 +345,13 @@
     /* Init --------------------------------------------------------------- */
     async function init() {
         ensureBrowserUI();
+
+        // load manifest (preferred) before rendering types
+        try {
+            baseManifest = await loadManifest();
+        } catch (e) {
+            baseManifest = window.SmurdyQuizManifest || [];
+        }
 
         try {
             const res = await fetch("/src/data/country_groups.json");

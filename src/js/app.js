@@ -349,10 +349,37 @@ const SmurdyQuiz = {
         });
     },
 
+    // Return true if the feature looks like a body of water (heuristic).
+    isWaterFeature(feature) {
+        if (!feature || !feature.properties) return false;
+        const p = feature.properties || {};
+        // prefer canonical name if available
+        let name = "";
+        try { name = String(this.getFeatureName(feature) || "") || ""; } catch (e) { name = String(p.NAME || p.name || ""); }
+        const n = String(name).toLowerCase();
+
+        // common water keywords (covers Great Lakes, seas, bays, rivers, etc.)
+        const waterKeywords = ["lake", "sea", "gulf", "bay", "strait", "river", "ocean", "sound", "lagoon", "pond", "reservoir"];
+        for (const kw of waterKeywords) {
+            if (n.includes(kw)) return true;
+        }
+
+        // check a few common property fields that may indicate water
+        if (p.featurecla && /lake|ocean|sea|water|reservoir|bay/i.test(p.featurecla)) return true;
+        if (p.type && /lake|ocean|sea|water|reservoir|bay/i.test(p.type)) return true;
+        if (p.FCLASS && /lake|ocean|sea|water|reservoir|bay/i.test(p.FCLASS)) return true;
+
+        return false;
+    },
+
     // Return true if a feature should be considered part of the current group.
     // This is used when setting feature-state "inGroup".
     isFeatureInCurrentGroup(feature) {
         if (!feature) return false;
+
+        // Always treat water features as in-group so bodies of water are not dimmed across borders.
+        if (this.isWaterFeature(feature)) return true;
+
         const groupId = this.currentGroupId || (this.currentQuiz && this.currentQuiz.group) || null;
         if (String(groupId).toLowerCase() === "world") return true;
 
@@ -455,10 +482,14 @@ const SmurdyQuiz = {
     },
 
     buildResolvedAliases() {
-        // Simple fast path: disable complex alias expansion.
-        // Keep rawAliases available for manual edits, but don't expand them automatically.
-        this.aliases = {};
-     },
+        // Lightweight: use the shipped aliases.json directly so normalized alias lookup works.
+        // This avoids expensive expansion while enabling common alternate names.
+        try {
+            this.aliases = this.rawAliases || {};
+        } catch (e) {
+            this.aliases = {};
+        }
+    },
 
     isAcceptedAnswer(canonicalName, userAnswer) {
         const normalizedUser = this.normalizeAnswer(userAnswer);
@@ -512,7 +543,7 @@ const SmurdyQuiz = {
             const norm = this.normalizeAnswer(resolved);
             if (!norm) return false;
 
-            // quizState: "correct" | "wrong" | "target" | null
+            // quizState: "target" | "correct" | "wrong" | null
             if (quizState === "target") {
                 this.setTargetByNameSimple(resolved);
                 return true;
@@ -785,9 +816,12 @@ const SmurdyQuiz = {
                     }
 
                     if (def.config && typeof def.config === "object") {
+                        // pass manifest-level prefs (like borders) into the runner config so the runner
+                        // can honor manifest-specified border visibility.
+                        const runnerConfig = Object.assign({}, def.config, { borders: def.borders });
                         setTimeout(() => {
                             if (typeof window.runNameQuiz === "function") {
-                                window.runNameQuiz(def.config);
+                                window.runNameQuiz(runnerConfig);
                             } else {
                                 console.error("Quiz runner loaded but runNameQuiz() is not available.");
                             }
