@@ -1,6 +1,79 @@
 window.runNameQuiz = function runNameQuiz(config) {
     const SQ = window.SmurdyQuiz;
 
+    // Toggle quiz-panel between "homepage" (description + suggest) and "game" (timer + controls).
+    function setQuizPanelMode(mode) {
+        const desc = document.getElementById("quiz-desc");
+        const suggest = document.getElementById("quiz-suggest");
+        const restart = document.getElementById("quiz-restart");
+        const back = document.getElementById("quiz-back");
+        let timer = document.getElementById("quiz-timer");
+        const target = document.getElementById("quiz-target");
+
+        if (mode === "game") {
+            if (desc) desc.style.display = "none";
+            if (suggest) suggest.style.display = "none";
+            if (restart) restart.style.display = "";
+            if (back) back.style.display = "";
+
+            // ensure timer exists and is visible
+            if (!timer && target) {
+                timer = document.createElement("div");
+                timer.id = "quiz-timer";
+                timer.style.marginTop = "6px";
+                timer.style.fontWeight = "700";
+                target.parentNode.insertBefore(timer, target.nextSibling);
+            }
+            if (timer) timer.style.display = "";
+
+            // ensure progress exists (insert before buttons)
+            if (!progress && panel) {
+                progress = document.createElement("div");
+                progress.id = "quiz-progress";
+                progress.style.color = "rgba(0,0,0,0.7)";
+                progress.style.marginTop = "6px";
+                const buttons = document.getElementById("quiz-buttons");
+                if (buttons && buttons.parentNode === panel) panel.insertBefore(progress, buttons);
+                else panel.appendChild(progress);
+            }
+            if (progress) progress.style.display = "";
+
+            // ensure accuracy exists
+            if (!accuracy && panel) {
+                accuracy = document.createElement("div");
+                accuracy.id = "quiz-accuracy";
+                accuracy.style.color = "rgba(0,0,0,0.7)";
+                accuracy.style.marginTop = "4px";
+                const buttons = document.getElementById("quiz-buttons");
+                if (buttons && buttons.parentNode === panel) panel.insertBefore(accuracy, buttons);
+                else panel.appendChild(accuracy);
+            }
+            if (accuracy) accuracy.style.display = "";
+
+            // ensure result exists and is visible
+            if (!result && panel) {
+                result = document.createElement("div");
+                result.id = "quiz-result";
+                result.setAttribute("aria-live", "polite");
+                result.style.marginTop = "6px";
+                const buttons = document.getElementById("quiz-buttons");
+                if (buttons && buttons.parentNode === panel) panel.insertBefore(result, buttons);
+                else panel.appendChild(result);
+            }
+            if (result) result.style.display = "";
+        } else {
+            // homepage
+            if (desc) desc.style.display = "";
+            if (suggest) suggest.style.display = "";
+            if (restart) restart.style.display = "none";
+            if (back) back.style.display = "none";
+            if (timer) timer.style.display = "none";
+        }
+    }
+
+    // Ensure the panel shows the game UI when a quiz starts.
+    try { setQuizPanelMode("game"); } catch (e) {}
+
     // hide browser panel when a game starts
     try {
         const panel = document.getElementById("quiz-browser");
@@ -473,19 +546,22 @@ window.runNameQuiz = function runNameQuiz(config) {
             stopTimer();
             setInputEnabled(false);
 
-            // show browser panel again when quiz finishes
-            try {
-                const panel = document.getElementById("quiz-browser");
-                if (panel) {
-                    panel.style.display = "block";
-                    panel.style.opacity = "";
-                    panel.style.transform = "";
-                }
-            } catch (e) {}
+            // restore homepage-like panel when quiz finishes (only show paragraphs/suggest when on homepage)
+            try { setQuizPanelMode("home"); } catch (e) {}
 
-            return;
-        }
-
+             // show browser panel again when quiz finishes
+             try {
+                 const panel = document.getElementById("quiz-browser");
+                 if (panel) {
+                     panel.style.display = "block";
+                     panel.style.opacity = "";
+                     panel.style.transform = "";
+                 }
+             } catch (e) {}
+ 
+             return;
+         }
+ 
         // For findPoint mode, choose a random country and place the dot on its largest polygon part.
         if (mode === "type" && findPoint) {
             try { SQ.setShowBorders(false); } catch (e) {}
@@ -540,7 +616,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         completed = new Set();
         attempts = 0;
         correctAnswers = 0;
-
+ 
         clearStates();
         SQ.setResultText("");
         updateCounter();
@@ -548,22 +624,25 @@ window.runNameQuiz = function runNameQuiz(config) {
         resetTimer();
         startTimer();
 
-        if (typeof SQ.resetView === "function") {
-            SQ.resetView();
-        }
-        if (mode === "type" && inputEl) {
-            inputEl.value = "";
-            setInputEnabled(true);
-        }
+        // ensure panel uses the game UI when restarting
+        try { setQuizPanelMode("game"); } catch (e) {}
 
-        // hide browser panel when restarting/starting the quiz
-        try {
-            const panel = document.getElementById("quiz-browser");
-            if (panel) panel.style.display = "none";
-        } catch (e) {}
-
-        nextQuestion();
-    }
+         if (typeof SQ.resetView === "function") {
+             SQ.resetView();
+         }
+         if (mode === "type" && inputEl) {
+             inputEl.value = "";
+             setInputEnabled(true);
+         }
+ 
+         // hide browser panel when restarting/starting the quiz
+         try {
+             const panel = document.getElementById("quiz-browser");
+             if (panel) panel.style.display = "none";
+         } catch (e) {}
+ 
+         nextQuestion();
+     }
 
     function finishCorrect() {
         correctAnswers++;

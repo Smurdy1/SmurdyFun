@@ -630,11 +630,46 @@ const SmurdyQuiz = {
     },
  
     setProgressText(text) {
-        document.getElementById("quiz-progress").textContent = text;
+        // prefer the explicit progress element; if it's missing (homepage layout), create a small fallback
+        let el = document.getElementById("quiz-progress");
+        if (!el) {
+            const panel = document.getElementById("quiz-panel");
+            if (panel) {
+                // create a lightweight progress node so the runner can always update it
+                el = document.createElement("div");
+                el.id = "quiz-progress";
+                // styling handled by CSS
+                el.style.color = "rgba(0,0,0,0.7)";
+                el.style.marginTop = "6px";
+                // append near the bottom of the panel but before buttons
+                const buttons = document.getElementById("quiz-buttons");
+                if (buttons && buttons.parentNode === panel) panel.insertBefore(el, buttons);
+                else panel.appendChild(el);
+            }
+        }
+        if (el) el.textContent = text;
+        // if no panel/element exists, silently ignore to avoid crashing the runner
     },
 
     setAccuracyText(text) {
-        document.getElementById("quiz-accuracy").textContent = text;
+        // prefer the explicit accuracy element; if it's missing (homepage layout), create a small fallback
+        let el = document.getElementById("quiz-accuracy");
+        if (!el) {
+            const panel = document.getElementById("quiz-panel");
+            if (panel) {
+                el = document.createElement("div");
+                el.id = "quiz-accuracy";
+                // styling handled by CSS
+                el.style.color = "rgba(0,0,0,0.7)";
+                el.style.marginTop = "4px";
+                // append near the bottom of the panel but before buttons if possible
+                const buttons = document.getElementById("quiz-buttons");
+                if (buttons && buttons.parentNode === panel) panel.insertBefore(el, buttons);
+                else panel.appendChild(el);
+            }
+        }
+        if (el) el.textContent = text;
+        // otherwise silently ignore to avoid crashing when UI is in a minimal homepage state
     },
 
     setResultText(text) {
