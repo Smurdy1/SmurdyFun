@@ -85,7 +85,12 @@ const vm = require("vm");
             const leadSource = (m.shortDescription || m.seoIntro || description).toString().trim();
             const leadText = `${escapeHtml(groupLabel)}: ${escapeHtml(leadSource)}`;
 
-            const pageHtml = `<!doctype html>
+            // pick 5 example regions: prefer group.notable, otherwise fall back to first 5 in the group's countries array
+            const notableList = (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].notable) && groups[gid].notable.length)
+                ? groups[gid].notable.slice(0, 5)
+                : (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].countries) ? groups[gid].countries.slice(0, 5) : []);
+
+             const pageHtml = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -112,6 +117,8 @@ const vm = require("vm");
     header h1{font-size:20px;margin:0 0 8px}
     .meta{color:#666;font-size:13px;margin-bottom:12px}
     .lead{margin:14px 0}
+    .examples{margin-top:14px}
+    .examples ul{padding-left:20px}
     a.button{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#0077cc;color:#fff;text-decoration:none}
   </style>
 </head>
@@ -125,6 +132,8 @@ const vm = require("vm");
     <p class="lead">${leadText}</p>
 
     ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
+
+    ${notableList.length ? `<section class="examples"><strong>Example regions:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
 
     <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(m.mode || m.type || "")}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
   </main>

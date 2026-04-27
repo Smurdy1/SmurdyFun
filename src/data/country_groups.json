@@ -2,13 +2,15 @@
     "world": {
         "label": "World",
         "allowedTypes": ["click", "type", "find"],
-        "borderset": "countries"
+        "borderset": "countries",
+        "notable": ["United States of America","China","India","Russia","Brazil"]
     },
 
     "africa": {
         "label": "Africa",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["Nigeria","South Africa","Egypt","Kenya","Ethiopia"],
         "countries": [
             "Algeria",
             "Angola",
@@ -73,6 +75,7 @@
         "label": "Europe",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["France","Germany","United Kingdom","Italy","Spain"],
         "countries": [
             "Albania",
             "Andorra",
@@ -125,6 +128,7 @@
         "label": "Asia",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["China","India","Japan","Indonesia","Saudi Arabia"],
         "countries": [
             "Afghanistan",
             "Armenia",
@@ -184,6 +188,7 @@
         "label": "North America",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["United States of America","Canada","Mexico","Cuba","Jamaica"],
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -215,6 +220,7 @@
         "label": "South America",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["Brazil","Argentina","Colombia","Chile","Peru"],
         "countries": [
             "Argentina",
             "Bolivia",
@@ -235,6 +241,7 @@
         "label": "Eurasia",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["Russia","France","China","Germany","India"],
         "countries": [
             "Albania",
             "Andorra",
@@ -339,6 +346,7 @@
         "label": "Americas",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
+        "notable": ["United States of America","Brazil","Canada","Mexico","Argentina"],
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -382,6 +390,7 @@
         "label": "Latin America",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Mexico","Brazil","Argentina","Peru","Colombia"],
         "countries": [
             "Mexico",
             "Guatemala",
@@ -411,6 +420,7 @@
         "label": "Tiny Countries",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Malta","Singapore","Luxembourg","Monaco","Nauru"],
         "countries": [
             "Andorra",
             "Antigua and Barbuda",
@@ -448,6 +458,7 @@
         "label": "Small Island Countries",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Fiji","Maldives","Samoa","Tonga","Vanuatu"],
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -483,6 +494,7 @@
         "label": "Caribbean Islands",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Cuba","Jamaica","Haiti","Dominican Republic","Trinidad and Tobago"],
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -504,6 +516,7 @@
         "label": "Pacific Islands",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Fiji","Papua New Guinea","Samoa","Tonga","Vanuatu"],
         "countries": [
             "Fiji",
             "Kiribati",
@@ -524,6 +537,7 @@
         "label": "Oceania",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["Australia","New Zealand","Papua New Guinea","Fiji","Solomon Islands"],
         "countries": [
             "Australia",
             "East Timor",
@@ -548,6 +562,7 @@
         "label": "East Asia",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",
+        "notable": ["China","Japan","South Korea","Taiwan","Mongolia"],
         "countries": [
             "Brunei",
             "Cambodia",
@@ -571,6 +586,7 @@
         "label": "US States",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "states",
+        "notable": ["California","Texas","New York","Florida","Alaska"],
         "countries": [
             "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
             "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
