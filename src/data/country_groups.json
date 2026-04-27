@@ -568,7 +568,7 @@
     },
 
     "us_states": {
-        "label": "United States (states)",
+        "label": "US States",
         "allowedTypes": ["click", "type", "find"],
         "borderset": "states",
         "countries": [

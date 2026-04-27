@@ -10,6 +10,8 @@ window.SmurdyQuizManifest = [
         groupSet: "country_groups",
         borders: 1,
         descriptionTemplate: "Click the correct region.",
+        shortDescription: "Click the highlighted region to select it.",
+        playHint: "You will click the correct region on the map.",
         // inline quiz runner config (used instead of loading a separate file)
         config: {
             mode: "click",
@@ -30,6 +32,8 @@ window.SmurdyQuizManifest = [
         groupSet: "country_groups",
         borders: 1,
         descriptionTemplate: "Type the highlighted region.",
+        shortDescription: "Type the name of the highlighted region.",
+        playHint: "You will type region names to answer.",
         config: {
             mode: "type",
             titleBuilder: () => "Type the highlighted region",
@@ -50,6 +54,8 @@ window.SmurdyQuizManifest = [
         groupSet: "country_groups",
         borders: 0,
         descriptionTemplate: "Find the region without borders.",
+        shortDescription: "Find the correct region when borders are hidden.",
+        playHint: "You will click the region that matches the prompt.",
         config: {
             mode: "click",
             titleBuilder: (name) => `Click: ${name}`,
@@ -68,7 +74,9 @@ window.SmurdyQuizManifest = [
         tags: ["Regions","Typing","Point","Find"],
         groupSet: "country_groups",
         borders: 0,
-        descriptionTemplate: "Type the region that contains the highlighted point.",
+        descriptionTemplate: "Click the correct region.",
+        shortDescription: "Click the highlighted region to select it.",
+        playHint: "You will click the correct region on the map.",
         config: {
             mode: "type",
             titleBuilder: () => "Type the region that contains the point",
