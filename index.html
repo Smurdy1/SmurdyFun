@@ -17,47 +17,53 @@
 </head>
 <body>
     <div id="quiz-panel">
-        <div id="quiz-target">Smurdy —  Geography quizzes</div>
-
-        <div id="quiz-desc">
-            <p>
-                Smurdy is a personal map-quiz project to help learn geography:
-                countries, states, and other regions. It's intentionally simple:
-                play quick rounds, learn names and locations, and have a little fun with maps.
-            </p>
-            <p>
-                Found a bug, want a new feature, or have wording suggestions? Please tell me.
-                I read suggestions and will likely make the change if it improves the site.
-            </p>
-        </div>
-
-        <div id="quiz-result" aria-live="polite"></div>
-
-        <div id="quiz-buttons">
-            <!-- suggestion is an anchor to the feedback form so it behaves like a normal link -->
-            <a id="quiz-suggest" class="qb-btn primary" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Give Suggestions</a>
-            <!-- keep these present for the app JS (hidden on the homepage) -->
-            <button id="quiz-restart" style="display:none">Restart</button>
-            <button id="quiz-back" style="display:none">Back</button>
-        </div>
-    </div>
-
-    <div id="map"></div>
-    <script src="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.js"></script>
-    <script src="/src/js/app.js" defer></script>
-    <script src="/src/js/manifest.js" defer></script>
-    <script src="/src/js/browse.js" defer></script>
-
-    <script>
-    // keep a no-op listener so older JS expecting an element id doesn't error
-    document.addEventListener('DOMContentLoaded', () => {
-        const suggestEl = document.getElementById('quiz-suggest');
-        if (!suggestEl) return;
-        // ensure link opens in new tab when activated by keyboard / script
-        suggestEl.addEventListener('click', (e) => {
-            // normal navigation handled by the anchor; nothing else required
-        });
-    });
-    </script>
-</body>
-</html>
+        <a href="https://www.smurdy.fun" class="panel-brand" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin-bottom:8px;">
+            <img src="assets/images/Smurdeye.png" alt="Smurdy logo" style="width:50px;height:50px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.12)">
+            <div style="display:flex;flex-direction:column;line-height:1;">
+                <span style="font-weight:700;font-size:16px;color:#000">Smurdy</span>
+            </div>
+        </a>
+         <div id="quiz-target">Smurdy —  Geography quizzes</div>
+ 
+         <div id="quiz-desc">
+             <p>
+                 Smurdy is a personal map-quiz project to help learn geography:
+                 countries, states, and other regions. It's intentionally simple:
+                 play quick rounds, learn names and locations, and have a little fun with maps.
+             </p>
+             <p>
+                 Found a bug, want a new feature, or have wording suggestions? Please tell me.
+                 I read suggestions and will likely make the change if it improves the site.
+             </p>
+         </div>
+ 
+         <div id="quiz-result" aria-live="polite"></div>
+ 
+         <div id="quiz-buttons">
+             <!-- suggestion is an anchor to the feedback form so it behaves like a normal link -->
+             <a id="quiz-suggest" class="qb-btn primary" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Give Suggestions</a>
+             <!-- keep these present for the app JS (hidden on the homepage) -->
+             <button id="quiz-restart" style="display:none">Restart</button>
+             <button id="quiz-back" style="display:none">Back</button>
+         </div>
+     </div>
+ 
+     <div id="map"></div>
+     <script src="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.js"></script>
+     <script src="/src/js/app.js" defer></script>
+     <script src="/src/js/manifest.js" defer></script>
+     <script src="/src/js/browse.js" defer></script>
+ 
+     <script>
+     // keep a no-op listener so older JS expecting an element id doesn't error
+     document.addEventListener('DOMContentLoaded', () => {
+         const suggestEl = document.getElementById('quiz-suggest');
+         if (!suggestEl) return;
+         // ensure link opens in new tab when activated by keyboard / script
+         suggestEl.addEventListener('click', (e) => {
+             // normal navigation handled by the anchor; nothing else required
+         });
+     });
+     </script>
+ </body>
+ </html>

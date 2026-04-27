@@ -118,54 +118,62 @@ const vm = require("vm");
             }
 
              const pageHtml = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>${escapeHtml(pageTitle)}</title>
-  <meta name="description" content="${escapeHtml(description)}"/>
-  <meta name="keywords" content="${escapeHtml(tags.join(", "))}"/>
-  <link rel="canonical" href="${baseUrl}/quizzes/${relPath}/" />
-  <meta name="robots" content="index, follow"/>
-  <!-- use same site icon as the main page -->
-  <link rel="icon" type="image/png" href="/assets/images/Smurdeye.png" />
-  <meta property="og:image" content="${baseUrl}/assets/images/Smurdeye.png" />
-  <script type="application/ld+json">
-  ${JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": pageTitle,
-        "description": description,
-        "url": `${baseUrl}/quizzes/${relPath}/`
-    }, null, 2)}
-  </script>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:#111;padding:28px;max-width:760px;margin:0 auto}
-    header h1{font-size:20px;margin:0 0 8px}
-    .meta{color:#666;font-size:13px;margin-bottom:12px}
-    .lead{margin:14px 0}
-    .examples{margin-top:14px}
-    .examples ul{padding-left:20px}
-    a.button{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#0077cc;color:#fff;text-decoration:none}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>${escapeHtml(pageTitle)}</h1>
-    <div class="meta">Quiz: ${escapeHtml(m.type || m.mode || "")} — Group: ${escapeHtml(groupLabel)}</div>
-  </header>
-
-  <main>
-    <p class="lead">${leadText}</p>
-
-    ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
-
-    ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
-
-    <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
-  </main>
-</body>
-</html>`;
+ <html lang="en">
+ <head>
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>${escapeHtml(pageTitle)}</title>
+   <meta name="description" content="${escapeHtml(description)}"/>
+   <meta name="keywords" content="${escapeHtml(tags.join(", "))}"/>
+   <link rel="canonical" href="${baseUrl}/quizzes/${relPath}/" />
+   <meta name="robots" content="index, follow"/>
+   <!-- use same site icon as the main page -->
+   <link rel="icon" type="image/png" href="/assets/images/Smurdeye.png" />
+   <meta property="og:image" content="${baseUrl}/assets/images/Smurdeye.png" />
+   <script type="application/ld+json">
+   ${JSON.stringify({
+         "@context": "https://schema.org",
+         "@type": "WebPage",
+         "name": pageTitle,
+         "description": description,
+         "url": `${baseUrl}/quizzes/${relPath}/`
+     }, null, 2)}
+   </script>
+   <style>
+     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:#111;padding:28px;max-width:760px;margin:0 auto}
+     /* site brand in top-left */
+     .site-brand { position: fixed; top: 16px; left: 16px; display:flex; flex-direction:column; align-items:center; text-decoration:none; color:#111; z-index:9999; }
+     .site-brand .brand-text { font-weight:700; font-size:22px; margin-bottom:6px; color:#000; }
+     .site-brand img { width:60px; height:60px; display:block; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+     header h1{font-size:20px;margin:0 0 8px}
+     .meta{color:#666;font-size:13px;margin-bottom:12px}
+     .lead{margin:14px 0}
+     .examples{margin-top:14px}
+     .examples ul{padding-left:20px}
+     a.button{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#0077cc;color:#fff;text-decoration:none}
+   </style>
+ </head>
+ <body>
+  <a class="site-brand" href="${baseUrl}" title="Smurdy">
+    <div class="brand-text">Smurdy</div>
+    <img src="/assets/images/Smurdeye.png" alt="Smurdy logo">
+  </a>
+   <header>
+     <h1>${escapeHtml(pageTitle)}</h1>
+     <div class="meta">Quiz: ${escapeHtml(m.type || m.mode || "")} — Group: ${escapeHtml(groupLabel)}</div>
+   </header>
+ 
+   <main>
+     <p class="lead">${leadText}</p>
+ 
+     ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
+ 
+     ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
+ 
+     <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
+   </main>
+ </body>
+ </html>`;
              await fs.writeFile(outFile, pageHtml, "utf8");
              pages.push(`${baseUrl}/quizzes/${relPath}/`);
         }
