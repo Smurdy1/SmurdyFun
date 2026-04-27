@@ -6,14 +6,13 @@ const vm = require("vm");
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
-    const outDir = path.join(repoRoot, "docs", "quizzes");
+    // write pages directly into the repo (quizzes/) instead of docs/
+    const outDir = path.join(repoRoot, "quizzes");
     const baseUrl = (process.env.BASE_URL || "https://www.smurdy.fun").replace(/\/+$/, "");
-    // PUBLIC_ROOT override: if set, use it verbatim (useful when Pages serves under /docs).
-    // Otherwise, if INCLUDE_DOCS=1 is set, add a '/docs' segment so public URLs become e.g. https://smurdy.fun/docs
-    // Default: serve from repo root (no /docs prefix).
+    // PUBLIC_ROOT override: if set, use it verbatim. Default to baseUrl (no /docs).
     const publicRoot = (process.env.PUBLIC_ROOT && process.env.PUBLIC_ROOT.trim())
         ? process.env.PUBLIC_ROOT.replace(/\/+$/, "")
-        : (process.env.INCLUDE_DOCS === "1" ? baseUrl + "/docs" : baseUrl.replace(/\/docs$/i, ""));
+        : baseUrl.replace(/\/docs$/i, "");
 
     // load groups JSON
     let groups = {};
@@ -194,8 +193,9 @@ const vm = require("vm");
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pages.map(u => `  <url><loc>${u}</loc><changefreq>monthly</changefreq></url>`).join("\n")}
 </urlset>`;
-        await fs.writeFile(path.join(repoRoot, "docs", "sitemap.xml"), sitemap, "utf8");
-        console.log(`Wrote ${pages.length} quiz pages + sitemap.xml to docs/`);
+        // write sitemap to repo root so it will be available at /sitemap.xml
+        await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
+        console.log(`Wrote ${pages.length} quiz pages to quizzes/ and sitemap.xml to repo root`);
     } else {
         console.log("No pages generated.");
     }
