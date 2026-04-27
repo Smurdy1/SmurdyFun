@@ -7,7 +7,13 @@ const vm = require("vm");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
     const outDir = path.join(repoRoot, "docs", "quizzes");
-    const baseUrl = process.env.BASE_URL || "https://www.smurdy.fun";
+    const baseUrl = (process.env.BASE_URL || "https://www.smurdy.fun").replace(/\/+$/, "");
+    // PUBLIC_ROOT override: if set, use it verbatim (useful when Pages serves under /docs).
+    // Otherwise, if INCLUDE_DOCS=1 is set, add a '/docs' segment so public URLs become e.g. https://smurdy.fun/docs
+    // Default: serve from repo root (no /docs prefix).
+    const publicRoot = (process.env.PUBLIC_ROOT && process.env.PUBLIC_ROOT.trim())
+        ? process.env.PUBLIC_ROOT.replace(/\/+$/, "")
+        : (process.env.INCLUDE_DOCS === "1" ? baseUrl + "/docs" : baseUrl.replace(/\/docs$/i, ""));
 
     // load groups JSON
     let groups = {};
@@ -69,15 +75,17 @@ const vm = require("vm");
                 return low + "s";
             }
             const unitPlural = pluralizeUnit(unitName);
-             const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
-             const pageTitle = `${titleBase} — ${groupLabel}`;
-             const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
-             const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
-             const tags = (m.tags || []).slice(0,6).map(t => String(t));
-             const relPath = path.join(slug(manifestId), slug(gid));
-             const outPathDir = path.join(outDir, relPath);
-             await fs.mkdir(outPathDir, { recursive: true });
-             const outFile = path.join(outPathDir, "index.html");
+            const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
+            const pageTitle = `${titleBase} — ${groupLabel}`;
+            const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
+            const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
+            const tags = (m.tags || []).slice(0,6).map(t => String(t));
+            // use POSIX URL-friendly path for the public URL
+            const relPath = `${slug(manifestId)}/${slug(gid)}`;
+            // file-system path for where we write the files (docs/quizzes/...)
+            const outPathDir = path.join(outDir, relPath);
+            await fs.mkdir(outPathDir, { recursive: true });
+            const outFile = path.join(outPathDir, "index.html");
 
             // Build minimal, unique HTML page (no redirect) with meta + JSON-LD + a short handcrafted paragraph
             // Allow manifest authors to provide small SEO/play copy so new quizzes don't require editing this script.
@@ -125,18 +133,18 @@ const vm = require("vm");
    <title>${escapeHtml(pageTitle)}</title>
    <meta name="description" content="${escapeHtml(description)}"/>
    <meta name="keywords" content="${escapeHtml(tags.join(", "))}"/>
-   <link rel="canonical" href="${baseUrl}/quizzes/${relPath}/" />
+   <link rel="canonical" href="${publicRoot}/quizzes/${relPath}/" />
    <meta name="robots" content="index, follow"/>
    <!-- use same site icon as the main page -->
    <link rel="icon" type="image/png" href="/assets/images/Smurdeye.png" />
-   <meta property="og:image" content="${baseUrl}/assets/images/Smurdeye.png" />
+   <meta property="og:image" content="${publicRoot}/assets/images/Smurdeye.png" />
    <script type="application/ld+json">
    ${JSON.stringify({
          "@context": "https://schema.org",
          "@type": "WebPage",
          "name": pageTitle,
          "description": description,
-         "url": `${baseUrl}/quizzes/${relPath}/`
+         "url": `${publicRoot}/quizzes/${relPath}/`
      }, null, 2)}
    </script>
    <style>
@@ -154,7 +162,7 @@ const vm = require("vm");
    </style>
  </head>
  <body>
-  <a class="site-brand" href="${baseUrl}" title="Smurdy">
+  <a class="site-brand" href="${publicRoot}" title="Smurdy">
     <div class="brand-text">Smurdy</div>
     <img src="/assets/images/Smurdeye.png" alt="Smurdy logo">
   </a>
@@ -175,7 +183,8 @@ const vm = require("vm");
  </body>
  </html>`;
              await fs.writeFile(outFile, pageHtml, "utf8");
-             pages.push(`${baseUrl}/quizzes/${relPath}/`);
+             // ensure sitemap uses the public root (without any /docs prefix)
+             pages.push(encodeURI(`${publicRoot}/quizzes/${relPath}/`));
         }
     }
 
