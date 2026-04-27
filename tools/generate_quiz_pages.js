@@ -56,27 +56,41 @@ const vm = require("vm");
         const groupSet = m.groupSet;
         const groupKeys = groupSet ? Object.keys(groups || {}) : ["__all__"];
         for (const gid of groupKeys) {
-            const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
-            const pageTitle = `${titleBase} — ${groupLabel}`;
-            const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
-            const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
-            const tags = (m.tags || []).slice(0,6).map(t => String(t));
-            const relPath = path.join(slug(manifestId), slug(gid));
-            const outPathDir = path.join(outDir, relPath);
-            await fs.mkdir(outPathDir, { recursive: true });
-            const outFile = path.join(outPathDir, "index.html");
+            // determine the unit name for this group (singular)
+            const unitName = (gid !== "__all__" && groups[gid] && groups[gid].unitName) ? String(groups[gid].unitName).trim() : "region";
+            // simple pluralizer for common units (country/state/province/county), fallback to add 's'
+            function pluralizeUnit(u) {
+                const low = String(u || "").toLowerCase();
+                if (low === "country") return "countries";
+                if (low === "state") return "states";
+                if (low === "province") return "provinces";
+                if (low === "county") return "counties";
+                if (low.endsWith("y")) return low.slice(0, -1) + "ies";
+                return low + "s";
+            }
+            const unitPlural = pluralizeUnit(unitName);
+             const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
+             const pageTitle = `${titleBase} — ${groupLabel}`;
+             const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
+             const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
+             const tags = (m.tags || []).slice(0,6).map(t => String(t));
+             const relPath = path.join(slug(manifestId), slug(gid));
+             const outPathDir = path.join(outDir, relPath);
+             await fs.mkdir(outPathDir, { recursive: true });
+             const outFile = path.join(outPathDir, "index.html");
 
             // Build minimal, unique HTML page (no redirect) with meta + JSON-LD + a short handcrafted paragraph
             // Allow manifest authors to provide small SEO/play copy so new quizzes don't require editing this script.
             // Priority:
             //  1) m.playHint or m.config.playHint (short instruction shown above the button)
             //  2) infer from m.type / m.config.mode as a fallback
+            // derive a short action note from the quiz type/mode, prefer manifest playHint/config
             const explicitPlayHint = (m.playHint || (m.config && m.config.playHint) || "").toString().trim();
             let actionNote = explicitPlayHint;
             if (!actionNote) {
                 const actionMode = String(m.type || (m.config && m.config.mode) || "").toLowerCase();
-                if (actionMode.includes("type")) actionNote = "You will type region names to answer.";
-                else if (actionMode.includes("click")) actionNote = "You will click the correct region on the map.";
+                if (actionMode.includes("type")) actionNote = `You will type ${unitPlural} names to answer.`;
+                else if (actionMode.includes("click")) actionNote = `You will click the correct ${unitName} on the map.`;
                 else actionNote = "";
             }
 
@@ -85,10 +99,23 @@ const vm = require("vm");
             const leadSource = (m.shortDescription || m.seoIntro || description).toString().trim();
             const leadText = `${escapeHtml(groupLabel)}: ${escapeHtml(leadSource)}`;
 
-            // pick 5 example regions: prefer group.notable, otherwise fall back to first 5 in the group's countries array
+            // pick 5 example units: prefer group.notable, otherwise fall back to first 5 in the group's countries array
             const notableList = (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].notable) && groups[gid].notable.length)
                 ? groups[gid].notable.slice(0, 5)
                 : (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].countries) ? groups[gid].countries.slice(0, 5) : []);
+
+            // determine which mode to open the quiz with:
+            // For pages tied to a specific group prefer that group's borderset (e.g. "states" for US states).
+            // Otherwise fall back to manifest m.mode or "countries".
+            let linkMode = "countries";
+            if (gid !== "__all__" && groups[gid] && groups[gid].borderset) {
+                linkMode = String(groups[gid].borderset).trim();
+            } else if (m.mode && String(m.mode).trim()) {
+                linkMode = String(m.mode).trim();
+            } else if (m.type && String(m.type).trim()) {
+                // fallback: use manifest type if it maps sensibly
+                linkMode = String(m.type).trim();
+            }
 
              const pageHtml = `<!doctype html>
 <html lang="en">
@@ -133,9 +160,9 @@ const vm = require("vm");
 
     ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
 
-    ${notableList.length ? `<section class="examples"><strong>Example regions:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
+    ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
 
-    <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(m.mode || m.type || "")}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
+    <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
   </main>
 </body>
 </html>`;
