@@ -97,11 +97,32 @@ const vm = require("vm");
             const unitPluralTitle = capitalizeWords(unitPlural);
             const siteName = "Smurdy";
             const pageTitle = `${groupLabel} Map Quiz – ${actionVerb} ${unitPluralTitle} | ${siteName}`;
-            const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
-            const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
-            const tags = (m.tags || []).slice(0,6).map(t => String(t));
-            // use POSIX URL-friendly path for the public URL
-            const relPath = `${slug(manifestId)}/${slug(gid)}`;
+
+            // templating context: replace {unitName}, {unitPlural}, {adjective}, {borderset}, {group}, {label}, {title}
+            const groupObj = (gid !== "__all__" && groups[gid]) ? groups[gid] : {};
+            const templateContext = {
+                group: groupLabel,
+                label: groupObj.label || groupLabel,
+                unitName: groupObj.unitName || unitName,
+                unitPlural,
+                borderset: groupObj.borderset || '',
+                adjective: groupObj.adjective || '',
+                title: titleBase,
+                quizId: manifestId
+            };
+            function renderTemplate(s) {
+                if (!s && s !== "") return "";
+                return String(s || "").replace(/\{([^}]+)\}/g, (_, key) => {
+                    const v = templateContext[key];
+                    return (v === undefined || v === null) ? "" : String(v);
+                }).trim();
+            }
+            // description sources: prefer explicit descriptionTemplate/description, then fallback title-based text
+            const descSource = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.description || "");
+            const description = renderTemplate(descSource) || `${titleBase} (${groupLabel})`;
+             const tags = (m.tags || []).slice(0,6).map(t => String(t));
+             // use POSIX URL-friendly path for the public URL
+             const relPath = `${slug(manifestId)}/${slug(gid)}`;
             // file-system path for where we write the files (docs/quizzes/...)
             const outPathDir = path.join(outDir, relPath);
             await fs.mkdir(outPathDir, { recursive: true });
@@ -112,9 +133,21 @@ const vm = require("vm");
             // Priority:
             //  1) m.playHint or m.config.playHint (short instruction shown above the button)
             //  2) infer from m.type / m.config.mode as a fallback
-            // derive a short action note from the quiz type/mode, prefer manifest playHint/config
-            const explicitPlayHint = (m.playHint || (m.config && m.config.playHint) || "").toString().trim();
-            let actionNote = explicitPlayHint;
+            // Build action note from manifest fields with templating (longDescription, shortDescription, playHint)
+            const actionCandidates = [
+                m.longDescription,
+                m.shortDescription,
+                m.playHint,
+                (m.config && typeof m.config.playHint === "function") ? m.config.playHint() : (m.config && m.config.playHint),
+                m.descriptionTemplate
+            ];
+            let actionNote = "";
+            for (const cand of actionCandidates) {
+                if (!cand && cand !== "") continue;
+                const rendered = renderTemplate(cand);
+                if (rendered) { actionNote = rendered; break; }
+            }
+            // fallback: infer from type/mode
             if (!actionNote) {
                 const actionMode = String(m.type || (m.config && m.config.mode) || "").toLowerCase();
                 if (actionMode.includes("type")) actionNote = `You will type ${unitPlural} names to answer.`;
@@ -122,9 +155,9 @@ const vm = require("vm");
                 else actionNote = "";
             }
 
-            // Lead text: prefer a short manifest-provided summary (shortDescription or seoIntro),
-            // otherwise use the resolved description (from descriptionTemplate).
-            const leadSource = (m.shortDescription || m.seoIntro || description).toString().trim();
+            // Lead text: prefer shortDescription or seoIntro (templated), otherwise use description
+            const leadSourceRaw = (m.shortDescription || m.seoIntro || description);
+            const leadSource = renderTemplate(leadSourceRaw);
             const leadText = `${escapeHtml(groupLabel)}: ${escapeHtml(leadSource)}`;
 
             // pick 5 example units: prefer group.notable, otherwise fall back to first 5 in the group's countries array
@@ -249,7 +282,7 @@ const vm = require("vm");
      <section>
        <p class="lead">${leadText}</p>
 
-       ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
+       ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin.</p><p>Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin.</p><p>Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
 
        ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
 

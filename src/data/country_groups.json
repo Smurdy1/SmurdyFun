@@ -4,7 +4,8 @@
         "allowedTypes": ["click", "type", "find"],
         "borderset": "countries",
         "unitName": "country",
-        "notable": ["United States of America","China","India","Russia","Brazil"]
+        "notable": ["United States of America","China","India","Russia","Brazil"],
+        "adjective": "global"
     },
 
     "africa": {
@@ -13,6 +14,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Nigeria","South Africa","Egypt","Kenya","Ethiopia"],
+        "adjective": "African",
         "countries": [
             "Algeria",
             "Angola",
@@ -79,6 +81,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["France","Germany","United Kingdom","Italy","Spain"],
+        "adjective": "European",
         "countries": [
             "Albania",
             "Andorra",
@@ -133,6 +136,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["China","India","Japan","Indonesia","Saudi Arabia"],
+        "adjective": "Asian",
         "countries": [
             "Afghanistan",
             "Armenia",
@@ -194,6 +198,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["United States of America","Canada","Mexico","Cuba","Jamaica"],
+        "adjective": "North American",
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -227,6 +232,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Brazil","Argentina","Colombia","Chile","Peru"],
+        "adjective": "South American",
         "countries": [
             "Argentina",
             "Bolivia",
@@ -249,6 +255,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Russia","France","China","Germany","India"],
+        "adjective": "Eurasian",
         "countries": [
             "Albania",
             "Andorra",
@@ -355,6 +362,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["United States of America","Brazil","Canada","Mexico","Argentina"],
+        "adjective": "North American and South American",
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -400,6 +408,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Mexico","Brazil","Argentina","Peru","Colombia"],
+        "adjective": "Latin American",
         "countries": [
             "Mexico",
             "Guatemala",
@@ -431,6 +440,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Malta","Singapore","Luxembourg","Monaco","Nauru"],
+        "adjective": "tiny",
         "countries": [
             "Andorra",
             "Antigua and Barbuda",
@@ -470,6 +480,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Fiji","Maldives","Samoa","Tonga","Vanuatu"],
+        "adjective": "small island",
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -507,6 +518,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Cuba","Jamaica","Haiti","Dominican Republic","Trinidad and Tobago"],
+        "adjective": "Caribbean",
         "countries": [
             "Antigua and Barbuda",
             "The Bahamas",
@@ -530,6 +542,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Fiji","Papua New Guinea","Samoa","Tonga","Vanuatu"],
+        "adjective": "Pacific",
         "countries": [
             "Fiji",
             "Kiribati",
@@ -552,6 +565,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["Australia","New Zealand","Papua New Guinea","Fiji","Solomon Islands"],
+        "adjective": null,
         "countries": [
             "Australia",
             "East Timor",
@@ -578,6 +592,7 @@
         "borderset": "countries",
         "unitName": "country",
         "notable": ["China","Japan","South Korea","Taiwan","Mongolia"],
+        "adjective": "East Asian",
         "countries": [
             "Brunei",
             "Cambodia",
@@ -603,6 +618,7 @@
         "borderset": "states",
         "unitName": "state",
         "notable": ["California","Texas","New York","Florida","Alaska"],
+        "adjective": "American",
         "countries": [
             "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
             "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",

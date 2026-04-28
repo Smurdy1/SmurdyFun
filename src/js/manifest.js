@@ -11,8 +11,7 @@ window.SmurdyQuizManifest = [
         borders: 1,
         descriptionTemplate: "Click the correct region.",
         shortDescription: "Click the highlighted region to select it.",
-        playHint: "You will click the correct region on the map.",
-        // inline quiz runner config (used instead of loading a separate file)
+        longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by clicking them on the map.",
         config: {
             mode: "click",
             titleBuilder: (name) => `Click: ${name}`,
@@ -33,7 +32,7 @@ window.SmurdyQuizManifest = [
         borders: 1,
         descriptionTemplate: "Type the highlighted region.",
         shortDescription: "Type the name of the highlighted region.",
-        playHint: "You will type region names to answer.",
+        longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by typing their names.",
         config: {
             mode: "type",
             titleBuilder: () => "Type the highlighted region",
@@ -55,7 +54,7 @@ window.SmurdyQuizManifest = [
         borders: 0,
         descriptionTemplate: "Find the region without borders.",
         shortDescription: "Find the correct region when borders are hidden.",
-        playHint: "You will click the region that matches the prompt.",
+        longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by clicking them on a map without the aid of borders.",
         config: {
             mode: "click",
             titleBuilder: (name) => `Click: ${name}`,
@@ -76,7 +75,7 @@ window.SmurdyQuizManifest = [
         borders: 0,
         descriptionTemplate: "Click the correct region.",
         shortDescription: "Click the highlighted region to select it.",
-        playHint: "You will click the correct region on the map.",
+        longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by finding the {unitName} that contains a hidden point.",
         config: {
             mode: "type",
             titleBuilder: () => "Type the region that contains the point",
