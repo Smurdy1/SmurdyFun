@@ -13,7 +13,7 @@ const vm = require("vm");
     const publicRoot = (process.env.PUBLIC_ROOT && process.env.PUBLIC_ROOT.trim())
         ? process.env.PUBLIC_ROOT.replace(/\/+$/, "")
         : baseUrl.replace(/\/docs$/i, "");
-  
+
     // load groups JSON
     let groups = {};
     try {
