@@ -52,6 +52,11 @@ const vm = require("vm");
             .replace(/\s+/g, "-");
     }
 
+    // helper: return the group keys that will be generated for a given manifest entry
+    function getGroupKeysForManifest(mm) {
+        return mm.groupSet ? Object.keys(groups || {}) : ["__all__"];
+    }
+
     const pages = [];
 
     for (const m of manifest) {
@@ -75,7 +80,23 @@ const vm = require("vm");
             }
             const unitPlural = pluralizeUnit(unitName);
             const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
-            const pageTitle = `${titleBase} — ${groupLabel}`;
+            // produce more searchable titles like:
+            // "Africa Map Quiz – Click the Countries | Smurdy"
+            const actionType = (m.type || m.mode || "").toString().toLowerCase();
+            let actionVerb = "Play the";
+            if (actionType.includes("click")) actionVerb = "Click the";
+            else if (actionType.includes("type")) actionVerb = "Type the";
+            else if (actionType.includes("find")) actionVerb = "Find the";
+            // special-case find-point id to be clearer
+            if ((m.id || "").toString().toLowerCase().includes("find-point")) {
+                actionVerb = "Find the point in the";
+            }
+            function capitalizeWords(s) {
+                return String(s || "").replace(/\b\w/g, c => c.toUpperCase());
+            }
+            const unitPluralTitle = capitalizeWords(unitPlural);
+            const siteName = "Smurdy";
+            const pageTitle = `${groupLabel} Map Quiz – ${actionVerb} ${unitPluralTitle} | ${siteName}`;
             const descTemplate = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.config && m.config.titleBuilder ? (m.config.titleBuilder("").toString()) : (m.description || ""));
             const description = (descTemplate || "").replace(/\{group\}/g, groupLabel).trim() || `${titleBase} (${groupLabel})`;
             const tags = (m.tags || []).slice(0,6).map(t => String(t));
@@ -124,7 +145,18 @@ const vm = require("vm");
                 linkMode = String(m.type).trim();
             }
 
-             const pageHtml = `<!doctype html>
+            // find other quizzes that also include this group (for the "Other quizzes" list)
+            const otherQuizzes = manifest
+                .map(mm => {
+                    const mmId = mm.id || slug(mm.title || mm.file || "quiz");
+                    const mmTitle = mm.title || mm.name || mmId;
+                    const mmGroupKeys = getGroupKeysForManifest(mm);
+                    return { id: mmId, title: mmTitle, groups: mmGroupKeys };
+                })
+                .filter(mm => mm.id !== manifestId && mm.groups && mm.groups.includes(gid))
+                .slice(0, 8); // cap list to 8 items
+
+            const pageHtml = `<!doctype html>
  <html lang="en">
  <head>
    <meta charset="utf-8"/>
@@ -147,38 +179,90 @@ const vm = require("vm");
      }, null, 2)}
    </script>
    <style>
-     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:#111;padding:28px;max-width:760px;margin:0 auto}
-     /* site brand in top-left */
-     .site-brand { position: fixed; top: 16px; left: 16px; display:flex; flex-direction:column; align-items:center; text-decoration:none; color:#111; z-index:9999; }
-     .site-brand .brand-text { font-weight:700; font-size:22px; margin-bottom:6px; color:#000; }
-     .site-brand img { width:60px; height:60px; display:block; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
-     header h1{font-size:20px;margin:0 0 8px}
-     .meta{color:#666;font-size:13px;margin-bottom:12px}
-     .lead{margin:14px 0}
+     /* simplified style aligned with the main page */
+     :root{--brand:#0077cc;--muted:#666}
+     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:#111;margin:0}
+     /* left floating brand / similar to main page */
+     .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background-color:rgba(180, 180, 180, 0.12);padding:18px}
+     .panel-brand img{width:56px;height:56px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)}
+     .panel-brand .brand-text{font-weight:700;font-size:18px}
+     main{max-width:980px;margin:24px auto;padding:10px}
+     header h1{font-size:22px;margin:0 0 8px}
+     .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+     .lead{margin:14px 0;color:#222}
      .examples{margin-top:14px}
      .examples ul{padding-left:20px}
-     a.button{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#0077cc;color:#fff;text-decoration:none}
+     .action-row{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+     .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid.transparent}
+     .qb-btn.primary{background:var(--brand);color:#fff}
+     .qb-btn.secondary{background:#f4f4f4;color:#111}
+     .other-quizzes{margin-top:20px;border-top:1px solid #eee;padding-top:14px}
+    /* pill/button list for other quizzes */
+    .other-quizzes .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;padding:0;list-style:none}
+    .other-quizzes .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#f4f4f4;
+      color:#111;
+      text-decoration:none;
+      border:1px solid rgba(0,0,0,0.04);
+      font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#f4f4f4;
+      color:#111;
+      text-decoration:none;
+      border:1px solid rgba(0,0,0,0.06);
+      font-size:14px;
+      box-shadow:0 1px 0 rgba(0,0,0,0.02);
+      transition:all .12s ease;
+      cursor:pointer;
+    }
+    .other-quizzes .chip:focus{outline:2px solid rgba(0,119,204,0.18);outline-offset:2px}
+    .other-quizzes .chip:hover{
+      background:#0077cc;
+      color:#fff;
+      transform:translateY(-1px);
+      border-color:rgba(0,119,204,0.22);
+    }
+     footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 20px 30px}
    </style>
  </head>
  <body>
-  <a class="site-brand" href="${publicRoot}" title="Smurdy">
-    <div class="brand-text">Smurdy</div>
+  <a class="panel-brand" href="${publicRoot}" title="Smurdy">
     <img src="/assets/images/Smurdeye.png" alt="Smurdy logo">
+    <div class="brand-text">Smurdy</div>
   </a>
-   <header>
-     <h1>${escapeHtml(pageTitle)}</h1>
-     <div class="meta">Quiz: ${escapeHtml(m.type || m.mode || "")} — Group: ${escapeHtml(groupLabel)}</div>
-   </header>
- 
+
    <main>
-     <p class="lead">${leadText}</p>
- 
-     ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
- 
-     ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
- 
-     <a class="button" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
+     <header>
+       <h1>${escapeHtml(pageTitle)}</h1>
+       <div class="meta">Quiz: ${escapeHtml(m.type || m.mode || "")} — Group: ${escapeHtml(groupLabel)}</div>
+     </header>
+
+     <section>
+       <p class="lead">${leadText}</p>
+
+       ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin. Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
+
+       ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
+
+       <div class="action-row">
+         <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
+         <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
+       </div>
+     </section>
+
+     ${otherQuizzes.length ? `<aside class="other-quizzes"><strong>Other quizzes in ${escapeHtml(groupLabel)}:</strong><div class="chip-list">${otherQuizzes.map(q => `<a class="chip" href="${publicRoot}/quizzes/${slug(q.id)}/${slug(gid)}/">${escapeHtml(q.title)}</a>`).join("")}</div></aside>` : ""}
    </main>
+
+    <footer>Smurdy — geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
  </body>
  </html>`;
              await fs.writeFile(outFile, pageHtml, "utf8");
