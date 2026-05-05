@@ -677,8 +677,7 @@ const SmurdyQuiz = {
     },
 
     goToMainMenu() {
-        // simple, reliable: navigate to root so the server-served homepage is shown
-        try { window.location.href = "/"; } catch (e) { /* fallback */ window.location.search = ""; }
+        window.location.search = "";
     },
 
     getClickedMainFeature(point) {
@@ -815,30 +814,12 @@ const SmurdyQuiz = {
         });
     },
 
-    loadQuizScript(quizRef, options = { updateUrl: true }) {
+    loadQuizScript(quizRef) {
         const oldQuizScript = document.getElementById("active-quiz-script");
         if (oldQuizScript) oldQuizScript.remove();
 
         const oldRunnerScript = document.getElementById("quiz-runner-script");
         if (oldRunnerScript) oldRunnerScript.remove();
-
-        // minimal URL update: push clean SEO path when requested
-        try {
-            if (options && options.updateUrl) {
-                const slug = s => String(s||'').toLowerCase().replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-');
-                let qid = null, gid = this.currentGroupId || quizGroupId;
-                if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) qid = quizRef.split(":")[1];
-                else if (typeof quizRef === "string" && quizRef.indexOf("/") === -1 && quizRef.indexOf(".") === -1) qid = quizRef;
-                else if (typeof quizRef === "object" && quizRef.quiz) qid = quizRef.quiz;
-                else if (typeof quizRef === "string" && quizRef.indexOf("/") !== -1) qid = quizRef.replace(/.*\//,"").replace(/\.[^/.]+$/, "");
-                if (qid) {
-                    const path = `/quizzes/${slug(qid)}/${slug(gid)}/`;
-                    if (location.pathname.replace(/\/$/,'') !== path.replace(/\/$/,'')) {
-                        try { history.pushState({}, "", path); } catch (e) { /* ignore */ }
-                    }
-                }
-            }
-        } catch (e) { /* ignore */ }
 
         const runner = document.createElement("script");
         // load the runner from the new location
@@ -1318,7 +1299,7 @@ map.on("load", async () => {
 
     const quizFile = urlParams.get("quiz");
     if (quizFile) {
-        SmurdyQuiz.loadQuizScript(quizFile, { updateUrl: true });
+        SmurdyQuiz.loadQuizScript(quizFile);
     } else {
         const manifestScript = document.createElement("script");
         // ensure manifest comes from the new location
@@ -1371,24 +1352,3 @@ function finalizeFeatureStates() {
 
     try { processMain(); } catch (e) { console.warn("finalizeFeatureStates failed", e); }
 }
-
-// minimal popstate handling: try to load quiz in-page, otherwise reload so homepage shows correctly
-window.addEventListener("popstate", () => {
-    try {
-        const m = location.pathname.match(/\/quizzes\/([^\/]+)\/([^\/]+)\/?/);
-        if (m && m[1]) {
-            // attempt in-page load if runner available, otherwise reload
-            if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === "function") {
-                try { window.SmurdyQuiz.loadQuizScript("manifest:" + m[1], { updateUrl: false }); return; } catch (e) { /* fallthrough */ }
-            }
-            // fallback: reload to let server serve the right landing content
-            location.reload();
-            return;
-        }
-        // not a quiz path — reload to restore full homepage reliably
-        location.reload();
-    } catch (e) {
-        location.reload();
-    }
-}, false);
-//

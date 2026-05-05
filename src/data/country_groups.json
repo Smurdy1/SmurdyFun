@@ -586,7 +586,7 @@
         ]
     },
 
-    "East Asia": {
+    "east_asia": {
         "label": "East Asia",
         "allowedTypes": ["click", "type"],
         "borderset": "countries",

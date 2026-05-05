@@ -200,8 +200,9 @@ const vm = require("vm");
    <link rel="canonical" href="${publicRoot}/quizzes/${relPath}/" />
    <meta name="robots" content="index, follow"/>
    <!-- use same site icon as the main page -->
-   <link rel="icon" type="image/png" href="/assets/images/Smurdeye.png" />
-   <meta property="og:image" content="${publicRoot}/assets/images/Smurdeye.png" />
+   <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/Smurdeye.png">
+   <!-- social preview / in-page logo uses the larger SmurdeyeBig.png -->
+   <meta property="og:image" content="${publicRoot}/assets/images/SmurdeyeBig.png" />
    <script type="application/ld+json">
    ${JSON.stringify({
          "@context": "https://schema.org",
@@ -269,7 +270,7 @@ const vm = require("vm");
  </head>
  <body>
   <a class="panel-brand" href="${publicRoot}" title="Smurdy">
-    <img src="/assets/images/Smurdeye.png" alt="Smurdy logo">
+    <img src="/assets/images/SmurdeyeBig.png" alt="Smurdy logo">
     <div class="brand-text">Smurdy</div>
   </a>
 
