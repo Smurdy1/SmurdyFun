@@ -57,6 +57,18 @@
         return (q || "").toString().trim().toLowerCase().split(/\s+/).filter(Boolean);
     }
 
+    // Return a user-visible label for a manifest "type"
+    function getFriendlyTypeLabel(type) {
+        if (!type) return "Quiz";
+        const t = String(type).toLowerCase();
+        if (t === "countries") return "Countries";
+        if (t === "states") return "States";
+        if (t === "find") return "Find";
+        if (t === "quiz") return "Quiz";
+        // fallback: split on common separators and title-case
+        return t.replace(/[_\-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+    
     /* Build data views ---------------------------------------------------- */
     function buildTypeCards() {
         // gather types and aggregate tags/title metadata
@@ -126,6 +138,7 @@
             .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
             .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; }
             .qb-empty { padding:18px; text-align:center; color:#777; }
+            .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
         `;
         document.head.appendChild(style);
     }
@@ -157,9 +170,13 @@
             return tokens.every(tok => hay.includes(tok));
         });
 
+        const headerTitle = activeType ? `${escapeHtml(getFriendlyTypeLabel(activeType))} — select group` : "Quizzes";
+
         panel.innerHTML = `
             <div id="qb-header">
-                <div id="qb-title">All quizzes</div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div id="qb-title">${headerTitle}</div>
+                </div>
             </div>
             <div id="qb-search"><input id="qb-filter" placeholder="Search quizzes or tags" value="${escapeHtml(filter)}"/></div>
             <div id="qb-list">
@@ -182,6 +199,8 @@
             </div>
         `;
 
+        // no Back button here (gamemode/manifest selector)
+
         panel.querySelector("#qb-filter").addEventListener("input", (e) => renderManifestView(e.target.value));
 
         panel.querySelectorAll(".qb-play").forEach(btn => {
@@ -190,15 +209,12 @@
                 const manifestItem = (baseManifest || []).find(m => m.id === id);
                 if (!manifestItem) return;
 
-                // If the manifest entry references groups, open group selector but ensure
-                // the chosen group launches this specific manifest item.
                 if (manifestItem.groupSet && Object.keys(groups || {}).length) {
                     pendingManifestToLaunch = manifestItem;
                     renderGroupsView(manifestItem.type || manifestItem.type || "type", "");
                     return;
                 }
 
-                // launch immediately (no group selection)
                 const runMode = (manifestItem.config && manifestItem.config.mode) || (manifestItem.mode) || "countries";
                 if (typeof window.launchQuiz === "function") {
                     const extra = { group: "", borders: manifestItem.borders };
@@ -212,37 +228,6 @@
                 }
             });
         });
-    }
-
-    // Launch a specific manifest entry with a selected group
-    function startQuizForManifest(manifestItem, groupId) {
-        if (!manifestItem) return;
-        const g = groups[groupId] || {};
-        const borderset = (typeof g.borderset !== "undefined") ? g.borderset : (manifestItem.borders ? "countries" : "none");
-        const bs = String(borderset).toLowerCase();
-        let bordersFlag = 0;
-        if (bs === "states" || bs === "countries") bordersFlag = 1;
-        if ((manifestItem.type || "") === "find") bordersFlag = 0;
-        const mode = (bs === "states") ? "states" : "countries";
-        const extra = { group: groupId, borders: String(bordersFlag) };
-        if (typeof window.launchQuiz === "function") {
-            window.launchQuiz(manifestItem.file, mode, extra);
-        } else {
-            const params = new URLSearchParams();
-            params.set("mode", mode);
-            params.set("quiz", manifestItem.file);
-            params.set("group", groupId);
-            params.set("borders", String(bordersFlag));
-            window.location.search = params.toString();
-        }
-    }
-
-    /* UI navigation ------------------------------------------------------ */
-    function getFriendlyTypeLabel(type) {
-        if (type === "click") return "Click";
-        if (type === "type") return "Type";
-        if (type === "find") return "Find";
-        return (type || "Quiz").replace(/-/g, " ");
     }
 
     function renderGroupsView(type, filter = "") {
@@ -260,39 +245,52 @@
 
          panel.innerHTML = `
              <div id="qb-header">
-                 <div id="qb-title">${escapeHtml(getFriendlyTypeLabel(type))} — select group</div>
-             </div>
-             <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
-             <div id="qb-list">
-                 ${filtered.length ? filtered.map(g => `
-                     <div class="qb-card" data-group="${escapeHtml(g.id)}">
-                         <div class="qb-row">
-                             <div>
-                                 <div class="qb-title">${escapeHtml(g.label)}</div>
-                                 <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
-                             </div>
-                             <div>
-                                 <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
-                             </div>
-                         </div>
-                         <div class="qb-tags">
-                             ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
-                         </div>
-                     </div>
-                 `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
-             </div>
-         `;
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div id="qb-title">${escapeHtml(getFriendlyTypeLabel(type))} — select group</div>
+                    <button id="qb-back" class="qb-back">Back</button>
+                </div>
+            </div>
+              <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
+              <div id="qb-list">
+                  ${filtered.length ? filtered.map(g => `
+                      <div class="qb-card" data-group="${escapeHtml(g.id)}">
+                          <div class="qb-row">
+                              <div>
+                                  <div class="qb-title">${escapeHtml(g.label)}</div>
+                                  <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
+                              </div>
+                              <div>
+                                  <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
+                              </div>
+                          </div>
+                          <div class="qb-tags">
+                              ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
+                          </div>
+                      </div>
+                  `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
+              </div>
+          `;
 
-         panel.querySelector("#qb-filter").addEventListener("input", (e) => {
-             renderGroupsView(type, e.target.value);
-         });
+         // wire back button to return to gamemode/type selection (group selector)
+         const backBtn = panel.querySelector("#qb-back");
+         if (backBtn) {
+             backBtn.addEventListener("click", () => {
+                 pendingManifestToLaunch = null;
+                 currentView = "types";
+                 activeType = null;
+                 renderTypesView();
+             });
+         }
+
+          panel.querySelector("#qb-filter").addEventListener("input", (e) => {
+              renderGroupsView(type, e.target.value);
+          });
 
          panel.querySelectorAll(".qb-play").forEach(btn => {
              btn.addEventListener("click", () => {
                  const group = btn.dataset.group;
                  const type = btn.dataset.type;
                  if (pendingManifestToLaunch) {
-                     // launch the previously chosen manifest entry for this group
                      startQuizForManifest(pendingManifestToLaunch, group);
                      pendingManifestToLaunch = null;
                  } else {
@@ -337,6 +335,58 @@
             params.set("borders", String(bordersFlag));
             window.location.search = params.toString();
         }
+    }
+
+    // Launch a specific manifest entry for a chosen group (used when a manifest was selected first)
+    function startQuizForManifest(manifestItem, groupId) {
+        if (!manifestItem) return;
+        const g = groups[groupId] || {};
+        const runMode = (manifestItem.config && manifestItem.config.mode) || manifestItem.mode || (manifestItem.type === "states" ? "states" : "countries");
+        const borderset = (typeof g.borderset !== "undefined") ? g.borderset : (manifestItem.borders ? "countries" : "none");
+        const bs = String(borderset).toLowerCase();
+        let bordersFlag = 0;
+        if (bs === "states" || bs === "countries") bordersFlag = 1;
+        if (runMode === "find") bordersFlag = 0;
+
+        // prefer launcher if available
+        const quizRef = manifestItem.file || manifestItem.id || "";
+        if (typeof window.launchQuiz === "function") {
+            const extra = { group: groupId, borders: String(bordersFlag) };
+            try {
+                // If manifest provided an inline config, merge it
+                if (manifestItem.config && typeof manifestItem.config === "object") {
+                    const cfg = Object.assign({}, manifestItem.config, extra);
+                    window.launchQuiz(cfg.file || quizRef, runMode, cfg);
+                } else {
+                    window.launchQuiz(quizRef, runMode, extra);
+                }
+            } catch (err) {
+                console.warn("startQuizForManifest: in-place launch failed, falling back to navigation", err);
+                const params = new URLSearchParams();
+                params.set("mode", runMode);
+                if (quizRef) params.set("quiz", quizRef);
+                params.set("group", groupId);
+                params.set("borders", String(bordersFlag));
+                window.location.search = params.toString();
+            }
+            // hide panel
+            const panel = document.getElementById("quiz-browser");
+            if (panel) {
+                panel.style.transition = "opacity 180ms ease, transform 180ms ease";
+                panel.style.opacity = "0";
+                panel.style.transform = "translateY(-8px)";
+                setTimeout(() => { panel.style.display = "none"; }, 200);
+            }
+            return;
+        }
+
+        // fallback to URL navigation
+        const params = new URLSearchParams();
+        params.set("mode", runMode);
+        if (quizRef) params.set("quiz", quizRef);
+        params.set("group", groupId);
+        params.set("borders", String(bordersFlag));
+        window.location.search = params.toString();
     }
 
     /* Existing launchQuiz lives in this file already - keep it as-is; if not present,

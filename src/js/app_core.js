@@ -331,14 +331,26 @@ const SmurdyQuiz = {
         this.currentShowBorders = effective;
 
         try {
-            // Do NOT overwrite the main fill paint (that would reintroduce slow feature-state logic).
-            // Instead, refresh the data-driven paint expressions so allowed/correct/wrong/target lists take effect.
+            // Refresh expression-driven styling
             try { this.updateLayerStyles(); } catch (e) { /* ignore */ }
 
-            // toggle outline layer opacity if an outline layer id exists for this mode
-            if (MODE.outlineLayerId && this.map.getLayer(MODE.outlineLayerId)) {
-                this.map.setPaintProperty(MODE.outlineLayerId, "line-opacity", Boolean(effective) ? 1 : 0);
-            }
+            // toggle the current MODE outline layer (if present)
+            try {
+                if (MODE.outlineLayerId && this.map.getLayer(MODE.outlineLayerId)) {
+                    this.map.setPaintProperty(MODE.outlineLayerId, "line-opacity", effective ? 1 : 0);
+                }
+            } catch (e) { /* ignore per-layer errors */ }
+
+            // Also update common legacy style layers that were set on load (these can produce faint borders).
+            // Use the same visual strength used at initialization (0.35 when enabled).
+            const legacyOpacity = effective ? 0.35 : 0;
+            try {
+                if (this.map.getLayer("countries-boundary")) this.map.setPaintProperty("countries-boundary", "line-opacity", legacyOpacity);
+            } catch (_) {}
+            try {
+                if (this.map.getLayer("coastline")) this.map.setPaintProperty("coastline", "line-opacity", legacyOpacity);
+            } catch (_) {}
+
         } catch (e) {
             // ignore errors if layers/sources are not yet ready
         }
@@ -521,8 +533,24 @@ const SmurdyQuiz = {
                 else panel.appendChild(el);
             }
         }
-        if (el) el.textContent = text;
-        // if no panel/element exists, silently ignore to avoid crashing the runner
+        if (!el) return;
+
+        try {
+            let out = String(text == null ? "" : text);
+
+            // If runner provided a "N / M completed" string, replace M with the authoritative playable count.
+            // Matches patterns like "0 / 242", " 3/242 completed", etc.
+            const m = out.match(/^(\s*\d+\s*\/\s*)(\d+)([\s\S]*)$/);
+            if (m) {
+                const denom = (typeof SmurdyQuiz !== "undefined" && (Number(SmurdyQuiz.playableCount) || Number(SmurdyQuiz.getPlayableCount && SmurdyQuiz.getPlayableCount()))) || Number(m[2]) || 0;
+                out = `${m[1]}${denom}${m[3] || ""}`;
+            }
+
+            el.textContent = out;
+        } catch (e) {
+            // fallback to raw text on error
+            try { el.textContent = String(text); } catch(_) {}
+        }
     },
 
     setAccuracyText(text) {
@@ -977,12 +1005,38 @@ map.on("load", async () => {
         return;
     }
 
+    // --- Fix country counting: use actual playable feature count (from GeoJSON) ---
+    // compute playable count after any MODE-specific filtering below and expose helpers
+    // (we'll set SmurdyQuiz.playableCount after applying MODE.filterFeatures)
+    // record alias key count too for debugging
+    SmurdyQuiz.aliasKeyCount = Object.keys(SmurdyQuiz.rawAliases || {}).length;
+    SmurdyQuiz.getPlayableCount = () => SmurdyQuiz.playableCount || 0;
+    // helper to update common DOM placeholders that may show the count
+    function writePlayableCountToDOM(count) {
+        try {
+            const ids = ["country-count", "countries-count"];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(count);
+            }
+            // class-based
+            document.querySelectorAll(".country_count, .countries_count").forEach(el => el.textContent = String(count));
+            // data-attr fallback
+            document.querySelectorAll("[data-playable-count]").forEach(el => el.textContent = String(count));
+        } catch (e) { /* ignore DOM errors */ }
+    }
+    // --- end counting helpers ---
+
     // keep the full dataset but allow mode-specific filtering (e.g. remove non-US states)
     SmurdyQuiz.mainData.features = MODE.filterFeatures(SmurdyQuiz.mainData.features);
 
+    // playableCount will be computed after we build the nameIndex (dedup by canonical name) below
+    // (temporary placeholder until nameIndex exists)
+    SmurdyQuiz.playableCount = 0;
+ 
     // do NOT filter the mainData to the group; we'll dim non-group features via feature-state.
     const allowedNames = SmurdyQuiz.getAllowedNamesForCurrentGroup();
-
+ 
     // assign ids and build a fast nameIndex: normalized canonical -> { main: [ids], tiny: [ids] }
     SmurdyQuiz.mainData.features.forEach((feature, index) => { feature.id = index; });
     SmurdyQuiz.nameIndex = SmurdyQuiz.nameIndex || {};
@@ -997,9 +1051,13 @@ map.on("load", async () => {
         feature.properties._canon = norm;
         feature._canonicalNorm = norm;
     }
-
+ 
     SmurdyQuiz.buildResolvedAliases();
-
+    // Now compute playableCount as unique canonical names (deduped) — this should match aliases keys (201)
+    SmurdyQuiz.playableCount = Object.keys(SmurdyQuiz.nameIndex || {}).length || 0;
+    console.info("smurdy: counts -> playable=", SmurdyQuiz.playableCount, " aliasKeys=", SmurdyQuiz.aliasKeyCount);
+    writePlayableCountToDOM(SmurdyQuiz.playableCount);
+ 
     if (map.getLayer(MODE.fillLayerId)) {
         map.removeLayer(MODE.fillLayerId);
     }
