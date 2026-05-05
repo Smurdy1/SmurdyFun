@@ -1,41 +1,19 @@
+// read bootstrap config and shared modes first
+const cfg = window.__SmurdyConfig || {};
 const urlParams = new URLSearchParams(window.location.search);
-const mode = urlParams.get("mode") || "countries";
-const showBorders = urlParams.get("borders") === "1";
-const quizGroupId = urlParams.get("group") || "world";
+const mode = cfg.mode || urlParams.get("mode") || "countries";
+const showBorders = (typeof cfg.showBorders === "boolean") ? cfg.showBorders : (urlParams.get("borders") === "1");
+const quizGroupId = cfg.quizGroupId || urlParams.get("group") || "world";
 
-const TINY_COUNTRIES = new Set([
-    "Andorra",
-    "Antigua and Barbuda",
-    "Bahrain",
-    "Barbados",
-    "Comoros",
-    "Dominica",
-    "Grenada",
-    "Liechtenstein",
-    "Luxembourg",
-    "Maldives",
-    "Malta",
-    "Marshall Islands",
-    "Mauritius",
-    "Micronesia",
-    "Monaco",
-    "Nauru",
-    "Palau",
-    "Saint Kitts and Nevis",
-    "Saint Lucia",
-    "Saint Vincent and the Grenadines",
-    "Samoa",
-    "San Marino",
-    "Sao Tome and Principe",
-    "Seychelles",
-    "Singapore",
-    "Tonga",
-    "Tuvalu",
-    "Vatican"
-]);
+// MODE_CONFIGS + TINY_COUNTRIES are provided by modes.js (bootstrap loads modes.js before this file)
+const appModes = window.AppModes || {};
+const MODE_CONFIGS = appModes.MODE_CONFIGS || {};
+const TINY_COUNTRIES = appModes.TINY_COUNTRIES || new Set();
 
-const MODE_CONFIGS = {
-    countries: {
+// Ensure MODE is defined (fallback if modes.js didn't provide expected data)
+const MODE = MODE_CONFIGS[mode] || MODE_CONFIGS.countries || (function(){
+    console.warn("smurdy: MODE_CONFIGS missing or mode not found — using fallback MODE");
+    return {
         dataFile: "/src/data/countries.json",
         tinyFile: "/src/data/tiny_countries.json",
         mapCenter: [0, 20],
@@ -46,117 +24,13 @@ const MODE_CONFIGS = {
         fillLayerId: "quiz-main-fill",
         outlineLayerId: null,
         usesTinyPoints: true,
-
-        getCanonicalFeatureName(feature) {
-            const p = (feature && feature.properties) ? feature.properties : {};
-            // prefer human-readable sovereign/long names, fall back to NAME and common fields
-            const candidates = [
-                p.SOVEREIGNT,
-                p.BRK_NAME,
-                p.NAME_LONG,
-                p.NAME,
-                p.admin,
-                p.ADMIN
-            ].filter(Boolean);
-
-            let raw = (candidates.length ? String(candidates[0]) : "").trim();
-            // if still empty, try other common fields
-            if (!raw && p.iso_a3) raw = String(p.iso_a3).trim();
-
-            // Normalize: remove parenthetical suffixes, trim commas/spaces
-            raw = raw.replace(/\s*\(.*\)\s*/g, "").replace(/\s*,\s*/g, ", ").trim();
-
-            return raw || "Unknown";
-        },
-
-        filterFeatures(features) {
-            return features;
-        },
-
-        filterTinyFeatures(features) {
-            // Use the canonical-name helper (safe fallback) to decide which tiny features to keep.
-            // Example: exclude Antarctica or other non-country records.
-            if (!Array.isArray(features)) return [];
-            return features.filter(feature => {
-                try {
-                    const name = String(MODE_CONFIGS.countries.getCanonicalFeatureName(feature) || "").trim();
-                    if (!name) return false;
-                    // exclude Antarctica and other obvious non-playable entries
-                    if (/antarctica/i.test(name)) return false;
-                    // keep everything else
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            });
-        }
-    },
-
-    states: {
-        dataFile: "/src/data/states.json",
-        tinyFile: null,
-        mapCenter: [-96, 37.8],
-        mapZoom: 3.3,
-        minZoom: 2.5,
-        maxZoom: 12,
-        sourceId: "quiz-main",
-        fillLayerId: "quiz-main-fill",
-        outlineLayerId: "quiz-main-outline",
-        usesTinyPoints: false,
-
-        getRawFeatureName(feature) {
-            if (!feature || !feature.properties) return "Unknown";
-            const p = feature.properties;
-            return (
-                p.name ||
-                p.name_en ||
-                p.NAME ||
-                p.NAME_EN ||
-                p.postal ||
-                p.POSTAL ||
-                "Unknown"
-            );
-        },
-
-        getCanonicalFeatureName(feature) {
-            return this.getRawFeatureName(feature);
-        },
-
-        isWantedFeature(feature) {
-            if (!feature || !feature.properties) return false;
-            const p = feature.properties;
-
-            const isUS =
-                p.adm0_a3 === "USA" ||
-                p.ADM0_A3 === "USA" ||
-                p.admin === "United States of America" ||
-                p.ADMIN === "United States of America";
-
-            if (!isUS) return false;
-
-            const name = this.getRawFeatureName(feature).toLowerCase();
-
-            return ![
-                "district of columbia",
-                "puerto rico",
-                "guam",
-                "american samoa",
-                "united states virgin islands",
-                "northern mariana islands"
-            ].includes(name);
-        },
-
-        filterFeatures(features) {
-            return features.filter(feature => this.isWantedFeature(feature));
-        },
-
-        filterTinyFeatures(features) {
-            return features;
-        }
-    }
-};
-
-const MODE = MODE_CONFIGS[mode] || MODE_CONFIGS.countries;
+        getCanonicalFeatureName(feature){ try{ const p = (feature && feature.properties) ? feature.properties : {}; return p.NAME || p.name || "Unknown"; } catch(e){ return "Unknown"; } },
+        filterFeatures(f){ return Array.isArray(f) ? f : []; },
+        filterTinyFeatures(f){ return Array.isArray(f) ? f : []; }
+    };
+})();
+// Ensure window.AppModes exists but do not redeclare block-scoped variables (avoids redeclare errors)
+window.AppModes = window.AppModes || { MODE_CONFIGS: {}, TINY_COUNTRIES: new Set() };
 
 const map = new maplibregl.Map({
     container: "map",
@@ -1391,4 +1265,3 @@ window.addEventListener("popstate", () => {
         location.reload();
     }
 }, false);
-//
