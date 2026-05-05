@@ -14,7 +14,7 @@
   <url><loc>https://www.smurdy.fun/quizzes/click-country/caribbean_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/click-country/pacific_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/click-country/oceania/</loc><changefreq>monthly</changefreq></url>
-  <url><loc>https://www.smurdy.fun/quizzes/click-country/east-asia/</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.smurdy.fun/quizzes/click-country/east_asia/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/click-country/us_states/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/type-country/world/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/type-country/africa/</loc><changefreq>monthly</changefreq></url>
@@ -30,7 +30,7 @@
   <url><loc>https://www.smurdy.fun/quizzes/type-country/caribbean_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/type-country/pacific_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/type-country/oceania/</loc><changefreq>monthly</changefreq></url>
-  <url><loc>https://www.smurdy.fun/quizzes/type-country/east-asia/</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.smurdy.fun/quizzes/type-country/east_asia/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/type-country/us_states/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-country/world/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-country/africa/</loc><changefreq>monthly</changefreq></url>
@@ -46,7 +46,7 @@
   <url><loc>https://www.smurdy.fun/quizzes/find-country/caribbean_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-country/pacific_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-country/oceania/</loc><changefreq>monthly</changefreq></url>
-  <url><loc>https://www.smurdy.fun/quizzes/find-country/east-asia/</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.smurdy.fun/quizzes/find-country/east_asia/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-country/us_states/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-point/world/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-point/africa/</loc><changefreq>monthly</changefreq></url>
@@ -62,6 +62,6 @@
   <url><loc>https://www.smurdy.fun/quizzes/find-point/caribbean_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-point/pacific_islands/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-point/oceania/</loc><changefreq>monthly</changefreq></url>
-  <url><loc>https://www.smurdy.fun/quizzes/find-point/east-asia/</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.smurdy.fun/quizzes/find-point/east_asia/</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://www.smurdy.fun/quizzes/find-point/us_states/</loc><changefreq>monthly</changefreq></url>
 </urlset>
