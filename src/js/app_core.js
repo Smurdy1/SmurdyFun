@@ -11,7 +11,8 @@ const MODE_CONFIGS = appModes.MODE_CONFIGS || {};
 const TINY_COUNTRIES = appModes.TINY_COUNTRIES || new Set();
 
 // Ensure MODE is defined (fallback if modes.js didn't provide expected data)
-const MODE = MODE_CONFIGS[mode] || MODE_CONFIGS.countries || (function(){
+// change const -> let so we can hot-swap mode config at runtime
+let MODE = MODE_CONFIGS[mode] || MODE_CONFIGS.countries || (function(){
     console.warn("smurdy: MODE_CONFIGS missing or mode not found — using fallback MODE");
     return {
         dataFile: "/src/data/countries.json",
@@ -534,15 +535,26 @@ const SmurdyQuiz = {
             }
         }
         if (!el) return;
-
+ 
         try {
             let out = String(text == null ? "" : text);
-
-            // If runner provided a "N / M completed" string, replace M with the authoritative playable count.
-            // Matches patterns like "0 / 242", " 3/242 completed", etc.
+ 
+            // If runner provided a "N / M completed" string, replace M with the authoritative playable count
             const m = out.match(/^(\s*\d+\s*\/\s*)(\d+)([\s\S]*)$/);
             if (m) {
                 const denom = (typeof SmurdyQuiz !== "undefined" && (Number(SmurdyQuiz.playableCount) || Number(SmurdyQuiz.getPlayableCount && SmurdyQuiz.getPlayableCount()))) || Number(m[2]) || 0;
+                out = `${m[1]}${denom}${m[3] || ""}`;
+            }
+            if (m) {
+                // compute group-specific total: use getQuizFeatures() which respects current group/mode
+                let denom = 0;
+                try {
+                    if (SmurdyQuiz && typeof SmurdyQuiz.getQuizFeatures === "function") {
+                        denom = (SmurdyQuiz.getQuizFeatures() || []).length;
+                    }
+                } catch (e) { denom = 0; }
+                // fallback to legacy playableCount or runner-provided denom
+                if (!denom) denom = (Number(SmurdyQuiz?.playableCount) || Number(SmurdyQuiz?.getPlayableCount && SmurdyQuiz.getPlayableCount()) || Number(m[2]) || 0);
                 out = `${m[1]}${denom}${m[3] || ""}`;
             }
 
@@ -717,13 +729,56 @@ const SmurdyQuiz = {
         });
     },
 
-    loadQuizScript(quizRef, options = { updateUrl: true }) {
+    async loadQuizScript(quizRef, options = { updateUrl: true }) {
+        // Use the centralized inference helper (if present) so all launch paths agree.
+        try {
+            let manifestDef = null;
+            if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) {
+                const id = quizRef.split(":")[1];
+                manifestDef = (window.SmurdyQuizManifest || []).find(m => m.id === id) || null;
+            }
+
+            if (window.AppModes && typeof window.AppModes.inferRunOptions === "function") {
+                const inferred = window.AppModes.inferRunOptions({
+                    manifestItem: manifestDef,
+                    groupId: this.currentGroupId,
+                    explicitMode: this.currentMode || null,
+                    explicitBorders: (typeof this.currentShowBorders === "boolean") ? this.currentShowBorders : undefined,
+                    groups: this.groups || {}
+                });
+                if (inferred && inferred.mode && String(inferred.mode) !== String(this.mode)) {
+                    // Do an in-place mode hot-swap so the page behaves like a refresh but without a white flicker.
+                    // Update the URL (replace) so address bar is correct, then apply hotSwap and continue to launch.
+                    const params = new URLSearchParams(location.search);
+                    if (typeof quizRef === "string" && quizRef) params.set("quiz", quizRef);
+                    params.set("mode", inferred.mode);
+                    if (this.currentGroupId) params.set("group", this.currentGroupId);
+                    if (typeof this.currentShowBorders !== "undefined") params.set("borders", this.currentShowBorders ? "1" : "0");
+                    try { history.replaceState({}, "", "?" + params.toString()); } catch(e) {}
+                    // perform hot-swap and then continue (no full reload)
+                    try {
+                        const swapped = await this.hotSwapMode(inferred.mode, quizRef);
+                        if (!swapped) {
+                            // fallback: force full reload if hot-swap failed
+                            location.assign("?" + params.toString());
+                            return;
+                        }
+                    } catch (e) {
+                        // fallback to full reload
+                        location.assign("?" + params.toString());
+                        return;
+                    }
+                    // continue running — do NOT return; runner loading will proceed below
+                 }
+            }
+        } catch (e) { /* ignore navigation helpers failing */ }
+
         const oldQuizScript = document.getElementById("active-quiz-script");
         if (oldQuizScript) oldQuizScript.remove();
-
+ 
         const oldRunnerScript = document.getElementById("quiz-runner-script");
         if (oldRunnerScript) oldRunnerScript.remove();
-
+ 
         // minimal URL update: push clean SEO path when requested
         try {
             if (options && options.updateUrl) {
@@ -747,7 +802,7 @@ const SmurdyQuiz = {
         runner.src = "/src/js/quiz_runner.js";
         runner.id = "quiz-runner-script";
 
-        runner.onload = () => {
+        runner.onload = async () => {
             try {
                 // If caller passed an inline config object, call runNameQuiz directly after runner is ready
                 if (quizRef && typeof quizRef === "object") {
@@ -765,7 +820,31 @@ const SmurdyQuiz = {
                 // manifest:ID references — resolve to manifest entry and either use its config or file
                 if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) {
                     const id = quizRef.split(":")[1];
-                    const def = (window.SmurdyQuizManifest || []).find(m => m.id === id);
+                    // try existing manifest global first
+                    let def = (window.SmurdyQuizManifest || []).find(m => m.id === id);
+
+                    // if not present, try to load manifest.js (it may not have been injected yet)
+                    if (!def) {
+                        try {
+                            await new Promise((resolve) => {
+                                // avoid injecting twice
+                                if (document.querySelector('script[data-manifest="true"]')) {
+                                    // if injected but not parsed yet, wait briefly
+                                    setTimeout(resolve, 60);
+                                    return;
+                                }
+                                const s = document.createElement("script");
+                                s.src = "/src/js/manifest.js";
+                                s.async = true;
+                                s.setAttribute("data-manifest", "true");
+                                s.onload = () => resolve();
+                                s.onerror = () => resolve();
+                                document.head.appendChild(s);
+                            });
+                            def = (window.SmurdyQuizManifest || []).find(m => m.id === id);
+                        } catch (e) { /* ignore */ }
+                    }
+
                     if (!def) {
                         console.error("Manifest quiz not found:", id);
                         return;
@@ -778,6 +857,17 @@ const SmurdyQuiz = {
                         setTimeout(() => {
                             if (typeof window.runNameQuiz === "function") {
                                 window.runNameQuiz(runnerConfig);
+                                // Runner started — ensure left panel shows game UI and hide browser
+                                try { SmurdyQuiz.setQuizPanelMode("game"); } catch(_) {}
+                                try {
+                                    const panel = document.getElementById("quiz-browser");
+                                    if (panel) {
+                                        panel.style.transition = "opacity 180ms ease, transform 180ms ease";
+                                        panel.style.opacity = "0";
+                                        panel.style.transform = "translateY(-8px)";
+                                        setTimeout(() => { panel.style.display = "none"; }, 200);
+                                    }
+                                } catch(_) {}
                             } else {
                                 console.error("Quiz runner loaded but runNameQuiz() is not available.");
                             }
@@ -790,6 +880,15 @@ const SmurdyQuiz = {
                         const quizScript = document.createElement("script");
                         quizScript.src = def.file;
                         quizScript.id = "active-quiz-script";
+                        // When that external quiz file loads it should initialize and call runNameQuiz.
+                        // Listen briefly for the script to execute and then show the panel.
+                        quizScript.onload = () => {
+                            try { SmurdyQuiz.setQuizPanelMode("game"); } catch(_) {}
+                            try {
+                                const panel = document.getElementById("quiz-browser");
+                                if (panel) { panel.style.display = "none"; panel.style.opacity = ""; panel.style.transform = ""; }
+                            } catch(_) {}
+                        };
                         document.body.appendChild(quizScript);
                         return;
                     }
@@ -803,6 +902,13 @@ const SmurdyQuiz = {
                     const quizScript = document.createElement("script");
                     quizScript.src = quizRef;
                     quizScript.id = "active-quiz-script";
+                    quizScript.onload = () => {
+                        try { SmurdyQuiz.setQuizPanelMode("game"); } catch(_) {}
+                        try {
+                            const panel = document.getElementById("quiz-browser");
+                            if (panel) { panel.style.display = "none"; panel.style.opacity = ""; panel.style.transform = ""; }
+                        } catch(_) {}
+                    };
                     document.body.appendChild(quizScript);
                 }
             } catch (err) {
@@ -939,6 +1045,165 @@ const SmurdyQuiz = {
             if (this.normalizeAnswer(featureName) === targetNorm) return feature;
         }
         return null;
+    },
+
+    // Hot-swap the current MODE in-place: fetch new data & rebuild layers without full page reload.
+    // Returns a Promise that resolves once the new mode is installed.
+    async hotSwapMode(newMode, quizRef) {
+        if (!newMode) return false;
+        if (String(newMode) === String(this.mode)) return true;
+
+        // resolve target MODE config
+        const cfg = MODE_CONFIGS[newMode] || MODE_CONFIGS[String(newMode).toLowerCase()] || null;
+        if (!cfg) {
+            console.warn("hotSwapMode: unknown mode", newMode);
+            return false;
+        }
+
+        // set runtime intention first
+        this.mode = String(newMode);
+        this.currentMode = String(newMode);
+        MODE = cfg;
+
+        try {
+            // ease the map to the new center/zoom for a smooth transition (no white flicker)
+            if (Array.isArray(MODE.mapCenter) && typeof MODE.mapZoom !== "undefined") {
+                try { this.map.easeTo({ center: MODE.mapCenter, zoom: MODE.mapZoom, duration: 450 }); } catch (_) {}
+            }
+
+            // remove existing source/layers for previous MODE if present
+            try {
+                if (this.map.getLayer(this.mainFillLayerId)) this.map.removeLayer(this.mainFillLayerId);
+            } catch(_) {}
+            try {
+                if (this.map.getLayer(MODE.outlineLayerId || "__none__")) this.map.removeLayer(MODE.outlineLayerId);
+            } catch(_) {}
+            try { if (this.map.getSource(MODE.sourceId)) this.map.removeSource(MODE.sourceId); } catch(_) {}
+
+            // fetch the new GeoJSON
+            const resp = await fetch(MODE.dataFile);
+            this.mainData = await resp.json();
+
+            if (!this.mainData || !Array.isArray(this.mainData.features)) {
+                console.error("hotSwapMode: invalid GeoJSON for", MODE.dataFile);
+                return false;
+            }
+
+            // apply mode-specific filtering
+            this.mainData.features = MODE.filterFeatures(this.mainData.features);
+
+            // assign ids and rebuild nameIndex (minimal)
+            this.mainData.features.forEach((f, i) => { f.id = i; });
+            this.nameIndex = {};
+            for (const f of this.mainData.features) {
+                try {
+                    const canon = this.getFeatureName(f) || "";
+                    const norm = this.normalizeAnswer(canon);
+                    if (!norm) continue;
+                    if (!this.nameIndex[norm]) this.nameIndex[norm] = { canonicalName: canon, main: [], tiny: [] };
+                    this.nameIndex[norm].main.push(f.id);
+                    if (!f.properties) f.properties = {};
+                    f.properties._canon = norm;
+                    f._canonicalNorm = norm;
+                } catch (e) { /* ignore per-feature errors */ }
+            }
+
+            // add source + main fill layer (reuse existing ids from MODE)
+            if (this.map.getSource(MODE.sourceId)) try { this.map.removeSource(MODE.sourceId); } catch(_) {}
+            this.map.addSource(MODE.sourceId, { type: "geojson", data: this.mainData });
+
+            // add fill layer
+            try {
+                this.map.addLayer({
+                    id: MODE.fillLayerId,
+                    type: "fill",
+                    source: MODE.sourceId,
+                    paint: {
+                        "fill-color": this.buildFillColorExpression(true),
+                        "fill-opacity": [
+                            "case",
+                            ["!=", ["feature-state", "quizState"], null], 0.7,
+                            ["==", ["feature-state", "inGroup"], true], 0.7,
+                            0.16
+                        ]
+                    }
+                });
+            } catch (e) {
+                // layer may already exist; update source instead
+                try { this.map.getLayer(MODE.fillLayerId) && this.map.setPaintProperty(MODE.fillLayerId, "fill-color", this.buildFillColorExpression(true)); } catch(_) {}
+            }
+
+            // outline layer
+            if (!MODE.outlineLayerId) MODE.outlineLayerId = `${MODE.sourceId}-outline`;
+            try {
+                if (this.map.getLayer(MODE.outlineLayerId)) this.map.removeLayer(MODE.outlineLayerId);
+            } catch (_) {}
+            this.map.addLayer({
+                id: MODE.outlineLayerId,
+                type: "line",
+                source: MODE.sourceId,
+                paint: { "line-color": "#444", "line-width": 0.8, "line-opacity": this.currentShowBorders ? 1 : 0 }
+            });
+
+            // update playableCount/nameIndex based counts
+            try { this.buildResolvedAliases(); } catch(_) {}
+            this.playableCount = Object.keys(this.nameIndex || {}).length || (this.playableCount || 0);
+
+            // re-apply allowed set (currentGroup may stay the same)
+            try {
+                const allowed = this.getAllowedNamesForCurrentGroup() || new Set(Object.keys(this.nameIndex || {}));
+                this.setAllowedList(allowed);
+                // schedule final feature-state passes asynchronously
+                setTimeout(finalizeFeatureStates, 8);
+            } catch (_) {}
+
+            // load tiny points if used
+            if (MODE.usesTinyPoints && MODE.tinyFile) {
+                try {
+                    const tresp = await fetch(MODE.tinyFile);
+                    this.tinyData = await tresp.json();
+                    // simple dedupe + id assign
+                    const seen = new Set();
+                    const dedup = [];
+                    for (const rf of (this.tinyData.features || [])) {
+                        const cn = this.getFeatureName(rf) || "";
+                        const n = this.normalizeAnswer(cn);
+                        if (!n || seen.has(n)) continue;
+                        seen.add(n);
+                        dedup.push(rf);
+                    }
+                    this.tinyData.features = dedup;
+                    this.tinyData.features.forEach((f, idx) => { f.id = idx; if (!f.properties) f.properties = {}; f.properties._canon = this.normalizeAnswer(this.getFeatureName(f) || ""); });
+                    try { if (this.map.getSource("quiz-tiny-source")) this.map.removeSource("quiz-tiny-source"); } catch(_) {}
+                    this.map.addSource("quiz-tiny-source", { type: "geojson", data: this.tinyData });
+                    // recreate tiny layer if missing
+                    if (!this.map.getLayer("quiz-tiny-circle")) {
+                        this.map.addLayer({
+                            id: "quiz-tiny-circle",
+                            type: "circle",
+                            source: "quiz-tiny-source",
+                            paint: {
+                                "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 3, 3, 4, 5, 6, 8, 9],
+                                "circle-color": "#666666",
+                                "circle-opacity": 0.9
+                            }
+                        });
+                    } else {
+                        // update source data
+                        try { this.map.getSource("quiz-tiny-source").setData(this.tinyData); } catch(_) {}
+                    }
+                } catch (_) { /* ignore tiny load errors */ }
+            }
+
+            // ensure borders visibility matches desired state
+            try { this.setShowBorders(this.currentShowBorders); } catch(_) {}
+
+            console.info("smurdy: hotSwapMode complete ->", newMode);
+            return true;
+        } catch (err) {
+            console.error("hotSwapMode failed", err);
+            return false;
+        }
     }
 }
 
@@ -1054,8 +1319,10 @@ map.on("load", async () => {
  
     SmurdyQuiz.buildResolvedAliases();
     // Now compute playableCount as unique canonical names (deduped) — this should match aliases keys (201)
-    SmurdyQuiz.playableCount = Object.keys(SmurdyQuiz.nameIndex || {}).length || 0;
-    console.info("smurdy: counts -> playable=", SmurdyQuiz.playableCount, " aliasKeys=", SmurdyQuiz.aliasKeyCount);
+    const nameIndexCount = Object.keys(SmurdyQuiz.nameIndex || {}).length || 0;
+    // Prefer aliases.json authoritative key count when available (keeps world = 201).
+    SmurdyQuiz.playableCount = (SmurdyQuiz.aliasKeyCount && SmurdyQuiz.aliasKeyCount > 0) ? SmurdyQuiz.aliasKeyCount : nameIndexCount;
+    console.info("smurdy: counts -> playable=", SmurdyQuiz.playableCount, " nameIndex=", nameIndexCount, " aliasKeys=", SmurdyQuiz.aliasKeyCount);
     writePlayableCountToDOM(SmurdyQuiz.playableCount);
  
     if (map.getLayer(MODE.fillLayerId)) {
@@ -1323,3 +1590,39 @@ window.addEventListener("popstate", () => {
         location.reload();
     }
 }, false);
+
+// keep simple: toggle the homepage vs game controls so UI looks correct before runner starts
+SmurdyQuiz.setQuizPanelMode = function(mode) {
+    try {
+        const desc = document.getElementById("quiz-desc");
+        const suggest = document.getElementById("quiz-suggest");
+        const restart = document.getElementById("quiz-restart");
+        const back = document.getElementById("quiz-back");
+        const timer = document.getElementById("quiz-timer");
+        const progress = document.getElementById("quiz-progress");
+        const accuracy = document.getElementById("quiz-accuracy");
+        const result = document.getElementById("quiz-result");
+
+        if (mode === "game") {
+            if (desc) desc.style.display = "none";
+            if (suggest) suggest.style.display = "none";
+            if (restart) restart.style.display = "";
+            if (back) back.style.display = "";
+            if (timer) timer.style.display = "";
+            if (progress) progress.style.display = "";
+            if (accuracy) accuracy.style.display = "";
+            if (result) result.style.display = "";
+        } else {
+            if (desc) desc.style.display = "";
+            if (suggest) suggest.style.display = "";
+            if (restart) restart.style.display = "none";
+            if (back) back.style.display = "none";
+            if (timer) timer.style.display = "none";
+            if (progress) progress.style.display = "none";
+            if (accuracy) accuracy.style.display = "none";
+            if (result) result.style.display = "none";
+        }
+    } catch (e) {
+        /* non-fatal */
+    }
+};

@@ -122,6 +122,67 @@
         }
     };
 
+    // Infer runtime mode and borders for a launch request.
+    // Inputs: manifestItem (may be null), groupId (may be null), explicitMode, explicitBorders, groups (map)
+    // Returns: { mode: "countries"|"states"|..., bordersFlag: 0|1, borderset: string|null, reason: string }
+    function inferRunOptions({ manifestItem = null, groupId = null, explicitMode = null, explicitBorders = undefined, groups = {} } = {}) {
+        // Do NOT rely on manifest.mode (removed). Priority:
+        // 1) explicitMode (caller intent)
+        // 2) group.borderset (country_groups.json) — preferred
+        // 3) manifest.borders / manifest.type as weak hints
+        // 4) heuristics on groupId
+        // 5) fallback to "countries"
+        let mode = null;
+        let borderset = null;
+
+        // 1) explicit override
+        if (explicitMode) mode = String(explicitMode);
+
+        // 2) group-level hint (preferred)
+        const g = (groups && groupId) ? groups[groupId] : null;
+        if (g && g.borderset) {
+            borderset = String(g.borderset);
+            if (!mode) mode = borderset;
+        }
+
+        // 3) manifest-level weak hints (do NOT read manifest.mode)
+        if (!mode && manifestItem) {
+            // manifest.borders is a weak hint about border visibility only
+            if (manifestItem && typeof manifestItem.borders !== "undefined" && manifestItem.borders !== null) {
+                // leave mode unset; bordersFlag computed below
+            }
+            // manifest.type can be a hint (e.g. "states" or "find")
+            if (!mode && typeof manifestItem.type === "string" && manifestItem.type === "states") {
+                mode = "states";
+            }
+        }
+
+        // 4) heuristics: group id naming
+        if (!mode && groupId) {
+            const gid = String(groupId).toLowerCase();
+            if (gid.includes("state") || gid.endsWith("_states") || gid === "us_states") mode = "states";
+        }
+
+        // 5) final fallback
+        if (!mode) mode = "countries";
+
+        // compute numeric bordersFlag (0/1) preferring explicitBorders -> manifest.borders -> group.borderset
+        let bordersFlag = 1;
+        if (typeof explicitBorders !== "undefined" && explicitBorders !== null) {
+            bordersFlag = explicitBorders ? 1 : 0;
+        } else if (manifestItem && typeof manifestItem.borders !== "undefined" && manifestItem.borders !== null) {
+            bordersFlag = manifestItem.borders ? 1 : 0;
+        } else if (g && typeof g.borderset !== "undefined") {
+            bordersFlag = (String(g.borderset) === "states" || String(g.borderset) === "countries") ? 1 : 0;
+        } else {
+            bordersFlag = (manifestItem && manifestItem.type === "find") ? 0 : 1;
+        }
+
+        return { mode: String(mode), bordersFlag: Number(bordersFlag), borderset: borderset || null, reason: "inferred (groups-first)" };
+    }
+
     window.AppModes = window.AppModes || { MODE_CONFIGS, TINY_COUNTRIES };
+    // expose helper
+    window.AppModes.inferRunOptions = inferRunOptions;
     console.debug("smurdy: modes.js loaded, AppModes available for app_core");
 })();

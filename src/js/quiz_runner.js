@@ -535,10 +535,12 @@ window.runNameQuiz = function runNameQuiz(config) {
      
     async function nextQuestion() {
         const remaining = getRemaining();
-
+ 
         if (remaining.length === 0) {
             const total = getNames().length;
             SQ.setTargetText("Done!");
+            // Ensure we clear any lingering target highlight (yellow) after the final correct answer.
+            try { SQ.setTargetByName(null); } catch (e) {}
             SQ.setProgressText(`${total} / ${total} completed`);
             SQ.setResultText(doneText(formatElapsed(finalElapsedMs)));
             currentName = null;
@@ -546,21 +548,10 @@ window.runNameQuiz = function runNameQuiz(config) {
             stopTimer();
             setInputEnabled(false);
 
-            // restore homepage-like panel when quiz finishes (only show paragraphs/suggest when on homepage)
-            try { setQuizPanelMode("home"); } catch (e) {}
-
-             // show browser panel again when quiz finishes
-             try {
-                 const panel = document.getElementById("quiz-browser");
-                 if (panel) {
-                     panel.style.display = "block";
-                     panel.style.opacity = "";
-                     panel.style.transform = "";
-                 }
-             } catch (e) {}
- 
-             return;
-         }
+            // Keep the quiz panel in game-mode showing "Done!" until the user clicks Back.
+            try { setQuizPanelMode("game"); } catch (e) {}
+            return;
+        }
  
         // For findPoint mode, choose a random country and place the dot on its largest polygon part.
         if (mode === "type" && findPoint) {

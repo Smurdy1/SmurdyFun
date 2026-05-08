@@ -112,12 +112,19 @@
       function startQuizFrom(quizId, groupId, landingHref) {
         // update history so URL matches the landing page
         try { history.pushState({}, "", landingHref); } catch(e) {}
+
         // prefer the existing SmurdyQuiz API if available
         if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === 'function') {
           try {
-            window.SmurdyQuiz.currentGroupId = groupId;
-            window.SmurdyQuiz.loadQuizScript("manifest:" + quizId);
-            return true;
+            // If a manifest is present, use it to determine the desired runtime mode and config
+            const manifest = (window.SmurdyQuizManifest || []).find(m => m.id === quizId || m.file === quizId);
+            const requestedMode = manifest?.mode || manifest?.config?.mode || undefined;
+            if (requestedMode) window.SmurdyQuiz.currentMode = requestedMode;
+            if (groupId) window.SmurdyQuiz.currentGroupId = groupId;
+            // Honor manifest borders hint if available
+            if (typeof manifest?.borders !== "undefined") window.SmurdyQuiz.currentShowBorders = Boolean(Number(manifest.borders));
+             window.SmurdyQuiz.loadQuizScript("manifest:" + quizId);
+             return true;
           } catch (e) { /* fall through to other options */ }
         }
         // fallback to older runner functions if present

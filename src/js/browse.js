@@ -43,6 +43,23 @@
 
     let groups = {};
 
+    // Wait until SmurdyQuiz.groups is populated (or timeout). Returns a Promise<boolean>.
+    async function waitForGroups(timeout = 800) {
+        const start = Date.now();
+        if (window.SmurdyQuiz && Object.keys(window.SmurdyQuiz.groups || {}).length > 0) return true;
+        return new Promise(resolve => {
+            const iv = setInterval(() => {
+                if (window.SmurdyQuiz && Object.keys(window.SmurdyQuiz.groups || {}).length > 0) {
+                    clearInterval(iv);
+                    resolve(true);
+                } else if (Date.now() - start > timeout) {
+                    clearInterval(iv);
+                    resolve(false);
+                }
+            }, 40);
+        });
+    }
+
     /* Utility ------------------------------------------------------------- */
     function escapeHtml(text) {
         return String(text || "")
@@ -157,6 +174,11 @@
     // Render the raw manifest list (individual quiz entries)
     function renderManifestView(filter = "") {
         const panel = ensureBrowserUI();
+
+        // preserve caret/focus so typing isn't interrupted by re-rendering the panel
+        const oldInput = panel.querySelector && panel.querySelector("#qb-filter");
+        const oldCaret = oldInput ? oldInput.selectionStart : null;
+
         const tokens = tokenize(filter);
         const q = (baseManifest || []).map(m => {
             const title = m.title || m.file || m.id;
@@ -199,31 +221,45 @@
             </div>
         `;
 
+        // restore focus/selection to the recreated input so typing continues smoothly
+        try {
+            const newInput = panel.querySelector("#qb-filter");
+            if (newInput && oldCaret !== null) {
+                newInput.focus();
+                newInput.setSelectionRange(oldCaret, oldCaret);
+            }
+        } catch (e) { /* ignore focus restore errors */ }
+
         // no Back button here (gamemode/manifest selector)
 
         panel.querySelector("#qb-filter").addEventListener("input", (e) => renderManifestView(e.target.value));
 
         panel.querySelectorAll(".qb-play").forEach(btn => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", async () => {
                 const id = btn.dataset.manifestId;
                 const manifestItem = (baseManifest || []).find(m => m.id === id);
                 if (!manifestItem) return;
-
+ 
                 if (manifestItem.groupSet && Object.keys(groups || {}).length) {
                     pendingManifestToLaunch = manifestItem;
                     renderGroupsView(manifestItem.type || manifestItem.type || "type", "");
                     return;
                 }
+ 
+                // Ensure groups are loaded before inferring run options (avoids wrong mode inference).
+                await waitForGroups(800);
+                const run = (window.AppModes && typeof window.AppModes.inferRunOptions === "function")
+                    ? window.AppModes.inferRunOptions({ manifestItem, groupId: "", groups: window.SmurdyQuiz?.groups || groups })
+                    : { mode: "countries", bordersFlag: (manifestItem.borders ? 1 : 0) };
 
-                const runMode = (manifestItem.config && manifestItem.config.mode) || (manifestItem.mode) || "countries";
                 if (typeof window.launchQuiz === "function") {
-                    const extra = { group: "", borders: manifestItem.borders };
-                    window.launchQuiz(manifestItem.file, runMode, extra);
+                    const extra = { group: "", borders: String(run.bordersFlag) };
+                    window.launchQuiz(manifestItem.file, run.mode, extra);
                 } else {
                     const params = new URLSearchParams();
-                    params.set("mode", runMode);
+                    params.set("mode", run.mode);
                     params.set("quiz", manifestItem.file);
-                    if (typeof manifestItem.borders !== "undefined") params.set("borders", String(Boolean(manifestItem.borders)));
+                    params.set("borders", String(run.bordersFlag));
                     window.location.search = params.toString();
                 }
             });
@@ -234,6 +270,9 @@
          currentView = "groups";
          activeType = type;
          const panel = ensureBrowserUI();
+         // preserve caret/focus for the search input
+         const oldInput = panel.querySelector && panel.querySelector("#qb-filter");
+         const oldCaret = oldInput ? oldInput.selectionStart : null;
          const groupsList = buildGroupCardsForType(type);
          const tokens = tokenize(filter);
 
@@ -271,25 +310,36 @@
               </div>
           `;
 
-         // wire back button to return to gamemode/type selection (group selector)
-         const backBtn = panel.querySelector("#qb-back");
-         if (backBtn) {
-             backBtn.addEventListener("click", () => {
-                 pendingManifestToLaunch = null;
-                 currentView = "types";
-                 activeType = null;
-                 renderTypesView();
-             });
-         }
+ // restore focus/selection to the recreated input so typing continues smoothly
+ try {
+     const newInput = panel.querySelector("#qb-filter");
+     if (newInput && oldCaret !== null) {
+         newInput.focus();
+         newInput.setSelectionRange(oldCaret, oldCaret);
+     }
+ } catch (e) { /* ignore */ }
+
+  // wire back button to return to gamemode/type selection (group selector)
+  const backBtn = panel.querySelector("#qb-back");
+  if (backBtn) {
+      backBtn.addEventListener("click", () => {
+          pendingManifestToLaunch = null;
+          currentView = "types";
+          activeType = null;
+          renderTypesView();
+      });
+  }
 
           panel.querySelector("#qb-filter").addEventListener("input", (e) => {
               renderGroupsView(type, e.target.value);
           });
 
          panel.querySelectorAll(".qb-play").forEach(btn => {
-             btn.addEventListener("click", () => {
+             btn.addEventListener("click", async () => {
                  const group = btn.dataset.group;
                  const type = btn.dataset.type;
+                 // ensure group metadata is available before launching (avoids wrong mode inference)
+                 await waitForGroups(800);
                  if (pendingManifestToLaunch) {
                      startQuizForManifest(pendingManifestToLaunch, group);
                      pendingManifestToLaunch = null;
@@ -303,7 +353,6 @@
     /* Start quiz ---------------------------------------------------------- */
     function startQuizFor(type, groupId) {
         // pick the most appropriate quiz definition from baseManifest
-        // prefer quizzes that target a groupSet (country_groups) and match the type
         let quizDef = baseManifest.find(q => q.type === type && q.groupSet);
         if (!quizDef) quizDef = baseManifest.find(q => q.type === type) || baseManifest[0];
         if (!quizDef) {
@@ -311,28 +360,20 @@
             return;
         }
 
-        // determine group's borderset and numeric flag (as browse.js used previously)
-        const g = groups[groupId] || {};
-        const borderset = (typeof g.borderset !== "undefined") ? g.borderset : (quizDef.borders ? "countries" : "none");
-        const bs = String(borderset).toLowerCase();
-        let bordersFlag = 0;
-        if (bs === "states" || bs === "countries") bordersFlag = 1;
-        if (type === "find") bordersFlag = 0;
+        // Use centralized inference so multiple entry paths choose the same mode/borders.
+        const run = (window.AppModes && typeof window.AppModes.inferRunOptions === "function")
+            ? window.AppModes.inferRunOptions({ manifestItem: quizDef, groupId, groups })
+            : { mode: (typeof quizDef.mode === "string" ? quizDef.mode : "countries"), bordersFlag: Number(Boolean(quizDef.borders)) };
 
-        // determine runtime mode (states -> 'states' else countries)
-        const mode = (bs === "states") ? "states" : "countries";
-
-        // call the global launcher; use window.launchQuiz to avoid a ReferenceError
-        const extra = { group: groupId, borders: String(bordersFlag) };
+        const extra = { group: groupId, borders: String(run.bordersFlag) };
         if (typeof window.launchQuiz === "function") {
-            window.launchQuiz(quizDef.file, mode, extra);
+            window.launchQuiz(quizDef.file, run.mode, extra);
         } else {
-            // fallback to URL navigation if launcher isn't available yet
             const params = new URLSearchParams();
-            params.set("mode", mode);
+            params.set("mode", run.mode);
             params.set("quiz", quizDef.file);
             params.set("group", groupId);
-            params.set("borders", String(bordersFlag));
+            params.set("borders", String(run.bordersFlag));
             window.location.search = params.toString();
         }
     }
@@ -340,54 +381,50 @@
     // Launch a specific manifest entry for a chosen group (used when a manifest was selected first)
     function startQuizForManifest(manifestItem, groupId) {
         if (!manifestItem) return;
-        const g = groups[groupId] || {};
-        const runMode = (manifestItem.config && manifestItem.config.mode) || manifestItem.mode || (manifestItem.type === "states" ? "states" : "countries");
-        const borderset = (typeof g.borderset !== "undefined") ? g.borderset : (manifestItem.borders ? "countries" : "none");
-        const bs = String(borderset).toLowerCase();
-        let bordersFlag = 0;
-        if (bs === "states" || bs === "countries") bordersFlag = 1;
-        if (runMode === "find") bordersFlag = 0;
-
-        // prefer launcher if available
-        const quizRef = manifestItem.file || manifestItem.id || "";
-        if (typeof window.launchQuiz === "function") {
-            const extra = { group: groupId, borders: String(bordersFlag) };
-            try {
-                // If manifest provided an inline config, merge it
-                if (manifestItem.config && typeof manifestItem.config === "object") {
-                    const cfg = Object.assign({}, manifestItem.config, extra);
-                    window.launchQuiz(cfg.file || quizRef, runMode, cfg);
-                } else {
-                    window.launchQuiz(quizRef, runMode, extra);
-                }
-            } catch (err) {
-                console.warn("startQuizForManifest: in-place launch failed, falling back to navigation", err);
-                const params = new URLSearchParams();
-                params.set("mode", runMode);
-                if (quizRef) params.set("quiz", quizRef);
-                params.set("group", groupId);
-                params.set("borders", String(bordersFlag));
-                window.location.search = params.toString();
-            }
-            // hide panel
-            const panel = document.getElementById("quiz-browser");
-            if (panel) {
-                panel.style.transition = "opacity 180ms ease, transform 180ms ease";
-                panel.style.opacity = "0";
-                panel.style.transform = "translateY(-8px)";
-                setTimeout(() => { panel.style.display = "none"; }, 200);
-            }
-            return;
-        }
-
-        // fallback to URL navigation
-        const params = new URLSearchParams();
-        params.set("mode", runMode);
-        if (quizRef) params.set("quiz", quizRef);
-        params.set("group", groupId);
-        params.set("borders", String(bordersFlag));
-        window.location.search = params.toString();
-    }
+        const run = (window.AppModes && typeof window.AppModes.inferRunOptions === "function")
+            ? window.AppModes.inferRunOptions({ manifestItem, groupId, groups })
+            : { mode: manifestItem.mode || "countries", bordersFlag: Number(Boolean(manifestItem.borders)) };
+ 
+         // prefer launcher if available
+         const quizRef = manifestItem.file || manifestItem.id || "";
+         if (typeof window.launchQuiz === "function") {
+            const extra = { group: groupId, borders: String(run.bordersFlag) };
+             try {
+                 // If manifest provided an inline config, merge it
+                 if (manifestItem.config && typeof manifestItem.config === "object") {
+                     const cfg = Object.assign({}, manifestItem.config, extra);
+                     window.launchQuiz(cfg.file || quizRef, run.mode, cfg);
+                 } else {
+                    window.launchQuiz(quizRef, run.mode, extra);
+                 }
+             } catch (err) {
+                 console.warn("startQuizForManifest: in-place launch failed, falling back to navigation", err);
+                 const params = new URLSearchParams();
+                params.set("mode", run.mode);
+                 if (quizRef) params.set("quiz", quizRef);
+                 params.set("group", groupId);
+                 params.set("borders", String(run.bordersFlag));
+                 window.location.search = params.toString();
+             }
+             // hide panel
+             const panel = document.getElementById("quiz-browser");
+             if (panel) {
+                 panel.style.transition = "opacity 180ms ease, transform 180ms ease";
+                 panel.style.opacity = "0";
+                 panel.style.transform = "translateY(-8px)";
+                 setTimeout(() => { panel.style.display = "none"; }, 200);
+             }
+             return;
+         }
+ 
+         // fallback to URL navigation
+         const params = new URLSearchParams();
+         params.set("mode", run.mode);
+         if (quizRef) params.set("quiz", quizRef);
+         params.set("group", groupId);
+         params.set("borders", String(run.bordersFlag));
+         window.location.search = params.toString();
+     }
 
     /* Existing launchQuiz lives in this file already - keep it as-is; if not present,
        fallback to URL navigation. We assume launchQuiz() is defined below globally. */
@@ -428,34 +465,27 @@
             params.set(k, v);
         }
 
-        // If runtime exists but mode differs, navigate so app initializes the correct MODE
-        if (window.SmurdyQuiz && window.SmurdyQuiz.mode && window.SmurdyQuiz.mode !== mode) {
-            window.location.search = params.toString();
-            return;
-        }
-
-        // If runtime can load quizzes in-place, use it
+        // Prefer a single, deterministic in-place launch. Set intent before calling loader.
         if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === "function") {
             try {
+                // set intent so the loader can choose to reload if necessary
                 window.SmurdyQuiz.currentMode = mode;
                 if (extraParams.group) window.SmurdyQuiz.currentGroupId = extraParams.group;
                 if (typeof extraParams.borders !== "undefined") {
                     window.SmurdyQuiz.currentShowBorders = Boolean(Number(extraParams.borders));
                 }
-                window.SmurdyQuiz.loadQuizScript(file);
 
-                // hide the browser panel after starting
-                const panel = document.getElementById("quiz-browser");
-                if (panel) {
-                    panel.style.transition = "opacity 180ms ease, transform 180ms ease";
-                    panel.style.opacity = "0";
-                    panel.style.transform = "translateY(-8px)";
-                    setTimeout(() => { panel.style.display = "none"; }, 200);
-                }
-                return;
-            } catch (err) {
-                console.warn("In-place launch failed, falling back to navigation:", err);
-            }
+                // Ask the runtime to load the quiz in-place and let it update the URL/UI.
+                // Using updateUrl:true ensures the loader performs its normal UI/url updates immediately.
+                window.SmurdyQuiz.loadQuizScript(file, { updateUrl: true });
+
+                // Do NOT flip the left panel here; the runner will set up controls and we will
+                // show the game UI after the runner starts. This avoids races where the UI
+                // gets changed before the runner created the necessary DOM.
+                 return;
+             } catch (err) {
+                 console.warn("In-place launch failed, falling back to navigation:", err);
+             }
         }
 
         // fallback: navigate via URL params
