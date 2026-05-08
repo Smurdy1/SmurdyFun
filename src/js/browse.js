@@ -139,15 +139,20 @@
         const style = document.createElement("style");
         style.id = "quiz-browser-styles";
         style.textContent = `
+            /* container provides the horizontal inset so children don't overflow rounded corners */
             #quiz-browser { position: absolute; top:16px; right:16px; width:380px; max-height:calc(100vh - 32px); overflow:hidden; z-index:2000;
                 background: rgba(255,255,255,0.96); border-radius:12px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
-                display:flex; flex-direction:column; font-family: Arial, sans-serif; }
-            #qb-header { padding:14px 16px; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; gap:8px; }
+                display:flex; flex-direction:column; font-family: Arial, sans-serif;
+                padding:12px 16px; box-sizing: border-box; }
+            /* make sure all children respect container box sizing */
+            #quiz-browser, #quiz-browser * { box-sizing: border-box; }
+            /* inner blocks no longer need horizontal padding */
+            #qb-header { padding:14px 0 8px 0; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; gap:8px; }
             #qb-title { font-weight:700; font-size:18px; color:#111; flex:1; }
-            #qb-search { padding:12px 16px; border-bottom:1px solid rgba(0,0,0,0.06); }
+            #qb-search { padding:10px 0 12px 0; border-bottom:1px solid rgba(0,0,0,0.06); }
             #qb-search input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e0e0e0; }
-            #qb-list { overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
-            .qb-card { background:#fbfbfb; border:1px solid #eee; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; }
+            #qb-list { overflow:auto; padding:0; display:flex; flex-direction:column; gap:10px; }
+            .qb-card { background:#fbfbfb; border:1px solid #eee; border-radius:12px; padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
             .qb-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
             .qb-title { font-weight:700; color:#111; margin:0 0 6px 0; font-size:15px; }
             .qb-sub { color:#666; font-size:13px; margin:0; }
@@ -310,25 +315,25 @@
               </div>
           `;
 
- // restore focus/selection to the recreated input so typing continues smoothly
- try {
-     const newInput = panel.querySelector("#qb-filter");
-     if (newInput && oldCaret !== null) {
-         newInput.focus();
-         newInput.setSelectionRange(oldCaret, oldCaret);
-     }
- } catch (e) { /* ignore */ }
+         // restore focus/selection to the recreated input so typing continues smoothly
+         try {
+             const newInput = panel.querySelector("#qb-filter");
+             if (newInput && oldCaret !== null) {
+                 newInput.focus();
+                 newInput.setSelectionRange(oldCaret, oldCaret);
+             }
+         } catch (e) { /* ignore */ }
 
-  // wire back button to return to gamemode/type selection (group selector)
-  const backBtn = panel.querySelector("#qb-back");
-  if (backBtn) {
-      backBtn.addEventListener("click", () => {
-          pendingManifestToLaunch = null;
-          currentView = "types";
-          activeType = null;
-          renderTypesView();
-      });
-  }
+          // wire back button to return to gamemode/type selection (group selector)
+          const backBtn = panel.querySelector("#qb-back");
+          if (backBtn) {
+              backBtn.addEventListener("click", () => {
+                  pendingManifestToLaunch = null;
+                  currentView = "types";
+                  activeType = null;
+                  renderTypesView();
+              });
+          }
 
           panel.querySelector("#qb-filter").addEventListener("input", (e) => {
               renderGroupsView(type, e.target.value);
