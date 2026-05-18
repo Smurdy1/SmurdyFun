@@ -1,14 +1,92 @@
 window.runNameQuiz = function runNameQuiz(config) {
     const SQ = window.SmurdyQuiz;
 
+    // Ensure a bottom mobile container exists and move controls there on small screens.
+    function ensureMobileBottom() {
+        if (!document.getElementById("quiz-bottom")) {
+            const b = document.createElement("div");
+            b.id = "quiz-bottom";
+            document.body.appendChild(b);
+        }
+    }
+
+    function arrangeMobilePanels() {
+        const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+        const panel = document.getElementById("quiz-panel");
+        const bottom = document.getElementById("quiz-bottom");
+        const buttons = document.getElementById("quiz-buttons");
+
+        if (!panel || !bottom || !buttons) return;
+
+        if (isMobile) {
+            // top: instruction panel (#quiz-panel)
+            panel.style.display = "flex";
+            panel.style.flexDirection = "column";
+            panel.style.alignItems = "center";
+            // bottom: move controls into bottom container
+            if (buttons.parentNode !== bottom) bottom.appendChild(buttons);
+            bottom.style.display = "flex";
+            bottom.style.flexDirection = "column";
+        } else {
+            // desktop: restore original layout
+            if (buttons.parentNode !== panel) panel.appendChild(buttons);
+            bottom.style.display = "none";
+            panel.style.display = "";
+            panel.style.flexDirection = "";
+            panel.style.alignItems = "";
+        }
+    }
+
+    // initialize mobile bottom + listener
+    try { ensureMobileBottom(); arrangeMobilePanels(); window.addEventListener("resize", arrangeMobilePanels); } catch (_) {}
+
+    // Wire Give Up button: mark current as wrong and advance.
+    try {
+        const giveUpBtn = document.getElementById("quiz-giveup");
+        if (giveUpBtn) {
+            giveUpBtn.addEventListener("click", () => {
+                try {
+                    // If nothing to give up on, no-op
+                    if (!currentName) return;
+                    // mark as wrong in map state (and any small-list API)
+                    try { if (typeof SQ.setAnswerState === "function") SQ.setAnswerState(currentName, "wrong"); } catch (_) {}
+                    try { if (typeof window.SmurdyQuiz?.setFeatureStateByName === "function") window.SmurdyQuiz.setFeatureStateByName(currentName, "wrong"); } catch (_) {}
+                    // update runner counters if present and show immediate feedback
+                    try { attempts = (typeof attempts === "number") ? attempts + 1 : attempts; } catch(_) {}
+                    try { updateCounter(); updateAccuracy(); } catch(_) {}
+                    // lock input while advancing, stop timer for this question and move on
+                    try { locked = true; stopTimer(); setInputEnabled(false); } catch(_) {}
+                    // advance to next question
+                    try { nextQuestion(); } catch (e) { /* ignore if not present */ }
+                } catch (e) { /* tolerate any errors */ }
+            });
+        }
+    } catch (_) {}
+
+    // Ensure a persistent compact stats element exists (created once; CSS controls visibility).
+    function ensureStatsElement() {
+        if (document.getElementById("quiz-stats")) return;
+        const panel = document.getElementById("quiz-panel");
+        if (!panel) return;
+        const statsEl = document.createElement("div");
+        statsEl.id = "quiz-stats";
+        statsEl.innerHTML = '<span id="stats-count"></span><span id="stats-timer"></span><span id="stats-accuracy"></span>';
+        // append near top so it stays with the panel regardless of button reparenting
+        panel.appendChild(statsEl);
+    }
+    try { ensureStatsElement(); } catch (_) {}
+
     // Toggle quiz-panel between "homepage" (description + suggest) and "game" (timer + controls).
     function setQuizPanelMode(mode) {
+        const panel = document.getElementById("quiz-panel"); // <- ensure panel is defined
         const desc = document.getElementById("quiz-desc");
         const suggest = document.getElementById("quiz-suggest");
         const restart = document.getElementById("quiz-restart");
         const back = document.getElementById("quiz-back");
         let timer = document.getElementById("quiz-timer");
         const target = document.getElementById("quiz-target");
+        // ensure mobile panels arranged after any mode switch
+        try { arrangeMobilePanels(); } catch (_) {}
 
         if (mode === "game") {
             if (desc) desc.style.display = "none";
@@ -26,7 +104,7 @@ window.runNameQuiz = function runNameQuiz(config) {
             }
             if (timer) timer.style.display = "";
 
-            // ensure progress exists (insert before buttons)
+            // ensure progress/accuracy exist (desktop) AND the compact mobile stats row
             if (!progress && panel) {
                 progress = document.createElement("div");
                 progress.id = "quiz-progress";
@@ -38,7 +116,6 @@ window.runNameQuiz = function runNameQuiz(config) {
             }
             if (progress) progress.style.display = "";
 
-            // ensure accuracy exists
             if (!accuracy && panel) {
                 accuracy = document.createElement("div");
                 accuracy.id = "quiz-accuracy";
@@ -49,6 +126,11 @@ window.runNameQuiz = function runNameQuiz(config) {
                 else panel.appendChild(accuracy);
             }
             if (accuracy) accuracy.style.display = "";
+
+            // ensure the persistent stats element exists; don't set inline display (CSS governs visibility)
+            try { ensureStatsElement(); } catch (_) {}
+            stats = document.getElementById("quiz-stats");
+            if (stats) stats.style.marginTop = "6px";
 
             // ensure result exists and is visible
             if (!result && panel) {
@@ -118,6 +200,10 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     let inputEl = null;
     let submitButton = null;
+    let progress = null;
+    let accuracy = null;
+    let result = null;
+    let stats = null;
 
     let timerInterval = null;
     let startTime = null;
@@ -157,6 +243,11 @@ window.runNameQuiz = function runNameQuiz(config) {
     function updateCounter() {
         const total = getNames().length;
         SQ.setProgressText(`${completed.size} / ${total} completed`);
+        const compact = `${completed.size} / ${total}`;
+        const s = document.getElementById("stats-count");
+        if (s) s.textContent = compact;
+        const p = document.getElementById("quiz-progress");
+        if (p) p.textContent = `${completed.size} / ${total} completed`;
     }
 
     function updateAccuracy() {
@@ -165,6 +256,10 @@ window.runNameQuiz = function runNameQuiz(config) {
             : Math.round((correctAnswers / attempts) * 100);
 
         SQ.setAccuracyText(`${percent}% correct`);
+        const s = document.getElementById("stats-accuracy");
+        if (s) s.textContent = `${percent}%`;
+        const a = document.getElementById("quiz-accuracy");
+        if (a) a.textContent = `${percent}% correct`;
     }
 
     function repaintCompleted() {
@@ -195,21 +290,24 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function setTimerText(ms) {
         const el = document.getElementById("quiz-timer");
-        if (el) el.textContent = formatElapsed(ms);
+        const txt = formatElapsed(ms);
+        if (el) el.textContent = txt;
+        const s = document.getElementById("stats-timer");
+        if (s) s.textContent = txt;
     }
-
+ 
     function startTimer() {
         stopTimer();
         startTime = Date.now();
         finalElapsedMs = 0;
         setTimerText(0);
-
+ 
         timerInterval = setInterval(() => {
             finalElapsedMs = Date.now() - startTime;
             setTimerText(finalElapsedMs);
         }, 100);
     }
-
+ 
     function stopTimer() {
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -233,13 +331,13 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function createTypingUI() {
         removeTypingUI();
-
+ 
         const controls = document.createElement("div");
         controls.id = "type-quiz-controls";
         controls.style.marginTop = "10px";
         controls.style.display = "flex";
         controls.style.gap = "8px";
-
+ 
         inputEl = document.createElement("input");
         inputEl.type = "text";
         inputEl.placeholder = inputPlaceholder;
@@ -249,8 +347,8 @@ window.runNameQuiz = function runNameQuiz(config) {
         inputEl.style.padding = "8px 10px";
         inputEl.style.border = "1px solid #ccc";
         inputEl.style.borderRadius = "8px";
-        inputEl.style.fontSize = "14px";
-
+        inputEl.style.fontSize = "16px";
+ 
         submitButton = document.createElement("button");
         submitButton.textContent = "Guess";
         submitButton.style.padding = "8px 12px";
@@ -259,13 +357,17 @@ window.runNameQuiz = function runNameQuiz(config) {
         submitButton.style.background = "#222";
         submitButton.style.color = "white";
         submitButton.style.cursor = "pointer";
-
+ 
         controls.appendChild(inputEl);
         controls.appendChild(submitButton);
-
+ 
         const panel = document.getElementById("quiz-panel");
-        panel.appendChild(controls);
-
+        // On mobile, place typing controls into bottom container so panels are separate.
+        const bottom = document.getElementById("quiz-bottom");
+        const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+        if (isMobile && bottom) bottom.insertBefore(controls, bottom.firstChild);
+        else panel.appendChild(controls);
+ 
         submitButton.addEventListener("click", submitGuess);
         inputEl.addEventListener("keydown", (e) => {
             if (e.key === "Enter") submitGuess();
@@ -614,10 +716,10 @@ window.runNameQuiz = function runNameQuiz(config) {
         updateAccuracy();
         resetTimer();
         startTimer();
-
+ 
         // ensure panel uses the game UI when restarting
         try { setQuizPanelMode("game"); } catch (e) {}
-
+ 
          if (typeof SQ.resetView === "function") {
              SQ.resetView();
          }

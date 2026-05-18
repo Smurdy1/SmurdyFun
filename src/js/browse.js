@@ -60,6 +60,41 @@
         });
     }
 
+    // Mobile run-state helpers
+    // Deterministically show/hide the two panels on narrow viewports based on URL (no body-class juggling).
+    function updateMobileRunState() {
+        const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+        const quizPanel = document.getElementById("quiz-panel");
+        const browserPanel = document.getElementById("quiz-browser");
+
+        // Reset to default (desktop) when not mobile
+        if (!isMobile) {
+            if (quizPanel) quizPanel.style.display = "";
+            if (browserPanel) browserPanel.style.display = "";
+            return;
+        }
+
+        // On mobile: show quiz panel only when URL indicates a running quiz (path OR query)
+        const params = new URLSearchParams(location.search);
+        const hasQuizParam = !!params.get("quiz");
+        const isQuizPath = /^\/quizzes\/[^\/]+\/[^\/]+\/?$/.test(location.pathname);
+        if (isQuizPath || hasQuizParam) {
+            if (quizPanel) quizPanel.style.display = "flex";
+            if (browserPanel) browserPanel.style.display = "none";
+        } else {
+            // homepage state on mobile: hide left quiz panel, show browser
+            if (quizPanel) quizPanel.style.display = "none";
+            if (browserPanel) {
+                browserPanel.style.display = "flex";
+                // keep browser panel constrained by its CSS
+            }
+        }
+    }
+
+    // update on back/forward and resize
+    window.addEventListener("popstate", updateMobileRunState);
+    window.addEventListener("resize", updateMobileRunState);
+
     /* Utility ------------------------------------------------------------- */
     function escapeHtml(text) {
         return String(text || "")
@@ -139,28 +174,73 @@
         const style = document.createElement("style");
         style.id = "quiz-browser-styles";
         style.textContent = `
-            /* container provides the horizontal inset so children don't overflow rounded corners */
-            #quiz-browser { position: absolute; top:16px; right:16px; width:380px; max-height:calc(100vh - 32px); overflow:hidden; z-index:2000;
-                background: rgba(255,255,255,0.96); border-radius:12px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
-                display:flex; flex-direction:column; font-family: Arial, sans-serif;
-                padding:12px 16px; box-sizing: border-box; }
-            /* make sure all children respect container box sizing */
-            #quiz-browser, #quiz-browser * { box-sizing: border-box; }
-            /* inner blocks no longer need horizontal padding */
-            #qb-header { padding:14px 0 8px 0; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; gap:8px; }
-            #qb-title { font-weight:700; font-size:18px; color:#111; flex:1; }
-            #qb-search { padding:10px 0 12px 0; border-bottom:1px solid rgba(0,0,0,0.06); }
-            #qb-search input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e0e0e0; }
-            #qb-list { overflow:auto; padding:0; display:flex; flex-direction:column; gap:10px; }
-            .qb-card { background:#fbfbfb; border:1px solid #eee; border-radius:12px; padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
-            .qb-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-            .qb-title { font-weight:700; color:#111; margin:0 0 6px 0; font-size:15px; }
-            .qb-sub { color:#666; font-size:13px; margin:0; }
-            .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-            .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
-            .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; }
-            .qb-empty { padding:18px; text-align:center; color:#777; }
-            .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
+        /* desktop: anchored top-right, fixed size so layout remains unchanged on PC */
+        #quiz-browser {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 380px;
+            max-width: 380px;
+            max-height: calc(100vh - 32px);
+            overflow: hidden;
+            z-index: 2000;
+            background: rgba(255,255,255,0.96);
+            border-radius:12px;
+            box-shadow:0 10px 28px rgba(0,0,0,0.18);
+            display:flex;
+            flex-direction:column;
+            font-family: Arial, sans-serif;
+            padding:12px 16px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        /* make sure all children respect container box sizing */
+        #quiz-browser, #quiz-browser * { box-sizing: border-box; }
+
+        /* inner blocks */
+        #qb-header { padding:14px 0 8px 0; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; gap:8px; }
+        #qb-title { font-weight:700; font-size:18px; color:#111; flex:1; }
+        #qb-search { padding:10px 0 12px 0; border-bottom:1px solid rgba(0,0,0,0.06); }
+        #qb-search input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e0e0e0; }
+        #qb-list { overflow:auto; padding:0; display:flex; flex-direction:column; gap:10px; }
+        .qb-card { background:#fbfbfb; border:1px solid #eee; border-radius:12px; padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
+        .qb-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+        .qb-title { font-weight:700; color:#111; margin:0 0 6px 0; font-size:15px; }
+        .qb-sub { color:#666; font-size:13px; margin:0; }
+        .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+        .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
+        .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; }
+        .qb-empty { padding:18px; text-align:center; color:#777; }
+        .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
+
+        /* Mobile / narrow-screen adjustments: centered and inset with safe-area padding + extra margin */
+        @media (max-width: 700px) {
+            /* add an extra 12px margin inside safe-area so panel always appears floating */
+            #quiz-browser {
+                position: fixed !important;
+                left: calc(env(safe-area-inset-left, 12px) + 12px) !important;
+                right: calc(env(safe-area-inset-right, 12px) + 12px) !important;
+                top: calc(env(safe-area-inset-top, 12px) + 6px) !important;
+                width: auto !important;
+                /* ensure there's extra horizontal breathing room beyond safe-area */
+                max-width: calc(100% - (env(safe-area-inset-left, 12px) + env(safe-area-inset-right, 12px) + 48px));
+                max-height: calc( (3 * 76px) + 140px );
+                overflow: auto !important;
+                margin: 0 auto;
+                border-radius: 10px;
+                padding: 10px !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            }
+
+            /* limit list height and make touch targets larger */
+            #qb-list { max-height: calc(3 * 76px); overflow: auto; }
+            .qb-card { padding:14px 14px; }
+            .qb-play { padding:10px 12px; font-size:15px; }
+        }
+
+        /* improve filter input touch behavior */
+        input#qb-filter { -webkit-tap-highlight-color: rgba(0,0,0,0.05); touch-action: manipulation; }
         `;
         document.head.appendChild(style);
     }
@@ -197,7 +277,7 @@
             return tokens.every(tok => hay.includes(tok));
         });
 
-        const headerTitle = activeType ? `${escapeHtml(getFriendlyTypeLabel(activeType))} — select group` : "Quizzes";
+        const headerTitle = activeType ? `Select Group` : "Quizzes";
 
         panel.innerHTML = `
             <div id="qb-header">
@@ -229,7 +309,9 @@
         // restore focus/selection to the recreated input so typing continues smoothly
         try {
             const newInput = panel.querySelector("#qb-filter");
-            if (newInput && oldCaret !== null) {
+            // On mobile, avoid auto-focusing (this opens the keyboard and can shift the viewport).
+            const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+            if (newInput && oldCaret !== null && !isMobile) {
                 newInput.focus();
                 newInput.setSelectionRange(oldCaret, oldCaret);
             }
@@ -272,88 +354,90 @@
     }
 
     function renderGroupsView(type, filter = "") {
-         currentView = "groups";
-         activeType = type;
-         const panel = ensureBrowserUI();
-         // preserve caret/focus for the search input
-         const oldInput = panel.querySelector && panel.querySelector("#qb-filter");
-         const oldCaret = oldInput ? oldInput.selectionStart : null;
-         const groupsList = buildGroupCardsForType(type);
-         const tokens = tokenize(filter);
+        currentView = "groups";
+        activeType = type;
+        const panel = ensureBrowserUI();
+        // preserve caret/focus for the search input
+        const oldInput = panel.querySelector && panel.querySelector("#qb-filter");
+        const oldCaret = oldInput ? oldInput.selectionStart : null;
+        const groupsList = buildGroupCardsForType(type);
+        const tokens = tokenize(filter);
 
-         const filtered = groupsList.filter(g => {
-             if (!tokens.length) return true;
-             const hay = [g.label, g.id, ...(g.tags||[])].join(" ").toLowerCase();
-             return tokens.every(tok => hay.includes(tok));
-         });
+        const filtered = groupsList.filter(g => {
+            if (!tokens.length) return true;
+            const hay = [g.label, g.id, ...(g.tags||[])].join(" ").toLowerCase();
+            return tokens.every(tok => hay.includes(tok));
+        });
 
-         panel.innerHTML = `
-             <div id="qb-header">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div id="qb-title">${escapeHtml(getFriendlyTypeLabel(type))} — select group</div>
-                    <button id="qb-back" class="qb-back">Back</button>
-                </div>
+        panel.innerHTML = `
+            <div id="qb-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div id="qb-title">Select Group</div>
+                <button id="qb-back" class="qb-back">Back</button>
             </div>
-              <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
-              <div id="qb-list">
-                  ${filtered.length ? filtered.map(g => `
-                      <div class="qb-card" data-group="${escapeHtml(g.id)}">
-                          <div class="qb-row">
-                              <div>
-                                  <div class="qb-title">${escapeHtml(g.label)}</div>
-                                  <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
-                              </div>
-                              <div>
-                                  <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
-                              </div>
-                          </div>
-                          <div class="qb-tags">
-                              ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
-                          </div>
-                      </div>
-                  `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
-              </div>
-          `;
+        </div>
+            <div id="qb-search"><input id="qb-filter" placeholder="Search groups or tags (e.g. africa, island, states)" value="${escapeHtml(filter)}"/></div>
+            <div id="qb-list">
+                ${filtered.length ? filtered.map(g => `
+                    <div class="qb-card" data-group="${escapeHtml(g.id)}">
+                        <div class="qb-row">
+                            <div>
+                                <div class="qb-title">${escapeHtml(g.label)}</div>
+                                <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
+                            </div>
+                            <div>
+                                <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
+                            </div>
+                        </div>
+                        <div class="qb-tags">
+                            ${(g.tags||[]).map(tag => `<span class="qb-tag">${escapeHtml(tag)}</span>`).join("")}
+                        </div>
+                    </div>
+                `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
+            </div>
+        `;
 
          // restore focus/selection to the recreated input so typing continues smoothly
-         try {
-             const newInput = panel.querySelector("#qb-filter");
-             if (newInput && oldCaret !== null) {
-                 newInput.focus();
-                 newInput.setSelectionRange(oldCaret, oldCaret);
-             }
-         } catch (e) { /* ignore */ }
+        try {
+            const newInput = panel.querySelector("#qb-filter");
+            // On mobile, avoid auto-focusing (this opens the keyboard and can shift the viewport).
+            const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+            if (newInput && oldCaret !== null && !isMobile) {
+                newInput.focus();
+                newInput.setSelectionRange(oldCaret, oldCaret);
+            }
+        } catch (e) { /* ignore */ }
 
-          // wire back button to return to gamemode/type selection (group selector)
-          const backBtn = panel.querySelector("#qb-back");
-          if (backBtn) {
-              backBtn.addEventListener("click", () => {
-                  pendingManifestToLaunch = null;
-                  currentView = "types";
-                  activeType = null;
-                  renderTypesView();
-              });
-          }
+        // wire back button to return to gamemode/type selection (group selector)
+        const backBtn = panel.querySelector("#qb-back");
+        if (backBtn) {
+            backBtn.addEventListener("click", () => {
+                pendingManifestToLaunch = null;
+                currentView = "types";
+                activeType = null;
+                renderTypesView();
+            });
+        }
 
-          panel.querySelector("#qb-filter").addEventListener("input", (e) => {
-              renderGroupsView(type, e.target.value);
-          });
+        panel.querySelector("#qb-filter").addEventListener("input", (e) => {
+            renderGroupsView(type, e.target.value);
+        });
 
-         panel.querySelectorAll(".qb-play").forEach(btn => {
-             btn.addEventListener("click", async () => {
-                 const group = btn.dataset.group;
-                 const type = btn.dataset.type;
-                 // ensure group metadata is available before launching (avoids wrong mode inference)
-                 await waitForGroups(800);
-                 if (pendingManifestToLaunch) {
-                     startQuizForManifest(pendingManifestToLaunch, group);
-                     pendingManifestToLaunch = null;
-                 } else {
-                     startQuizFor(type, group);
-                 }
-             });
-         });
-     }
+        panel.querySelectorAll(".qb-play").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const group = btn.dataset.group;
+                const type = btn.dataset.type;
+                // ensure group metadata is available before launching (avoids wrong mode inference)
+                await waitForGroups(800);
+                if (pendingManifestToLaunch) {
+                    startQuizForManifest(pendingManifestToLaunch, group);
+                    pendingManifestToLaunch = null;
+                } else {
+                    startQuizFor(type, group);
+                }
+            });
+        });
+    }
 
     /* Start quiz ---------------------------------------------------------- */
     function startQuizFor(type, groupId) {
@@ -453,6 +537,10 @@
             groups = {};
         }
 
+        // On narrow/mobile viewports: mark the body so CSS can hide the homepage info panel.
+        // Do not mutate inline styles here so we can restore the left panel when a quiz runs.
+        updateMobileRunState();
+
         // default view: types
         renderTypesView();
     }
@@ -470,30 +558,30 @@
             params.set(k, v);
         }
 
-        // Prefer a single, deterministic in-place launch. Set intent before calling loader.
         if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === "function") {
             try {
-                // set intent so the loader can choose to reload if necessary
                 window.SmurdyQuiz.currentMode = mode;
                 if (extraParams.group) window.SmurdyQuiz.currentGroupId = extraParams.group;
                 if (typeof extraParams.borders !== "undefined") {
                     window.SmurdyQuiz.currentShowBorders = Boolean(Number(extraParams.borders));
                 }
 
-                // Ask the runtime to load the quiz in-place and let it update the URL/UI.
-                // Using updateUrl:true ensures the loader performs its normal UI/url updates immediately.
-                window.SmurdyQuiz.loadQuizScript(file, { updateUrl: true });
-
-                // Do NOT flip the left panel here; the runner will set up controls and we will
-                // show the game UI after the runner starts. This avoids races where the UI
-                // gets changed before the runner created the necessary DOM.
+                try {
+                    // Ask runtime to load in-place
+                    window.SmurdyQuiz.loadQuizScript(file, { updateUrl: true });
+                } catch (err) {
+                    throw err;
+                } finally {
+                    // After attempting to start, make panel visibility deterministic for mobile
+                    try { updateMobileRunState(); } catch (_) {}
+                }
                  return;
-             } catch (err) {
-                 console.warn("In-place launch failed, falling back to navigation:", err);
-             }
+            } catch (err) {
+                console.warn("In-place launch failed, falling back to navigation:", err);
+                try { updateMobileRunState(); } catch(_) {}
+            }
         }
 
-        // fallback: navigate via URL params
         window.location.search = params.toString();
     };
 })();

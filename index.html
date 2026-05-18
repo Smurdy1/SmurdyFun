@@ -49,8 +49,9 @@
              <!-- suggestion is an anchor to the feedback form so it behaves like a normal link -->
              <a id="quiz-suggest" class="qb-btn primary" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Give Suggestions</a>
              <!-- keep these present for the app JS (hidden on the homepage) -->
-             <button id="quiz-restart" style="display:none">Restart</button>
              <button id="quiz-back" style="display:none">Back</button>
+             <button id="quiz-giveup" style="display:none">Give Up</button>
+             <button id="quiz-restart" style="display:none">Restart</button>
          </div>
      </div>
  
@@ -110,8 +111,17 @@
 
       // handler to start a quiz without following the link for plain left-clicks
       function startQuizFrom(quizId, groupId, landingHref) {
+        // Mark mobile run-state before changing history so the UI won't briefly show the wrong panel.
+        try {
+            if ((window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "")) {
+                document.body.classList.add("smurdy-mobile-home");
+                document.body.classList.add("smurdy-quiz-running");
+            }
+        } catch (e) {}
         // update history so URL matches the landing page
         try { history.pushState({}, "", landingHref); } catch(e) {}
+        // ensure mobile-run-state logic is synced to the new URL (avoids transient flicker)
+        try { if (window.updateMobileRunState) updateMobileRunState(); } catch(e) {}x
 
         // prefer the existing SmurdyQuiz API if available
         if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === 'function') {
