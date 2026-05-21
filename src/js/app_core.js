@@ -39,13 +39,91 @@ const map = new maplibregl.Map({
     center: MODE.mapCenter,
     zoom: MODE.mapZoom,
     minZoom: MODE.minZoom,
-    maxZoom: MODE.maxZoom
+    maxZoom: MODE.maxZoom,
+    // disable built-in attribution control so we can show a compact, compliant mobile attribution
+    attributionControl: false
 });
-
-map.addControl(new maplibregl.NavigationControl(), "top-right");
+ 
+// remove built-in zoom UI on small screens: add NavigationControl only for non-mobile and toggle on resize
+const isMobileViewport = () => (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+const navControl = new maplibregl.NavigationControl();
+let navAdded = false;
+if (!isMobileViewport()) {
+    map.addControl(navControl, "top-right");
+    navAdded = true;
+}
+window.addEventListener("resize", () => {
+    const mobile = isMobileViewport();
+    if (mobile && navAdded) {
+        try { map.removeControl(navControl); } catch (e) {}
+        navAdded = false;
+    } else if (!mobile && !navAdded) {
+        try { map.addControl(navControl, "top-right"); } catch (e) {}
+        navAdded = true;
+    }
+});
+ 
 map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
+ 
+// Mobile/top-panel collapsed "i" attribution control (defaults collapsed).
+// Provides the minimal required attribution links: OpenStreetMap, OpenMapTiles, (MapLibre credit).
+function setupMobileAttribution() {
+    try {
+        // create node only once
+        if (document.getElementById("mobile-map-attrib")) return;
+        const panel = document.getElementById("quiz-panel");
+        const mapEl = document.getElementById("map");
+        // build wrapper
+        const wrap = document.createElement("div");
+        wrap.id = "mobile-map-attrib";
+        wrap.className = "mobile-attrib";
 
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mobile-attrib-btn";
+        btn.setAttribute("aria-expanded", "false");
+        btn.setAttribute("aria-label", "Map attribution");
+        btn.textContent = "i";
+
+        const content = document.createElement("div");
+        content.className = "mobile-attrib-content";
+        // Minimal required attribution — confirm provider terms and replace exact wording if needed.
+        content.innerHTML = `
+            <div class="mobile-attrib-inner">
+                Map data <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a><br/>
+                Tiles © <a href="https://openmaptiles.org/" target="_blank" rel="noopener noreferrer">OpenMapTiles</a><br/>
+                Rendered with <a href="https://maplibre.org/" target="_blank" rel="noopener noreferrer">MapLibre</a>
+            </div>
+        `;
+
+        btn.addEventListener("click", () => {
+            const open = wrap.classList.toggle("open");
+            btn.setAttribute("aria-expanded", String(!!open));
+        });
+
+        wrap.appendChild(btn);
+        wrap.appendChild(content);
+
+        // Preferred placement: top-right inside #quiz-panel on mobile.
+        if (panel) {
+            panel.style.position = panel.style.position || getComputedStyle(panel).position || "absolute";
+            panel.appendChild(wrap);
+        } else if (mapEl) {
+            // fallback: place inside map bottom-left for desktop fallback
+            mapEl.appendChild(wrap);
+        }
+
+        // Keep attribution present but visibility controlled by CSS; update on resize if needed
+        window.addEventListener("resize", () => {
+            // nothing to do here — CSS media queries handle show/hide; we keep DOM in place
+        });
+    } catch (e) {
+        console.warn("setupMobileAttribution failed", e);
+    }
+}
+try { setupMobileAttribution(); } catch (_) {}
+ 
 const SmurdyQuiz = {
     map,
     mode,
@@ -1208,7 +1286,7 @@ const SmurdyQuiz = {
 }
 
 window.SmurdyQuiz = SmurdyQuiz;
-
+ 
 map.on("load", async () => {
     const style = map.getStyle();
 

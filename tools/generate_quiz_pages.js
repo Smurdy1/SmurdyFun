@@ -305,15 +305,28 @@ const vm = require("vm");
         }
     }
 
-    // sitemap
+    // sitemap (write full list with titles) and generate a static index page so crawlers find the pages
     if (pages.length) {
+        // pages is now an array of objects { url, title, relPath }
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(u => `  <url><loc>${u}</loc><changefreq>monthly</changefreq></url>`).join("\n")}
+${pages.map(p => `  <url><loc>${p.url}</loc><changefreq>monthly</changefreq></url>`).join("\n")}
 </urlset>`;
-        // write sitemap to repo root so it will be available at /sitemap.xml
         await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
-        console.log(`Wrote ${pages.length} quiz pages to quizzes/ and sitemap.xml to repo root`);
+
+        // build a simple index page listing all quizzes (static links — crawlers love this)
+        const indexHtml = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Smurdy — All quizzes</title></head>
+<body><main style="max-width:900px;margin:24px auto;font-family:system-ui,Arial">
+<h1>All Smurdy Quizzes</h1>
+<p>This page lists all generated quizzes for search engines and users.</p>
+<ul>
+${pages.map(p => `  <li><a href="${p.url}">${escapeHtml(p.title || p.url)}</a></li>`).join("\n")}
+</ul>
+</main></body></html>`;
+        await fs.writeFile(path.join(outDir, "index.html"), indexHtml, "utf8");
+
+        console.log(`Wrote ${pages.length} quiz pages to quizzes/, quizzes/index.html and sitemap.xml to repo root`);
     } else {
         console.log("No pages generated.");
     }
