@@ -307,9 +307,19 @@ const vm = require("vm");
 
     // sitemap
     if (pages.length) {
+        const lastmod = "2026-05-22";
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(u => `  <url><loc>${u}</loc><changefreq>monthly</changefreq></url>`).join("\n")}
+  <url>
+    <loc>https://smurdy.fun/</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>
+${pages.map(u => `  <url>
+    <loc>${u}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>`).join("\n")}
 </urlset>`;
         // write sitemap to repo root so it will be available at /sitemap.xml
         await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
