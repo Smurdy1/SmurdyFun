@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://smurdy.fun/main-sitemap-v2.xml
+Sitemap: https://smurdy.fun/sitemap.xml
