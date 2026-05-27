@@ -58,7 +58,6 @@ const vm = require("vm");
     }
 
     const pages = [];
-    const pageRecords = [];
 
     for (const m of manifest) {
         const manifestId = m.id || slug(m.title || m.file || "quiz");
@@ -302,94 +301,8 @@ const vm = require("vm");
  </html>`;
              await fs.writeFile(outFile, pageHtml, "utf8");
              // ensure sitemap uses the public root (without any /docs prefix)
-             const pageUrl = encodeURI(`${publicRoot}/quizzes/${relPath}/`);
-             pages.push(pageUrl);
-             pageRecords.push({
-                 url: pageUrl,
-                 path: `/quizzes/${relPath}/`,
-                 title: pageTitle,
-                 groupLabel,
-                 quizTitle: titleBase,
-                 manifestId,
-                 groupId: gid
-             });
+             pages.push(encodeURI(`${publicRoot}/quizzes/${relPath}/`));
         }
-    }
-
-    // human + crawler browse page at /quizzes/
-    if (pageRecords.length) {
-        // group by manifest id (unique quiz type)
-        const byMode = new Map();
-        const modeDisplay = new Map(); // human-friendly display name for each manifestId
-        for (const p of pageRecords) {
-            const key = p.manifestId || "quiz";
-            if (!byMode.has(key)) byMode.set(key, []);
-            byMode.get(key).push(p);
-            if (!modeDisplay.has(key)) {
-                // prefer the manifest title / quizTitle if available, otherwise derive from id
-                const human = humanizeMode(p.quizTitle || key);
-                modeDisplay.set(key, human);
-            }
-        }
-
-        function humanizeMode(s) {
-            if (!s) return "";
-            const raw = String(s).trim();
-            // normalize separators
-            const normalized = raw.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
-            const low = normalized.toLowerCase();
-            // a few helpful special cases
-            if (low.includes("find") && low.includes("point")) return "Find the Point";
-            if (low.includes("click") && low.includes("country")) return "Click the Countries";
-            if (low.includes("click") && low.includes("state")) return "Click the States";
-            if (low.includes("type") && low.includes("name")) return "Type the Name";
-            // title case fallback
-            return normalized.replace(/\b\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
-        }
-
-        const allQuizzesHtml = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>All Smurdy Geography Quizzes</title>
-  <meta name="description" content="Browse every Smurdy geography quiz, including world, region and specialty quizzes."/>
-  <link rel="canonical" href="${publicRoot}/quizzes/"/>
-  <link rel="stylesheet" href="/styles/style.css"/>
-  <style>
-    /* make the page fill the viewport and allow the quiz list to scroll */
-    html,body{height:100%}
-    body{font-family:system-ui,Arial,sans-serif;min-height:100vh;margin:0;padding:0;background:#f7f7f2;color:#111;display:flex;flex-direction:column}
-    main{flex:1 1 auto;max-width:1100px;margin:24px auto;padding:18px;overflow:auto}
-    header{margin-bottom:8px}
-    a{color:#111}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:20px}
-    section{background:rgba(255,255,255,.98);border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
-    h1{margin:0 0 8px}
-    h2{font-size:18px;margin:0 0 10px}
-    ul{margin:0;padding-left:18px}
-    li{margin:6px 0}
-    .home{display:inline-block;margin-top:14px}
-  </style>
-</head>
-<body>
-  <main>
-    <header><h1>All Smurdy Geography Quizzes</h1>
-    <p>Browse every Smurdy map quiz. These links also help search engines discover the quiz landing pages.</p>
-    <a class="home" href="${publicRoot}/">Back to Smurdy</a></header>
-    <div class="grid">
-      ${Array.from(byMode.entries()).map(([modeKey, items]) => `
-      <section>
-        <h2>${escapeHtml(modeDisplay.get(modeKey) || modeKey)}</h2>
-        <ul>
-          ${items.map(p => `<li><a href="${p.path}">${escapeHtml(p.title.replace(" | Smurdy", ""))}</a></li>`).join("\n          ")}
-        </ul>
-      </section>`).join("\n")}
-    </div>
-  </main>
-</body>
-</html>`;
-        await fs.writeFile(path.join(outDir, "index.html"), allQuizzesHtml, "utf8");
     }
 
     // sitemap

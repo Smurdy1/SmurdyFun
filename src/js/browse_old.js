@@ -109,23 +109,6 @@
         return (q || "").toString().trim().toLowerCase().split(/\s+/).filter(Boolean);
     }
 
-    function slug(s) {
-        return String(s || "")
-            .toLowerCase()
-            .replace(/[^\w\- ]+/g, "")
-            .trim()
-            .replace(/\s+/g, "-");
-    }
-
-    function quizLandingPath(manifestItem, groupId) {
-        const quizId = manifestItem?.id || manifestItem?.file || manifestItem?.title || "quiz";
-        return `/quizzes/${slug(quizId)}/${slug(groupId || "world")}/`;
-    }
-
-    function isPlainLeftClick(e) {
-        return e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
-    }
-
     // Return a user-visible label for a manifest "type"
     function getFriendlyTypeLabel(type) {
         if (!type) return "Quiz";
@@ -227,7 +210,7 @@
         .qb-sub { color:#666; font-size:13px; margin:0; }
         .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
         .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
-        .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+        .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; }
         .qb-empty { padding:18px; text-align:center; color:#777; }
         .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
 
@@ -403,7 +386,7 @@
                                 <div class="qb-sub">${escapeHtml(g.meta && g.meta.description ? g.meta.description : "")}</div>
                             </div>
                             <div>
-                                <a class="qb-play" href="${escapeHtml(quizLandingPath(pendingManifestToLaunch || baseManifest.find(q => q.type === type && q.groupSet) || baseManifest.find(q => q.type === type) || {}, g.id))}" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</a>
+                                <button class="qb-play" data-group="${escapeHtml(g.id)}" data-type="${escapeHtml(type)}">Play</button>
                             </div>
                         </div>
                         <div class="qb-tags">
@@ -441,11 +424,7 @@
         });
 
         panel.querySelectorAll(".qb-play").forEach(btn => {
-            btn.addEventListener("click", async (e) => {
-                // The anchor is a real crawlable fallback. Only intercept ordinary left-clicks.
-                if (!isPlainLeftClick(e)) return;
-                e.preventDefault();
-
+            btn.addEventListener("click", async () => {
                 const group = btn.dataset.group;
                 const type = btn.dataset.type;
                 // ensure group metadata is available before launching (avoids wrong mode inference)

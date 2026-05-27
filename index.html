@@ -73,122 +73,18 @@
          });
      });
      </script>
-    <script>
-    // Rewrites homepage "play" links/buttons to landing pages and intercepts left-clicks to run in-page quiz logic.
-    document.addEventListener('DOMContentLoaded', () => {
-      function slug(s){ return String(s||'').toLowerCase().replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-'); }
-
-      // set hrefs for anchors that include query params like ?quiz=...&group=...
-      document.querySelectorAll('a[href*="quiz="]').forEach(a=>{
-        try{
-          const url = new URL(a.getAttribute('href'), location.origin);
-          const quiz = url.searchParams.get('quiz') || url.searchParams.get('file') || url.searchParams.get('id');
-          const group = url.searchParams.get('group') || url.searchParams.get('gid') || 'world';
-          if(quiz){
-            a.setAttribute('href', `/quizzes/${slug(quiz)}/${slug(group)}/`);
-            a.setAttribute('data-quiz', quiz);
-            a.setAttribute('data-group', group);
-          }
-        }catch(e){}
-      });
-
-      // convert elements with data-quiz into proper anchors (if not anchors) by adding href and cursor
-      document.querySelectorAll('[data-quiz]').forEach(el=>{
-        const quiz = el.dataset.quiz;
-        const group = el.dataset.group || 'world';
-        const href = `/quizzes/${slug(quiz)}/${slug(group)}/`;
-        if(el.tagName.toLowerCase() === 'a'){
-          el.setAttribute('href', href);
-        } else {
-          el.setAttribute('role', 'link');
-          el.style.cursor = 'pointer';
-          // ensure keyboard activation works
-          el.tabIndex = el.tabIndex >= 0 ? el.tabIndex : 0;
+    <footer id="seo-footer" style="position:absolute;left:16px;bottom:16px;z-index:1500;background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);border-radius:10px;padding:8px 10px;font:12px Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,0.12);max-width:calc(100vw - 32px);">
+        <span style="font-weight:700;">Popular:</span>
+        <a href="/quizzes/">All quizzes</a> ·
+        <a href="/quizzes/click-country/world/">World map quiz</a> ·
+        <a href="/quizzes/click-country/africa/">Africa map quiz</a> ·
+        <a href="/quizzes/click-country/europe/">Europe map quiz</a> ·
+        <a href="/quizzes/click-country/us_states/">US states quiz</a>
+    </footer>
+    <style>
+        @media (max-width: 700px) {
+            #seo-footer { display: none; }
         }
-        // persist the href for fallback
-        el.dataset.href = href;
-      });
-
-      // handler to start a quiz without following the link for plain left-clicks
-      function startQuizFrom(quizId, groupId, landingHref) {
-        // Mark mobile run-state before changing history so the UI won't briefly show the wrong panel.
-        try {
-            if ((window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "")) {
-                document.body.classList.add("smurdy-mobile-home");
-                document.body.classList.add("smurdy-quiz-running");
-            }
-        } catch (e) {}
-        // update history so URL matches the landing page
-        try { history.pushState({}, "", landingHref); } catch(e) {}
-        // ensure mobile-run-state logic is synced to the new URL (avoids transient flicker)
-        try { if (window.updateMobileRunState) updateMobileRunState(); } catch(e) {}x
-
-        // prefer the existing SmurdyQuiz API if available
-        if (window.SmurdyQuiz && typeof window.SmurdyQuiz.loadQuizScript === 'function') {
-          try {
-            // If a manifest is present, use it to determine the desired runtime mode and config
-            const manifest = (window.SmurdyQuizManifest || []).find(m => m.id === quizId || m.file === quizId);
-            const requestedMode = manifest?.mode || manifest?.config?.mode || undefined;
-            if (requestedMode) window.SmurdyQuiz.currentMode = requestedMode;
-            if (groupId) window.SmurdyQuiz.currentGroupId = groupId;
-            // Honor manifest borders hint if available
-            if (typeof manifest?.borders !== "undefined") window.SmurdyQuiz.currentShowBorders = Boolean(Number(manifest.borders));
-             window.SmurdyQuiz.loadQuizScript("manifest:" + quizId);
-             return true;
-          } catch (e) { /* fall through to other options */ }
-        }
-        // fallback to older runner functions if present
-        if (typeof window.runNameQuiz === 'function') {
-          try {
-            window.runNameQuiz({ quiz: quizId, group: groupId });
-            return true;
-          } catch (e) { /* fall through */ }
-        }
-        return false;
-      }
-
-      // Intercept clicks on landing anchors / data-quiz elements.
-      document.addEventListener('click', function(ev){
-        // only consider left button
-        if (ev.button !== 0) return;
-        // allow modifier clicks (open in new tab etc.)
-        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
-        // ignore right click / context menu (already excluded by button check)
-        const a = ev.target.closest && ev.target.closest('a[data-quiz], [data-quiz]');
-        if (!a) return;
-        // find quiz and group from data- attributes or href pattern
-        const quizId = a.dataset.quiz || (function(){
-          const m = (a.getAttribute('href')||"").match(/\/quizzes\/([^\/]+)\/([^\/]+)\/?/);
-          return m ? m[1] : null;
-        })();
-        const groupId = a.dataset.group || (function(){
-          const m = (a.getAttribute('href')||"").match(/\/quizzes\/([^\/]+)\/([^\/]+)\/?/);
-          return m ? m[2] : 'world';
-        })();
-        const landingHref = a.dataset.href || a.getAttribute('href') || `/quizzes/${slug(quizId||'')}/${slug(groupId||'')}/`;
-        if (!quizId) return; // nothing to run
-        // If target is non-self, let it behave naturally (e.g. target="_blank")
-        if (a.tagName.toLowerCase() === 'a' && a.target && a.target !== '_self') return;
-        // Prevent normal navigation for plain left-clicks and run quiz instead
-        ev.preventDefault();
-        const started = startQuizFrom(quizId, groupId, landingHref);
-        if (!started) {
-          // if we couldn't start the quiz in-page, navigate normally
-          window.location.href = landingHref;
-        }
-      }, false);
-
-      // handle popstate so back/forward navigations can reflect state if needed.
-      window.addEventListener('popstate', function(){
-        // naive behavior: when user navigates back to a /quizzes/... URL, attempt to load it.
-        const m = location.pathname.match(/\/quizzes\/([^\/]+)\/([^\/]+)\/?/);
-        if (m && m[1]) {
-          const q = m[1], g = m[2] || 'world';
-          // attempt to start quietly; don't change history here
-          startQuizFrom(q, g, location.pathname);
-        }
-      });
-    });
-    </script>
+    </style>
  </body>
  </html>
