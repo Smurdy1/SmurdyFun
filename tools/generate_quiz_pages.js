@@ -129,6 +129,10 @@ const vm = require("vm");
             await fs.mkdir(outPathDir, { recursive: true });
             const outFile = path.join(outPathDir, "index.html");
 
+            // build the absolute page URL once and use it for canonical + sitemap (must be defined before pageHtml)
+            const pageUrlRaw = `${publicRoot}/quizzes/${relPath}/`;
+            const pageUrl = encodeURI(pageUrlRaw);
+
             // Build minimal, unique HTML page (no redirect) with meta + JSON-LD + a short handcrafted paragraph
             // Allow manifest authors to provide small SEO/play copy so new quizzes don't require editing this script.
             // Priority:
@@ -198,7 +202,7 @@ const vm = require("vm");
    <title>${escapeHtml(pageTitle)}</title>
    <meta name="description" content="${escapeHtml(description)}"/>
    <meta name="keywords" content="${escapeHtml(tags.join(", "))}"/>
-   <link rel="canonical" href="${publicRoot}/quizzes/${relPath}/" />
+   <link rel="canonical" href="${pageUrlRaw}" />
    <meta name="robots" content="index, follow"/>
    <!-- use same site icon as the main page -->
    <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/Smurdeye.png">
@@ -210,7 +214,7 @@ const vm = require("vm");
          "@type": "WebPage",
          "name": pageTitle,
          "description": description,
-         "url": `${publicRoot}/quizzes/${relPath}/`
+         "url": pageUrlRaw
      }, null, 2)}
    </script>
    <style>
@@ -228,7 +232,7 @@ const vm = require("vm");
      .examples{margin-top:14px}
      .examples ul{padding-left:20px}
      .action-row{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
-     .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid.transparent}
+     .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent}
      .qb-btn.primary{background:var(--brand);color:#fff}
      .qb-btn.secondary{background:#f4f4f4;color:#111}
      .other-quizzes{margin-top:20px;border-top:1px solid #eee;padding-top:14px}
@@ -302,17 +306,18 @@ const vm = require("vm");
  </html>`;
              await fs.writeFile(outFile, pageHtml, "utf8");
              // ensure sitemap uses the public root (without any /docs prefix)
-             const pageUrl = encodeURI(`${publicRoot}/quizzes/${relPath}/`);
-             pages.push(pageUrl);
-             pageRecords.push({
-                 url: pageUrl,
-                 path: `/quizzes/${relPath}/`,
-                 title: pageTitle,
-                 groupLabel,
-                 quizTitle: titleBase,
-                 manifestId,
-                 groupId: gid
-             });
+ 
+            pages.push(pageUrl);
+            pageRecords.push({
+                url: pageUrl,
+                path: `/quizzes/${relPath}/`,
+                title: pageTitle,
+                groupLabel,
+                quizTitle: titleBase,
+                manifestId,
+                groupId: gid
+            });
+           // Use pageUrlRaw for canonical and JSON-LD inside the page HTML (see below)
         }
     }
 
