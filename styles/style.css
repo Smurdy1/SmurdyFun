@@ -38,6 +38,13 @@ html, body {
     margin-bottom: 8px;
 }
 
+#about-header {
+    color:#555;
+    font-size: 18px;
+    margin-top: 16px;
+    margin-bottom: 0px;
+}
+
 #quiz-result {
     font-size: 16px;
     min-height: 20px;
@@ -101,7 +108,7 @@ html, body {
 
 /* homepage description */
 #quiz-desc { margin-top: 8px; color: #333; font-size: 15px; line-height: 1.45; }
-#quiz-desc p { margin: 8px 0; }
+#quiz-desc p { margin: 4px 0; }
 
 #quiz-stats { display: none; } /* desktop default: hidden */
 

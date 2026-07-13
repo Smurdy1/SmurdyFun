@@ -1707,3 +1707,39 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
         /* non-fatal */
     }
 };
+
+// App version badge
+// Update APP_VERSION per project rules when you change code:
+// - patch (small bugfix): increment third digit (1.0.1)
+// - feature (add/remove feature): increment second digit (1.1.0)
+const APP_VERSION = "1.0.1";
+
+function injectVersionBadge() {
+    try {
+        if (document.getElementById("app-version")) return;
+        const el = document.createElement("div");
+        el.id = "app-version";
+        el.textContent = "v" + APP_VERSION;
+        el.setAttribute("aria-hidden", "true");
+
+        // Visual styling: inset from safe-area with a subtle floating card look.
+        el.style.position = "fixed";
+        // place badge in bottom-right and respect safe-area inset on iOS
+        el.style.right = "calc(env(safe-area-inset-right, 12px) + 8px)";
+        el.style.bottom = "calc(env(safe-area-inset-bottom, 12px) + 8px)";
+        el.style.zIndex = "99999";
+        el.style.fontSize = "12px";
+        el.style.padding = "6px 8px";
+        el.style.borderRadius = "8px";
+        el.style.background = "rgba(255,255,255,0.92)";
+        el.style.color = "rgba(0,0,0,0.65)";
+        el.style.boxShadow = "0 6px 18px rgba(0,0,0,0.12)";
+        el.style.pointerEvents = "none";
+        el.style.userSelect = "none";
+        el.style.fontFamily = "system-ui, Arial, sans-serif";
+
+        document.body.appendChild(el);
+    } catch (_) { /* tolerate errors */ }
+}
+
+try { injectVersionBadge(); } catch (_) {}
