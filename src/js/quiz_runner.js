@@ -741,8 +741,16 @@ window.runNameQuiz = function runNameQuiz(config) {
         correctAnswers++;
         completed.add(currentName);
 
-        // For findPoint mode: do not set feature-state highlights (keep visuals clean)
-        if (!findPoint) setState(currentName, "correct");
+        // For findPoint mode we avoid per-feature highlights.
+        if (!findPoint) {
+            // Remove the temporary "target" highlight so the "correct" state is visible immediately,
+            // but don't clear other persisted completed highlights.
+            try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+            try { setState(currentName, "correct"); } catch (_) {}
+            // If we persist completed highlights, repaint them so they remain visible alongside this one.
+            try { if (persistCompletedHighlights) repaintCompleted(); } catch (_) {}
+        }
+
         SQ.setResultText(successText);
         updateCounter();
         updateAccuracy();
@@ -758,13 +766,17 @@ window.runNameQuiz = function runNameQuiz(config) {
     function finishWrong(clickedOrGuess) {
         // In findPoint mode we avoid setting per-feature wrong/correct states so map colors do not persist.
         if (!findPoint) {
+            // Remove the temporary "target" highlight so the "wrong" state is visible immediately.
+            try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+
             if (mode === "click") {
-                setState(clickedOrGuess, "wrong");
+                try { setState(clickedOrGuess, "wrong"); } catch (_) {}
+                // Optionally re-mark the correct target so users see where it was (kept after marking wrong)
+                if (showTargetOnWrong && mode === "click") {
+                    try { setState(currentName, "target"); } catch (_) {}
+                }
             } else {
-                setState(currentName, "wrong");
-            }
-            if (showTargetOnWrong && mode === "click") {
-                setState(currentName, "target");
+                try { setState(currentName, "wrong"); } catch (_) {}
             }
         }
 

@@ -1712,7 +1712,7 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
 // Update APP_VERSION per project rules when you change code:
 // - patch (small bugfix): increment third digit (1.0.1)
 // - feature (add/remove feature): increment second digit (1.1.0)
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.0.2";
 
 function injectVersionBadge() {
     try {
