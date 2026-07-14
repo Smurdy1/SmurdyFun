@@ -1,7 +1,11 @@
 // read bootstrap config and shared modes first
 const cfg = window.__SmurdyConfig || {};
 const urlParams = new URLSearchParams(window.location.search);
-const mode = cfg.mode || urlParams.get("mode") || "countries";
+// store chosen mode on window so re-applying patches / re-evaluating scripts is idempotent
+if (typeof window.__SmurdyMode === "undefined") {
+    window.__SmurdyMode = cfg.mode || urlParams.get("mode") || "countries";
+}
+const mode = window.__SmurdyMode;
 const showBorders = (typeof cfg.showBorders === "boolean") ? cfg.showBorders : (urlParams.get("borders") === "1");
 const quizGroupId = cfg.quizGroupId || urlParams.get("group") || "world";
 
@@ -595,77 +599,35 @@ const SmurdyQuiz = {
     },
  
     setProgressText(text) {
-        // prefer the explicit progress element; if it's missing (homepage layout), create a small fallback
-        let el = document.getElementById("quiz-progress");
-        if (!el) {
-            const panel = document.getElementById("quiz-panel");
-            if (panel) {
-                // create a lightweight progress node so the runner can always update it
-                el = document.createElement("div");
-                el.id = "quiz-progress";
-                // styling handled by CSS
-                el.style.color = "rgba(0,0,0,0.7)";
-                el.style.marginTop = "6px";
-                // append near the bottom of the panel but before buttons
-                const buttons = document.getElementById("quiz-buttons");
-                if (buttons && buttons.parentNode === panel) panel.insertBefore(el, buttons);
-                else panel.appendChild(el);
-            }
-        }
+        const el = ensureSinglePanelNode("quiz-progress");
         if (!el) return;
- 
         try {
             let out = String(text == null ? "" : text);
- 
-            // If runner provided a "N / M completed" string, replace M with the authoritative playable count
             const m = out.match(/^(\s*\d+\s*\/\s*)(\d+)([\s\S]*)$/);
             if (m) {
-                const denom = (typeof SmurdyQuiz !== "undefined" && (Number(SmurdyQuiz.playableCount) || Number(SmurdyQuiz.getPlayableCount && SmurdyQuiz.getPlayableCount()))) || Number(m[2]) || 0;
-                out = `${m[1]}${denom}${m[3] || ""}`;
-            }
-            if (m) {
-                // compute group-specific total: use getQuizFeatures() which respects current group/mode
                 let denom = 0;
                 try {
-                    if (SmurdyQuiz && typeof SmurdyQuiz.getQuizFeatures === "function") {
-                        denom = (SmurdyQuiz.getQuizFeatures() || []).length;
-                    }
+                    if (SmurdyQuiz && typeof SmurdyQuiz.getQuizFeatures === "function") denom = (SmurdyQuiz.getQuizFeatures() || []).length;
                 } catch (e) { denom = 0; }
-                // fallback to legacy playableCount or runner-provided denom
-                if (!denom) denom = (Number(SmurdyQuiz?.playableCount) || Number(SmurdyQuiz?.getPlayableCount && SmurdyQuiz.getPlayableCount()) || Number(m[2]) || 0);
+                if (!denom) denom = (Number(SmurdyQuiz?.playableCount) || Number(m[2]) || 0);
                 out = `${m[1]}${denom}${m[3] || ""}`;
             }
-
             el.textContent = out;
         } catch (e) {
-            // fallback to raw text on error
             try { el.textContent = String(text); } catch(_) {}
         }
     },
 
     setAccuracyText(text) {
-        // prefer the explicit accuracy element; if it's missing (homepage layout), create a small fallback
-        let el = document.getElementById("quiz-accuracy");
-        if (!el) {
-            const panel = document.getElementById("quiz-panel");
-            if (panel) {
-                el = document.createElement("div");
-                el.id = "quiz-accuracy";
-                // styling handled by CSS
-                el.style.color = "rgba(0,0,0,0.7)";
-                el.style.marginTop = "4px";
-                // append near the bottom of the panel but before buttons if possible
-                const buttons = document.getElementById("quiz-buttons");
-                if (buttons && buttons.parentNode === panel) panel.insertBefore(el, buttons);
-                else panel.appendChild(el);
-            }
-        }
-        if (el) el.textContent = text;
-        // otherwise silently ignore to avoid crashing when UI is in a minimal homepage state
+        const el = ensureSinglePanelNode("quiz-accuracy");
+        if (!el) return;
+        try { el.textContent = String(text == null ? "" : text); } catch(_) {}
     },
 
     setResultText(text) {
-        document.getElementById("quiz-result").textContent = text;
+        const el = ensureSinglePanelNode("quiz-result");
+        if (!el) return;
+        try { el.setAttribute("aria-live", "polite"); el.textContent = String(text == null ? "" : text); } catch(_) {}
     },
 
     goToMainMenu() {
@@ -1669,9 +1631,52 @@ window.addEventListener("popstate", () => {
     }
 }, false);
 
+// Ensure exactly one element exists for the given id. If multiples exist, remove extras and return the single element.
+function ensureSinglePanelNode(id) {
+    try {
+        const matches = Array.from(document.querySelectorAll("#" + id));
+        if (matches.length > 1) {
+            // keep first, remove the rest
+            for (let i = 1; i < matches.length; i++) matches[i].remove();
+            return matches[0];
+        }
+        if (matches.length === 1) return matches[0];
+
+        // not found -> create and insert before buttons (or append to panel/body)
+        const el = document.createElement("div");
+        el.id = id;
+        const panel = document.getElementById("quiz-panel");
+        const buttons = document.getElementById("quiz-buttons");
+        if (panel) {
+            if (buttons && buttons.parentNode === panel) panel.insertBefore(el, buttons);
+            else panel.appendChild(el);
+        } else {
+            document.body.appendChild(el);
+        }
+        return el;
+    } catch (e) {
+        return document.getElementById(id) || null;
+    }
+}
+
+// Remove accidental duplicates for a list of ids (called on panel mode change / restart)
+function removeDuplicatePanelNodes(ids) {
+    try {
+        for (const id of ids) {
+            const matches = Array.from(document.querySelectorAll("#" + id));
+            if (matches.length > 1) {
+                for (let i = 1; i < matches.length; i++) matches[i].remove();
+            }
+        }
+    } catch (e) { /* ignore */ }
+}
+
 // keep simple: toggle the homepage vs game controls so UI looks correct before runner starts
 SmurdyQuiz.setQuizPanelMode = function(mode) {
     try {
+        // dedupe these nodes early so restart won't leave multiple empty elements
+        removeDuplicatePanelNodes(["quiz-progress", "quiz-accuracy", "quiz-result"]);
+
         const desc = document.getElementById("quiz-desc");
         const suggest = document.getElementById("quiz-suggest");
         const restart = document.getElementById("quiz-restart");
@@ -1712,7 +1717,7 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
 // Update APP_VERSION per project rules when you change code:
 // - patch (small bugfix): increment third digit (1.0.1)
 // - feature (add/remove feature): increment second digit (1.1.0)
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.3";
 
 function injectVersionBadge() {
     try {
