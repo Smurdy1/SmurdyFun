@@ -1,6 +1,10 @@
 window.runNameQuiz = function runNameQuiz(config) {
     const SQ = window.SmurdyQuiz;
 
+    // reuse a global runner-state object so repeated calls are safe
+    if (!window._smurdyQuizRunner) window._smurdyQuizRunner = {};
+    const RUN = window._smurdyQuizRunner;
+
     // Ensure a bottom mobile container exists and move controls there on small screens.
     function ensureMobileBottom() {
         if (!document.getElementById("quiz-bottom")) {
@@ -37,29 +41,41 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     }
 
-    // initialize mobile bottom + listener
-    try { ensureMobileBottom(); arrangeMobilePanels(); window.addEventListener("resize", arrangeMobilePanels); } catch (_) {}
+    // initialize mobile bottom + listener (only once)
+    try {
+        ensureMobileBottom();
+        arrangeMobilePanels();
+        if (!RUN._mobileResizeBound) {
+            window.addEventListener("resize", arrangeMobilePanels);
+            RUN._mobileResizeBound = true;
+        } else {
+            // still ensure panels arranged on repeated init
+            arrangeMobilePanels();
+        }
+    } catch (_) {}
 
-    // Wire Give Up button: mark current as wrong and advance.
+    // Wire Give Up button: mark current as wrong and advance (idempotent)
     try {
         const giveUpBtn = document.getElementById("quiz-giveup");
-        if (giveUpBtn) {
+        if (giveUpBtn && !giveUpBtn._giveupBound) {
             giveUpBtn.addEventListener("click", () => {
                 try {
                     // If nothing to give up on, no-op
-                    if (!currentName) return;
+                    if (!currentName && !RUN.currentName) return;
+                    const name = currentName || RUN.currentName;
                     // mark as wrong in map state (and any small-list API)
-                    try { if (typeof SQ.setAnswerState === "function") SQ.setAnswerState(currentName, "wrong"); } catch (_) {}
-                    try { if (typeof window.SmurdyQuiz?.setFeatureStateByName === "function") window.SmurdyQuiz.setFeatureStateByName(currentName, "wrong"); } catch (_) {}
+                    try { if (typeof SQ.setAnswerState === "function") SQ.setAnswerState(name, "wrong"); } catch (_) {}
+                    try { if (typeof window.SmurdyQuiz?.setFeatureStateByName === "function") window.SmurdyQuiz.setFeatureStateByName(name, "wrong"); } catch (_) {}
                     // update runner counters if present and show immediate feedback
                     try { attempts = (typeof attempts === "number") ? attempts + 1 : attempts; } catch(_) {}
-                    try { updateCounter(); updateAccuracy(); } catch(_) {}
+                    try { if (typeof updateCounter === "function") updateCounter(); if (typeof updateAccuracy === "function") updateAccuracy(); } catch(_) {}
                     // lock input while advancing, stop timer for this question and move on
                     try { locked = true; stopTimer(); setInputEnabled(false); } catch(_) {}
                     // advance to next question
-                    try { nextQuestion(); } catch (e) { /* ignore if not present */ }
+                    try { if (typeof nextQuestion === "function") nextQuestion(); } catch (e) { /* ignore if not present */ }
                 } catch (e) { /* tolerate any errors */ }
             });
+            giveUpBtn._giveupBound = true;
         }
     } catch (_) {}
 
@@ -209,10 +225,179 @@ window.runNameQuiz = function runNameQuiz(config) {
     let startTime = null;
     let finalElapsedMs = 0;
 
-    function getNames() {
-        return SQ.getAllNames();
+    // Build a canonical index that maps each sovereign -> best feature (prefer mainland).
+    // This avoids counting overseas territories separately and ensures zoom targets the largest/mainland part.
+    function buildCanonicalIndex() {
+        if (RUN._canonBuilt) return;
+        RUN._canonBuilt = true;
+        RUN._canonByKey = new Map(); // key -> { key, bestName, displayName, score, feature }
+
+        if (!SQ.mainData || !Array.isArray(SQ.mainData.features)) {
+            RUN._canonList = null;
+            return;
+        }
+
+        function norm(s) {
+            return String(s || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9 ]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function ringArea(ring) {
+            if (!Array.isArray(ring) || ring.length < 3) return 0;
+            let a = 0;
+            for (let i = 0, n = ring.length; i < n; i++) {
+                const [x1, y1] = ring[i];
+                const [x2, y2] = ring[(i + 1) % n];
+                a += x1 * y2 - x2 * y1;
+            }
+            return Math.abs(a) / 2;
+        }
+
+        function featureArea(feature) {
+            if (!feature || !feature.geometry) return 0;
+            const g = feature.geometry;
+            let sum = 0;
+            try {
+                if (g.type === "Polygon") {
+                    const rings = g.coordinates;
+                    let outer = ringArea(rings[0] || []);
+                    let holes = 0;
+                    for (let i = 1; i < rings.length; i++) holes += ringArea(rings[i] || []);
+                    return Math.max(0, outer - holes);
+                } else if (g.type === "MultiPolygon") {
+                    for (const poly of g.coordinates) {
+                        const rings = poly;
+                        let outer = ringArea(rings[0] || []);
+                        let holes = 0;
+                        for (let i = 1; i < rings.length; i++) holes += ringArea(rings[i] || []);
+                        sum += Math.max(0, outer - holes);
+                    }
+                    return sum;
+                }
+            } catch (e) { /* ignore */ }
+            return 0;
+        }
+
+        for (const f of SQ.mainData.features) {
+            const p = f.properties || {};
+            const featureName = (p.name || p.NAME || p.admin || p.ADMIN || "").trim();
+            // Use sovereign as canonical grouping if present; fallback to admin/name.
+            const sovereign = (p.sovereignt || p.SOVEREIGNT || p.sovereignty || p.ADMIN || p.admin || featureName || "").trim();
+            if (!sovereign) continue;
+            const key = norm(sovereign);
+            if (!key) continue;
+
+            const adminNorm = norm(p.admin || p.ADMIN || "");
+            const nameNorm = norm(featureName || "");
+
+            const area = featureArea(f) || 0;
+            // scoring: huge bonus if feature's admin/name equals the sovereign (likely mainland),
+            // smaller bonus if admin equals sovereign, otherwise area only.
+            let bonus = 0;
+            if (nameNorm === key) bonus += 1000000000;
+            if (adminNorm === key) bonus += 500000000;
+            const score = area + bonus;
+
+            const existing = RUN._canonByKey.get(key);
+            if (!existing || score > existing.score) {
+                RUN._canonByKey.set(key, {
+                    key,
+                    bestName: featureName,
+                    displayName: (p.sovereignt || p.admin || p.name || featureName),
+                    score,
+                    area,
+                    feature: f
+                });
+            }
+        }
+
+        // Build canonical list of best feature names (stable order: alphabetical display name)
+        let arr = Array.from(RUN._canonByKey.values());
+        arr.sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
+
+        // Respect current group allowed names (if available) so excluded/greyed countries are not included.
+        try {
+            const allowedSet = (typeof SQ.getAllowedNamesForCurrentGroup === "function")
+                ? SQ.getAllowedNamesForCurrentGroup()
+                : null;
+            if (allowedSet && allowedSet.size > 0) {
+                // allowedSet contains normalized names (SmurdyQuiz.normalizeAnswer output).
+                // filter arr to only entries whose normalized displayName (via SQ.normalizeAnswer if available)
+                arr = arr.filter(entry => {
+                    try {
+                        const check = (typeof SQ.normalizeAnswer === "function")
+                            ? SQ.normalizeAnswer(entry.displayName || entry.bestName || "")
+                            : norm(entry.displayName || entry.bestName || "");
+                        return allowedSet.has(check);
+                    } catch (e) {
+                        return false;
+                    }
+                });
+            }
+        } catch (e) {
+            // if anything fails, fall back to full arr
+        }
+
+        RUN._canonList = arr.map(x => x.bestName);
+        // also a quick lookup map by normalized bestName -> feature
+        RUN._canonByBestName = new Map();
+        for (const entry of arr) {
+            if (entry.bestName) RUN._canonByBestName.set(norm(entry.bestName), entry);
+        }
     }
 
+    // Override getNames used by this runner to return canonical list (one entry per sovereign).
+    function getNames() {
+        try {
+            buildCanonicalIndex();
+            if (Array.isArray(RUN._canonList) && RUN._canonList.length) return RUN._canonList.slice();
+        } catch (_) {}
+        return SQ.getAllNames ? SQ.getAllNames() : [];
+    }
+
+    // Optionally wrap/patch SQ.getFeatureByName to resolve canonical bestName matches first.
+    (function patchGetFeatureByName() {
+        if (!SQ || !SQ.mainData) return;
+        if (SQ._patchedGetFeatureByName) return;
+        const orig = SQ.getFeatureByName;
+        function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+        SQ.getFeatureByName = function(name) {
+            try {
+                buildCanonicalIndex();
+                const key = norm(name);
+                // if name matches a chosen bestName, return that feature
+                if (RUN._canonByBestName && RUN._canonByBestName.has(norm(name))) {
+                    return RUN._canonByBestName.get(norm(name)).feature;
+                }
+                // else, if name matches a sovereign key, return its best feature
+                if (RUN._canonByKey && RUN._canonByKey.has(key)) {
+                    return RUN._canonByKey.get(key).feature;
+                }
+            } catch (e) { /* ignore */ }
+            if (typeof orig === "function") {
+                try { return orig.call(SQ, name); } catch (_) {}
+            }
+            // fallback: brute-force search by properties (safe)
+            try {
+                const target = norm(name);
+                for (const f of SQ.mainData.features) {
+                    const p = f.properties || {};
+                    if (norm(p.name || p.NAME || "") === target) return f;
+                    if (norm(p.admin || p.ADMIN || "") === target) return f;
+                    if (norm(p.sovereignt || p.SOVEREIGNT || "") === target) return f;
+                }
+            } catch (_) {}
+            return null;
+        };
+        SQ._patchedGetFeatureByName = true;
+    })();
+    
+    // helper functions for runner state
     function setState(name, stateName) {
         return SQ.setFeatureStateByName(name, stateName);
     }
@@ -837,13 +1022,23 @@ window.runNameQuiz = function runNameQuiz(config) {
     } else if (mode === "click") {
         removeTypingUI();
 
-        SQ.map.on("click", (e) => {
-            const feature = SQ.getClickedMainFeature(e.point);
-            if (!feature) return;
-
-            const clickedName = SQ.getFeatureName(feature);
-            handleClick(clickedName);
-        });
+        // attach map click handler idempotently (remove previous handler if present)
+        try {
+            if (RUN._clickHandler && SQ.map && typeof SQ.map.off === "function") {
+                try { SQ.map.off("click", RUN._clickHandler); } catch (_) {}
+                RUN._clickHandler = null;
+            }
+            const handler = (e) => {
+                const feature = SQ.getClickedMainFeature(e.point);
+                if (!feature) return;
+                const clickedName = SQ.getFeatureName(feature);
+                handleClick(clickedName);
+            };
+            if (SQ.map && typeof SQ.map.on === "function") {
+                SQ.map.on("click", handler);
+                RUN._clickHandler = handler;
+            }
+        } catch (e) { /* tolerate map readiness errors */ }
     }
 
     updateCounter();
@@ -851,4 +1046,89 @@ window.runNameQuiz = function runNameQuiz(config) {
     resetTimer();
     startTimer();
     nextQuestion();
+
+    // Replace or add a single robust implementation of SmurdyQuiz.getFeatureByName
+    // that prefers local/admin feature matches over sovereignt (territories) and
+    // uses area as tie-breaker so the mainland is selected instead of overseas islands.
+    SmurdyQuiz.getFeatureByName = SmurdyQuiz.getFeatureByName || function(name) {
+        if (!name || !SmurdyQuiz.mainData || !Array.isArray(SmurdyQuiz.mainData.features)) return null;
+
+        function norm(s) {
+            return String(s || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9 ]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function ringArea(ring) {
+            if (!Array.isArray(ring) || ring.length < 3) return 0;
+            let a = 0;
+            for (let i = 0, n = ring.length; i < n; i++) {
+                const [x1, y1] = ring[i];
+                const [x2, y2] = ring[(i + 1) % n];
+                a += x1 * y2 - x2 * y1;
+            }
+            return Math.abs(a) / 2;
+        }
+
+        function featureArea(feature) {
+            if (!feature || !feature.geometry) return 0;
+            const g = feature.geometry;
+            let sum = 0;
+            try {
+                if (g.type === "Polygon") {
+                    // area of outer ring minus holes
+                    const rings = g.coordinates;
+                    let outer = ringArea(rings[0] || []);
+                    let holes = 0;
+                    for (let i = 1; i < rings.length; i++) holes += ringArea(rings[i] || []);
+                    return Math.max(0, outer - holes);
+                } else if (g.type === "MultiPolygon") {
+                    for (const poly of g.coordinates) {
+                        const rings = poly;
+                        let outer = ringArea(rings[0] || []);
+                        let holes = 0;
+                        for (let i = 1; i < rings.length; i++) holes += ringArea(rings[i] || []);
+                        sum += Math.max(0, outer - holes);
+                    }
+                    return sum;
+                }
+            } catch (e) {
+                return 0;
+            }
+            return 0;
+        }
+
+        const target = norm(name);
+        const candidates = [];
+
+        for (const f of SmurdyQuiz.mainData.features) {
+            const p = f.properties || {};
+            const admin = norm(p.admin || pADMIN || p.name || p.NAME || p.NAME_EN || "");
+            const sovereignt = norm(p.sovereignt || p.SOVEREIGNT || p.sov_a3 || "");
+            const otherNames = norm(p.name || p.NAME || p.NAME_EN || p.name_en || "");
+
+            // match types:
+            //  - admin/name (local feature name) is best
+            //  - otherNames also good
+            //  - sovereignt (sovereign state) is fallback (likely territories)
+            let matchType = null;
+            if (admin === target || otherNames === target) matchType = "local";
+            else if (sovereignt === target) matchType = "sovereign";
+            else continue;
+
+            const area = featureArea(f);
+            // score: prioritize local matches; if only sovereign match, penalize so mainland wins
+            const score = (matchType === "local" ? 1000000 : 100) + area;
+            candidates.push({ feature: f, score, area, matchType });
+        }
+
+        if (candidates.length === 0) return null;
+
+        candidates.sort((a, b) => b.score - a.score);
+        return candidates[0].feature;
+    };
 };
