@@ -837,6 +837,8 @@ const SmurdyQuiz = {
             }
         } catch (e) { /* ignore */ }
 
+        // hide main-menu decorations once a quiz is loading (non-destructive)
+        try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
         runner.src = "/src/js/quiz_runner.js";
@@ -1244,7 +1246,164 @@ const SmurdyQuiz = {
             console.error("hotSwapMode failed", err);
             return false;
         }
-    }
+    },
+
+    // Show a simple, non-destructive main-menu decoration that uses the same fill coloring
+    // as quizzes and adds readable country labels. Minimal: toggles paint + a symbol layer.
+    // Replace main-menu decorations with a separate lightweight overlay MapLibre instance.
+    // This is intentionally non-destructive: it creates a temporary map in a new overlay div
+    // that is removed when a quiz starts so the primary map and its layers are never altered.
+    _menuMap: null,
+    _menuMapDiv: null,
+
+    showMainMenuMap() {
+        try {
+            // already active
+            if (this._menuMap) return;
+
+            // create overlay container that sits above the app map
+            const container = document.getElementById("map");
+            if (!container) return;
+
+            // create a full-size overlay div
+            const div = document.createElement("div");
+            div.id = "menu-map-overlay";
+            // ensure it sits above the main map but below UI panels (z-index conservative)
+            div.style.position = "absolute";
+            div.style.left = "0";
+            div.style.top = "0";
+            div.style.width = "100%";
+            div.style.height = "100%";
+            div.style.zIndex = "1000"; // overlay stacking
+            div.style.pointerEvents = "auto"; // let user pan/zoom the menu map
+            // keep same language as map container if set
+            try { const lang = container.getAttribute("lang"); if (lang) div.setAttribute("lang", lang); } catch (_) {}
+
+            // insert overlay into same parent as main map (covers it)
+            container.parentNode.insertBefore(div, container.nextSibling);
+
+            // Ensure the quiz panel stays visible above the overlay while the menu is active.
+            try {
+                const panel = document.getElementById("quiz-panel");
+                if (panel) {
+                    // save any inline style so we can restore later
+                    this._menuSavedQuizPanelStyle = {
+                        zIndex: panel.style.zIndex || "",
+                        position: panel.style.position || ""
+                    };
+                    // ensure panel creates its own stacking context and sits above overlay
+                    if (!panel.style.position) panel.style.position = "relative";
+                    panel.style.zIndex = "2000";
+                }
+            } catch (_) {}
+
+            // lightweight RTL plugin (safe to call multiple times)
+            try {
+                maplibregl.setRTLTextPlugin(
+                    'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js'
+                );
+            } catch (e) { /* ignore plugin load errors */ }
+
+            // create new MapLibre instance for the menu
+            const menuMap = new maplibregl.Map({
+                container: div.id,
+                style: 'https://tiles.openfreemap.org/styles/bright',
+                center: Array.isArray(MODE.mapCenter) ? MODE.mapCenter.slice(0) : [17.49, 40.01],
+                zoom: Math.max( Math.min(MODE.mapZoom || 3, 6), 2 ),
+                interactive: true,
+                // do NOT add the built-in MapLibre attribution control for the overlay;
+                // use the app's custom mobile "i" (setupMobileAttribution) which is only shown on mobile.
+                attributionControl: false
+            });
+
+            // show a few UI controls on the menu map (optional)
+            try {
+                const nav = new maplibregl.NavigationControl();
+                menuMap.addControl(nav, 'top-right');
+            } catch (_) {}
+
+            // When menu map loads, set the country label formatting similar to the example.
+            menuMap.on('load', () => {
+                try {
+                    const candidateLayers = [
+                        'label_country', // example target
+                        'country-label', 'countries-label', 'place_country', 'place_label'
+                    ];
+                    for (const lid of candidateLayers) {
+                        if (menuMap.getLayer(lid)) {
+                            try {
+                                // use format expression to show English + local name when available
+                                menuMap.setLayoutProperty(lid, 'text-field', [
+                                    'format',
+                                    ['coalesce', ['get', 'name_en'], ['get', 'name']],
+                                    {'font-scale': 1.1},
+                                    '\n',
+                                    {},
+                                    ['coalesce', ['get', 'name_local'], ['get', 'name']],
+                                    {'font-scale': 0.85}
+                                ]);
+                            } catch (_) { /* ignore per-layer failures */ }
+                        }
+                    }
+
+                    // If none of the candidate layer ids exist, try to find the first symbol layer with text-field
+                    const style = menuMap.getStyle();
+                    if (style && Array.isArray(style.layers)) {
+                        const fallback = style.layers.find(l => l.type === 'symbol' && l.layout && l.layout['text-field']);
+                        if (fallback && fallback.id) {
+                            try {
+                                menuMap.setLayoutProperty(fallback.id, 'text-field', [
+                                    'format',
+                                    ['coalesce', ['get', 'name_en'], ['get', 'name']],
+                                    {'font-scale': 1.1},
+                                    '\n',
+                                    {},
+                                    ['coalesce', ['get', 'name_local'], ['get', 'name']],
+                                    {'font-scale': 0.85}
+                                ]);
+                            } catch (_) {}
+                        }
+                    }
+                } catch (e) {
+                    console.warn("menuMap: label formatting failed", e);
+                }
+            });
+
+            // remember instances so we can remove them later
+            this._menuMap = menuMap;
+            this._menuMapDiv = div;
+            this._menuActive = true;
+        } catch (e) {
+            console.warn("showMainMenuMap failed", e);
+        }
+    },
+
+    hideMainMenuMap() {
+        try {
+            if (this._menuMap) {
+                try { this._menuMap.remove(); } catch (_) {}
+                this._menuMap = null;
+            }
+            if (this._menuMapDiv && this._menuMapDiv.parentNode) {
+                try { this._menuMapDiv.parentNode.removeChild(this._menuMapDiv); } catch (_) {}
+                this._menuMapDiv = null;
+            }
+
+            // restore any saved quiz-panel inline styles so layout returns to previous state
+            try {
+                const panel = document.getElementById("quiz-panel");
+                if (panel && this._menuSavedQuizPanelStyle) {
+                    panel.style.zIndex = this._menuSavedQuizPanelStyle.zIndex || "";
+                    panel.style.position = this._menuSavedQuizPanelStyle.position || "";
+                    this._menuSavedQuizPanelStyle = null;
+                }
+            } catch (_) {}
+
+            this._menuActive = false;
+        } catch (e) {
+            console.warn("hideMainMenuMap failed", e);
+        }
+    },
 }
 
 window.SmurdyQuiz = SmurdyQuiz;
@@ -1556,6 +1715,10 @@ map.on("load", async () => {
     });
 
     const quizFile = urlParams.get("quiz");
+    // show main-menu decorations only when no quiz is selected (safe, non-destructive)
+    if (!quizFile) {
+        try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
+    }
     if (quizFile) {
         SmurdyQuiz.loadQuizScript(quizFile, { updateUrl: true });
     } else {
@@ -1664,7 +1827,7 @@ function removeDuplicatePanelNodes(ids) {
     try {
         for (const id of ids) {
             const matches = Array.from(document.querySelectorAll("#" + id));
-            if (matches.length > 1) {
+            if ( matches.length > 1) {
                 for (let i = 1; i < matches.length; i++) matches[i].remove();
             }
         }
@@ -1717,7 +1880,7 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
 // Update APP_VERSION per project rules when you change code:
 // - patch (small bugfix): increment third digit (1.0.1)
 // - feature (add/remove feature): increment second digit (1.1.0)
-const APP_VERSION = "1.0.4";
+const APP_VERSION = "1.1.0";
 
 function injectVersionBadge() {
     try {
