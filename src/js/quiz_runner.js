@@ -60,19 +60,25 @@ window.runNameQuiz = function runNameQuiz(config) {
         if (giveUpBtn && !giveUpBtn._giveupBound) {
             giveUpBtn.addEventListener("click", () => {
                 try {
-                    // If nothing to give up on, no-op
-                    if (!currentName && !RUN.currentName) return;
-                    const name = currentName || RUN.currentName;
-                    // mark as wrong in map state (and any small-list API)
-                    try { if (typeof SQ.setAnswerState === "function") SQ.setAnswerState(name, "wrong"); } catch (_) {}
-                    try { if (typeof window.SmurdyQuiz?.setFeatureStateByName === "function") window.SmurdyQuiz.setFeatureStateByName(name, "wrong"); } catch (_) {}
-                    // update runner counters if present and show immediate feedback
-                    try { attempts = (typeof attempts === "number") ? attempts + 1 : attempts; } catch(_) {}
-                    try { if (typeof updateCounter === "function") updateCounter(); if (typeof updateAccuracy === "function") updateAccuracy(); } catch(_) {}
-                    // lock input while advancing, stop timer for this question and move on
-                    try { locked = true; stopTimer(); setInputEnabled(false); } catch(_) {}
-                    // advance to next question
-                    try { if (typeof nextQuestion === "function") nextQuestion(); } catch (e) { /* ignore if not present */ }
+                    // No-op if there's nothing active or already locked
+                    const name = (typeof RUN !== "undefined" && RUN.currentName) ? RUN.currentName : (typeof currentName !== "undefined" ? currentName : null);
+                    if (!name) return;
+                    if ((typeof RUN !== "undefined" && RUN.locked) || (typeof locked !== "undefined" && locked)) return;
+
+                    // Mark as an attempted wrong answer and advance — do NOT pause/stop timers or disable global timing.
+                    if (typeof RUN !== "undefined") {
+                        RUN.locked = true;
+                        RUN.attempts = (typeof RUN.attempts === "number") ? RUN.attempts + 1 : 1;
+                    } else {
+                        locked = true;
+                        attempts = (typeof attempts === "number") ? attempts + 1 : 1;
+                    }
+
+                    // Use runner's finishWrong flow so UI highlights and counters behave consistently.
+                    try { finishWrong(name); } catch (e) {
+                        // Fallback: advance to next question if finishWrong isn't available
+                        try { if (typeof RUN !== "undefined" && typeof RUN.nextQuestion === "function") RUN.nextQuestion(); else if (typeof nextQuestion === "function") nextQuestion(); } catch (_) {}
+                    }
                 } catch (e) { /* tolerate any errors */ }
             });
             giveUpBtn._giveupBound = true;
@@ -207,6 +213,8 @@ window.runNameQuiz = function runNameQuiz(config) {
     const FIND_POINT_LAYER = "find-point-layer";
 
     let currentName = null;
+    let currentFeature = null;               // <-- new: store feature object for current question
+    let currentCanonicalNormalized = null;   // <-- new: normalized canonical key for comparisons
     let locked = false;
     let completed = new Set();
     let currentPoint = null; // {lng, lat}
@@ -398,8 +406,20 @@ window.runNameQuiz = function runNameQuiz(config) {
     })();
     
     // helper functions for runner state
+    // Prevent applying a "target" highlight in click mode — click-mode should never pre-highlight.
     function setState(name, stateName) {
-        return SQ.setFeatureStateByName(name, stateName);
+        try {
+            if (!name) return;
+            if (mode === "click" && stateName === "target") {
+                // intentionally ignore target state in click mode
+                return;
+            }
+            if (typeof SQ.setFeatureStateByName === "function") {
+                return SQ.setFeatureStateByName(name, stateName);
+            }
+        } catch (e) {
+            // swallow to avoid breaking UI
+        }
     }
 
     function clearStates() {
@@ -464,6 +484,31 @@ window.runNameQuiz = function runNameQuiz(config) {
             .replace(/[^a-z0-9 ]+/g, " ")
             .replace(/\s+/g, " ")
             .trim();
+    }
+
+    // Return canonical display name for a feature object (prefer sovereign/admin/full name)
+    function canonicalNameForFeature(feature) {
+        try {
+            if (!feature || !feature.properties) return "";
+            const p = feature.properties;
+            // prefer full sovereign/admin fields so we avoid abbreviated labels (e.g. "S. Sudan")
+            return String(p.sovereignt || p.SOVEREIGNT || p.admin || p.ADMIN || p.name || p.NAME || p.NAME_EN || p.name_en || "");
+        } catch (e) { return ""; }
+    }
+
+    // Return a stable canonical display name for a feature/name (avoid abbreviated/display variants).
+    function getCanonicalDisplayName(name) {
+        try {
+            if (!name) return "";
+            // Prefer direct feature properties when available (avoid resolving by display label)
+            if (typeof SQ.getFeatureByName === "function") {
+                const f = SQ.getFeatureByName(name);
+                if (f && f.properties) {
+                    return canonicalNameForFeature(f) || String(name);
+                }
+            }
+        } catch (e) { /* ignore */ }
+        return String(name);
     }
 
     function formatElapsed(ms) {
@@ -876,7 +921,45 @@ window.runNameQuiz = function runNameQuiz(config) {
             }
         }
 
-        SQ.setTargetText(titleBuilder(currentName));
+        // Always show canonical full name in the target area (avoid showing abbreviated/display variants)
+        // Update currentFeature and canonical key for comparisons (used by click mode)
+        try {
+            currentFeature = (typeof SQ.getFeatureByName === "function") ? SQ.getFeatureByName(currentName) : null;
+            const canon = currentFeature ? canonicalNameForFeature(currentFeature) : getCanonicalDisplayName(currentName);
+            currentCanonicalNormalized = normalizeName(canon || currentName);
+        } catch (e) {
+            currentFeature = null;
+            currentCanonicalNormalized = normalizeName(currentName || "");
+        }
+
+        // Ensure click mode does NOT pre-highlight any country.
+        // Clear temporary target state and repaint only the completed highlights so the map stays neutral.
+        try {
+            if (mode === "click") {
+                // clear any runner-managed states, repaint completed ones
+                clearStates();
+                repaintCompleted();
+                // also tell core to clear its "target by name" if present (defensive)
+                if (typeof SQ.setTargetByName === "function") {
+                    try { SQ.setTargetByName(null); } catch (_) {}
+                }
+            }
+        } catch (_) {}
+
+        // show canonical name in the target area
+        SQ.setTargetText(getCanonicalDisplayName(currentName));
+
+        // Ensure click mode never shows a pre-highlight target.
+        // Some core implementations react to setTargetText or internal state asynchronously,
+        // so clear any core-managed target immediately and again on the next tick.
+        if (mode === "click") {
+            try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+            // second clear on next tick guards against async core behavior
+            setTimeout(() => {
+                try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+            }, 8);
+        }
+
         SQ.setResultText("");
         updateCounter();
         updateAccuracy();
@@ -956,9 +1039,17 @@ window.runNameQuiz = function runNameQuiz(config) {
 
             if (mode === "click") {
                 try { setState(clickedOrGuess, "wrong"); } catch (_) {}
-                // Optionally re-mark the correct target so users see where it was (kept after marking wrong)
+                // Show the correct target AFTER showing the wrong highlight.
                 if (showTargetOnWrong && mode === "click") {
-                    try { setState(currentName, "target"); } catch (_) {}
+                    try {
+                        // Use core API directly to set the "target" state so we don't re-enable pre-highlighting via setState.
+                        if (typeof SQ.setFeatureStateByName === "function") {
+                            try { SQ.setFeatureStateByName(currentName, "target"); } catch (_) { /* ignore */ }
+                        } else {
+                            // fallback to setState if direct API missing
+                            try { setState(currentName, "target"); } catch (_) {}
+                        }
+                    } catch (_) {}
                 }
             } else {
                 try { setState(currentName, "wrong"); } catch (_) {}
@@ -980,18 +1071,45 @@ window.runNameQuiz = function runNameQuiz(config) {
         }, 900);
     }
 
-    function handleClick(clickedName) {
-        if (locked || !currentName) return;
-        if (!clickedName || clickedName === "Unknown") return;
-        if (completed.has(clickedName)) return;
+    function handleClick(featureOrName) {
+        try {
+            // click handler should only act in click mode and use local state
+            if (locked || !currentName || mode !== "click") return;
 
-        locked = true;
-        attempts++;
+            // accept either a feature object from the map or a name string
+            let clickedFeature = null;
+            if (featureOrName && typeof featureOrName === "object" && featureOrName.properties) {
+                clickedFeature = featureOrName;
+            } else if (typeof featureOrName === "string") {
+                // try to resolve to feature object without using display-name matching
+                try { clickedFeature = (typeof SQ.getFeatureByName === "function") ? SQ.getFeatureByName(featureOrName) : null; } catch (_) { clickedFeature = null; }
+            }
 
-        if (clickedName === currentName) {
-            finishCorrect();
-        } else {
-            finishWrong(clickedName);
+            if (!clickedFeature) return;
+
+            // compute canonical normalized key for clicked feature
+            const clickedCanon = normalizeName(canonicalNameForFeature(clickedFeature) || SQ.getFeatureName(clickedFeature) || "");
+
+            // ignore clicks on already completed canonical keys
+            for (const c of completed) {
+                if (normalizeName(c) === clickedCanon) return;
+            }
+
+            locked = true;
+            attempts++;
+
+            if (clickedCanon === currentCanonicalNormalized) {
+                // mark clicked feature correct (show immediate green)
+                // use finishCorrect flow to update counters and highlight
+                finishCorrect();
+            } else {
+                // mark clicked feature wrong (show immediate red) and highlight correct afterwards as configured
+                // pass the clicked display name for user feedback
+                const display = (typeof SQ.getFeatureName === "function") ? SQ.getFeatureName(clickedFeature) : (clickedFeature.properties && (clickedFeature.properties.name || clickedFeature.properties.admin));
+                finishWrong(display || clickedCanon);
+            }
+        } catch (e) {
+            console.error("handleClick failed", e);
         }
     }
 
@@ -1029,18 +1147,28 @@ window.runNameQuiz = function runNameQuiz(config) {
                 RUN._clickHandler = null;
             }
             const handler = (e) => {
-                const feature = SQ.getClickedMainFeature(e.point);
-                if (!feature) return;
-                const clickedName = SQ.getFeatureName(feature);
-                handleClick(clickedName);
+                try {
+                    // try common event shapes: Mapbox passes e.point; some libs pass the event itself
+                    const pt = (e && (e.point || e)) || e;
+                    let feature = null;
+                    if (typeof SQ.getClickedMainFeature === "function") {
+                        try { feature = SQ.getClickedMainFeature(pt); } catch (_) { feature = null; }
+                    }
+                    // fallback: some integrations expose a getFeatureAtLngLat helper
+                    if (!feature && e && e.lngLat && typeof SQ.getFeatureAtLngLat === "function") {
+                        try { feature = SQ.getFeatureAtLngLat(e.lngLat); } catch (_) { feature = null; }
+                    }
+                    if (!feature) return;
+                    handleClick(feature);
+                } catch (_) { /* tolerate click handling errors */ }
             };
-            if (SQ.map && typeof SQ.map.on === "function") {
-                SQ.map.on("click", handler);
-                RUN._clickHandler = handler;
-            }
-        } catch (e) { /* tolerate map readiness errors */ }
-    }
-
+             if (SQ.map && typeof SQ.map.on === "function") {
+                 SQ.map.on("click", handler);
+                 RUN._clickHandler = handler;
+             }
+         } catch (e) { /* tolerate map readiness errors */ }
+     }
+ 
     updateCounter();
     updateAccuracy();
     resetTimer();
@@ -1099,7 +1227,6 @@ window.runNameQuiz = function runNameQuiz(config) {
             } catch (e) {
                 return 0;
             }
-            return 0;
         }
 
         const target = norm(name);
