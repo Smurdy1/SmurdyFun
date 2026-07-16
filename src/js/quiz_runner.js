@@ -54,30 +54,26 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     } catch (_) {}
 
-    // Wire Give Up button: mark current as wrong and advance (idempotent)
+    // Wire Give Up button once, but replace the active run callback each time.
+    // This avoids retaining a closure from an older quiz run.
     try {
         const giveUpBtn = document.getElementById("quiz-giveup");
+
+        RUN.giveUpCurrentQuestion = () => {
+            try {
+                if (!currentName || locked) return;
+
+                locked = true;
+                attempts++;
+                finishWrong(currentName, true);
+            } catch (e) { /* tolerate any errors */ }
+        };
+
         if (giveUpBtn && !giveUpBtn._giveupBound) {
             giveUpBtn.addEventListener("click", () => {
                 try {
-                    // No-op if there's nothing active or already locked
-                    const name = (typeof RUN !== "undefined" && RUN.currentName) ? RUN.currentName : (typeof currentName !== "undefined" ? currentName : null);
-                    if (!name) return;
-                    if ((typeof RUN !== "undefined" && RUN.locked) || (typeof locked !== "undefined" && locked)) return;
-
-                    // Mark as an attempted wrong answer and advance — do NOT pause/stop timers or disable global timing.
-                    if (typeof RUN !== "undefined") {
-                        RUN.locked = true;
-                        RUN.attempts = (typeof RUN.attempts === "number") ? RUN.attempts + 1 : 1;
-                    } else {
-                        locked = true;
-                        attempts = (typeof attempts === "number") ? attempts + 1 : 1;
-                    }
-
-                    // Use runner's finishWrong flow so UI highlights and counters behave consistently.
-                    try { finishWrong(name); } catch (e) {
-                        // Fallback: advance to next question if finishWrong isn't available
-                        try { if (typeof RUN !== "undefined" && typeof RUN.nextQuestion === "function") RUN.nextQuestion(); else if (typeof nextQuestion === "function") nextQuestion(); } catch (_) {}
+                    if (typeof RUN.giveUpCurrentQuestion === "function") {
+                        RUN.giveUpCurrentQuestion();
                     }
                 } catch (e) { /* tolerate any errors */ }
             });
@@ -233,6 +229,13 @@ window.runNameQuiz = function runNameQuiz(config) {
     let startTime = null;
     let finalElapsedMs = 0;
 
+    // This object survives between quiz runs, but the canonical pool depends on
+    // the active map data and group. Never reuse a previous quiz's cached pool.
+    RUN._canonBuilt = false;
+    RUN._canonList = null;
+    RUN._canonByKey = null;
+    RUN._canonByBestName = null;
+
     // Build a canonical index that maps each sovereign -> best feature (prefer mainland).
     // This avoids counting overseas territories separately and ensures zoom targets the largest/mainland part.
     function buildCanonicalIndex() {
@@ -328,20 +331,71 @@ window.runNameQuiz = function runNameQuiz(config) {
         let arr = Array.from(RUN._canonByKey.values());
         arr.sort((a, b) => String(a.displayName).localeCompare(String(b.displayName)));
 
-        // Respect current group allowed names (if available) so excluded/greyed countries are not included.
+        // Respect the active group, but compare every useful Natural Earth name.
+        // Some sovereign labels are abbreviated even though admin/long names are not
+        // (for example the Marshall Islands and Solomon Islands).
         try {
             const allowedSet = (typeof SQ.getAllowedNamesForCurrentGroup === "function")
                 ? SQ.getAllowedNamesForCurrentGroup()
                 : null;
+
             if (allowedSet && allowedSet.size > 0) {
-                // allowedSet contains normalized names (SmurdyQuiz.normalizeAnswer output).
-                // filter arr to only entries whose normalized displayName (via SQ.normalizeAnswer if available)
+                const groupNameByNorm = new Map();
+                try {
+                    const group = (typeof SQ.getCurrentGroup === "function")
+                        ? SQ.getCurrentGroup()
+                        : null;
+                    for (const groupName of (group?.countries || [])) {
+                        const key = (typeof SQ.normalizeAnswer === "function")
+                            ? SQ.normalizeAnswer(groupName)
+                            : norm(groupName);
+                        if (key) groupNameByNorm.set(key, String(groupName));
+                    }
+                } catch (_) {}
+
                 arr = arr.filter(entry => {
                     try {
-                        const check = (typeof SQ.normalizeAnswer === "function")
-                            ? SQ.normalizeAnswer(entry.displayName || entry.bestName || "")
-                            : norm(entry.displayName || entry.bestName || "");
-                        return allowedSet.has(check);
+                        const p = entry.feature?.properties || {};
+                        const candidates = [
+                            p.admin,
+                            p.ADMIN,
+                            p.NAME_LONG,
+                            p.name_long,
+                            p.BRK_NAME,
+                            entry.bestName,
+                            entry.displayName,
+                            (typeof SQ.getFeatureName === "function")
+                                ? SQ.getFeatureName(entry.feature)
+                                : "",
+                            p.name,
+                            p.NAME,
+                            p.sovereignt,
+                            p.SOVEREIGNT
+                        ];
+
+                        let matchedNorm = null;
+                        let matchedName = null;
+
+                        for (const candidate of candidates) {
+                            if (!candidate) continue;
+                            const check = (typeof SQ.normalizeAnswer === "function")
+                                ? SQ.normalizeAnswer(candidate)
+                                : norm(candidate);
+
+                            if (allowedSet.has(check)) {
+                                matchedNorm = check;
+                                matchedName = String(candidate);
+                                break;
+                            }
+                        }
+
+                        if (!matchedNorm) return false;
+
+                        entry.quizName =
+                            groupNameByNorm.get(matchedNorm) ||
+                            matchedName ||
+                            entry.bestName;
+                        return true;
                     } catch (e) {
                         return false;
                     }
@@ -351,11 +405,12 @@ window.runNameQuiz = function runNameQuiz(config) {
             // if anything fails, fall back to full arr
         }
 
-        RUN._canonList = arr.map(x => x.bestName);
-        // also a quick lookup map by normalized bestName -> feature
+        RUN._canonList = arr.map(entry => entry.quizName || entry.bestName);
+        // also a quick lookup map by every name the runner can emit
         RUN._canonByBestName = new Map();
         for (const entry of arr) {
             if (entry.bestName) RUN._canonByBestName.set(norm(entry.bestName), entry);
+            if (entry.quizName) RUN._canonByBestName.set(norm(entry.quizName), entry);
         }
     }
 
@@ -500,6 +555,12 @@ window.runNameQuiz = function runNameQuiz(config) {
     function getCanonicalDisplayName(name) {
         try {
             if (!name) return "";
+
+            // Explicit group names are the intended quiz labels. Do not replace
+            // them with shortened sovereign labels from the map dataset.
+            const entry = RUN._canonByBestName?.get(normalizeName(name));
+            if (entry?.quizName) return entry.quizName;
+
             // Prefer direct feature properties when available (avoid resolving by display label)
             if (typeof SQ.getFeatureByName === "function") {
                 const f = SQ.getFeatureByName(name);
@@ -946,8 +1007,12 @@ window.runNameQuiz = function runNameQuiz(config) {
             }
         } catch (_) {}
 
-        // show canonical name in the target area
-        SQ.setTargetText(getCanonicalDisplayName(currentName));
+        // Each mode controls its own prompt. Typing modes intentionally display
+        // an instruction instead of revealing the answer.
+        const displayName = getCanonicalDisplayName(currentName);
+        SQ.setTargetText(
+            (typeof titleBuilder === "function") ? titleBuilder(displayName) : displayName
+        );
 
         // Ensure click mode never shows a pre-highlight target.
         // Some core implementations react to setTargetText or internal state asynchronously,
@@ -1009,15 +1074,13 @@ window.runNameQuiz = function runNameQuiz(config) {
         correctAnswers++;
         completed.add(currentName);
 
-        // For findPoint mode we avoid per-feature highlights.
-        if (!findPoint) {
-            // Remove the temporary "target" highlight so the "correct" state is visible immediately,
-            // but don't clear other persisted completed highlights.
-            try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
-            try { setState(currentName, "correct"); } catch (_) {}
-            // If we persist completed highlights, repaint them so they remain visible alongside this one.
-            try { if (persistCompletedHighlights) repaintCompleted(); } catch (_) {}
-        }
+        // Remove any temporary target state, then briefly reveal the answered
+        // country in green. Find Point clears it before the next question.
+        try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+        try { setState(currentName, "correct"); } catch (_) {}
+
+        // If completed highlights persist, restore all earlier correct answers too.
+        try { if (persistCompletedHighlights) repaintCompleted(); } catch (_) {}
 
         SQ.setResultText(successText);
         updateCounter();
@@ -1031,32 +1094,34 @@ window.runNameQuiz = function runNameQuiz(config) {
         }, 700);
     }
 
-    function finishWrong(clickedOrGuess) {
-        // In findPoint mode we avoid setting per-feature wrong/correct states so map colors do not persist.
-        if (!findPoint) {
-            // Remove the temporary "target" highlight so the "wrong" state is visible immediately.
-            try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
+    function finishWrong(clickedOrGuess, gaveUp = false) {
+        // Remove any temporary target state so the red answer state is visible.
+        try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
 
-            if (mode === "click") {
+        if (mode === "click") {
+            if (gaveUp) {
+                // Give Up marks the current target wrong. There is no clicked country.
+                try { setState(currentName, "wrong"); } catch (_) {}
+            } else {
                 try { setState(clickedOrGuess, "wrong"); } catch (_) {}
-                // Show the correct target AFTER showing the wrong highlight.
-                if (showTargetOnWrong && mode === "click") {
+
+                // Show the correct target after an ordinary incorrect click.
+                if (showTargetOnWrong) {
                     try {
-                        // Use core API directly to set the "target" state so we don't re-enable pre-highlighting via setState.
                         if (typeof SQ.setFeatureStateByName === "function") {
                             try { SQ.setFeatureStateByName(currentName, "target"); } catch (_) { /* ignore */ }
                         } else {
-                            // fallback to setState if direct API missing
                             try { setState(currentName, "target"); } catch (_) {}
                         }
                     } catch (_) {}
                 }
-            } else {
-                try { setState(currentName, "wrong"); } catch (_) {}
             }
+        } else {
+            // Includes Type Country and Find Point. The next question clears it.
+            try { setState(currentName, "wrong"); } catch (_) {}
         }
 
-        if (mode === "type") {
+        if (mode === "type" || gaveUp) {
             SQ.setResultText(`Wrong. Answer: ${currentName}`);
         } else {
             SQ.setResultText(`Wrong. Guessed: ${clickedOrGuess}`);
@@ -1234,7 +1299,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
         for (const f of SmurdyQuiz.mainData.features) {
             const p = f.properties || {};
-            const admin = norm(p.admin || pADMIN || p.name || p.NAME || p.NAME_EN || "");
+            const admin = norm(p.admin || p.ADMIN || p.name || p.NAME || p.NAME_EN || "");
             const sovereignt = norm(p.sovereignt || p.SOVEREIGNT || p.sov_a3 || "");
             const otherNames = norm(p.name || p.NAME || p.NAME_EN || p.name_en || "");
 
