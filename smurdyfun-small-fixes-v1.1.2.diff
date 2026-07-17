@@ -1,0 +1,409 @@
+--- a/src/js/quiz_runner.js
++++ b/src/js/quiz_runner.js
+@@ -4,6 +4,15 @@
+     // reuse a global runner-state object so repeated calls are safe
+     if (!window._smurdyQuizRunner) window._smurdyQuizRunner = {};
+     const RUN = window._smurdyQuizRunner;
++
++    // Declare shared UI references before setQuizPanelMode() is first called.
++    // Previously that first call hit the temporal dead zone and silently failed.
++    let inputEl = null;
++    let submitButton = null;
++    let progress = null;
++    let accuracy = null;
++    let result = null;
++    let stats = null;
+ 
+     // Ensure a bottom mobile container exists and move controls there on small screens.
+     function ensureMobileBottom() {
+@@ -81,16 +90,35 @@
+         }
+     } catch (_) {}
+ 
++    // Return one canonical node for an id and remove accidental duplicates.
++    function getSingleRunnerNode(id) {
++        try {
++            const matches = Array.from(document.querySelectorAll("#" + id));
++            for (let i = 1; i < matches.length; i++) matches[i].remove();
++            return matches[0] || null;
++        } catch (_) {
++            return document.getElementById(id);
++        }
++    }
++
+     // Ensure a persistent compact stats element exists (created once; CSS controls visibility).
+     function ensureStatsElement() {
+-        if (document.getElementById("quiz-stats")) return;
++        const existing = getSingleRunnerNode("quiz-stats");
++        if (existing) {
++            stats = existing;
++            return existing;
++        }
++
+         const panel = document.getElementById("quiz-panel");
+-        if (!panel) return;
++        if (!panel) return null;
++
+         const statsEl = document.createElement("div");
+         statsEl.id = "quiz-stats";
+         statsEl.innerHTML = '<span id="stats-count"></span><span id="stats-timer"></span><span id="stats-accuracy"></span>';
+         // append near top so it stays with the panel regardless of button reparenting
+         panel.appendChild(statsEl);
++        stats = statsEl;
++        return statsEl;
+     }
+     try { ensureStatsElement(); } catch (_) {}
+ 
+@@ -101,8 +129,17 @@
+         const suggest = document.getElementById("quiz-suggest");
+         const restart = document.getElementById("quiz-restart");
+         const back = document.getElementById("quiz-back");
++        const giveUp = document.getElementById("quiz-giveup");
+         let timer = document.getElementById("quiz-timer");
+         const target = document.getElementById("quiz-target");
++
++        // Reuse the app's existing nodes and remove any duplicate ids before
++        // deciding whether a node needs to be created.
++        progress = getSingleRunnerNode("quiz-progress");
++        accuracy = getSingleRunnerNode("quiz-accuracy");
++        result = getSingleRunnerNode("quiz-result");
++        stats = getSingleRunnerNode("quiz-stats");
++
+         // ensure mobile panels arranged after any mode switch
+         try { arrangeMobilePanels(); } catch (_) {}
+ 
+@@ -111,6 +148,7 @@
+             if (suggest) suggest.style.display = "none";
+             if (restart) restart.style.display = "";
+             if (back) back.style.display = "";
++            if (giveUp) giveUp.style.display = "";
+ 
+             // ensure timer exists and is visible
+             if (!timer && target) {
+@@ -147,8 +185,12 @@
+ 
+             // ensure the persistent stats element exists; don't set inline display (CSS governs visibility)
+             try { ensureStatsElement(); } catch (_) {}
+-            stats = document.getElementById("quiz-stats");
+-            if (stats) stats.style.marginTop = "6px";
++            stats = getSingleRunnerNode("quiz-stats");
++            if (stats) {
++                stats.style.marginTop = "6px";
++                // Let the responsive CSS decide whether compact stats are shown.
++                stats.style.removeProperty("display");
++            }
+ 
+             // ensure result exists and is visible
+             if (!result && panel) {
+@@ -167,7 +209,15 @@
+             if (suggest) suggest.style.display = "";
+             if (restart) restart.style.display = "none";
+             if (back) back.style.display = "none";
++            if (giveUp) giveUp.style.display = "none";
+             if (timer) timer.style.display = "none";
++            if (progress) progress.style.display = "none";
++            if (accuracy) accuracy.style.display = "none";
++            if (result) {
++                result.textContent = "";
++                result.style.display = "none";
++            }
++            if (stats) stats.style.setProperty("display", "none", "important");
+         }
+     }
+ 
+@@ -209,6 +259,7 @@
+     const FIND_POINT_LAYER = "find-point-layer";
+ 
+     let currentName = null;
++    let lastQuestionName = null;
+     let currentFeature = null;               // <-- new: store feature object for current question
+     let currentCanonicalNormalized = null;   // <-- new: normalized canonical key for comparisons
+     let locked = false;
+@@ -217,13 +268,6 @@
+ 
+     let attempts = 0;
+     let correctAnswers = 0;
+-
+-    let inputEl = null;
+-    let submitButton = null;
+-    let progress = null;
+-    let accuracy = null;
+-    let result = null;
+-    let stats = null;
+ 
+     let timerInterval = null;
+     let startTime = null;
+@@ -500,6 +544,17 @@
+         return getNames().filter(name => !completed.has(name));
+     }
+ 
++    // Avoid immediately repeating the previous target when another option exists.
++    // This applies after a wrong answer, Give Up, and Restart.
++    function getQuestionCandidates(remaining) {
++        const source = Array.isArray(remaining) ? remaining : [];
++        if (source.length <= 1 || !lastQuestionName) return source;
++
++        const previous = normalizeName(lastQuestionName);
++        const filtered = source.filter(name => normalizeName(name) !== previous);
++        return filtered.length ? filtered : source;
++    }
++
+     function updateCounter() {
+         const total = getNames().length;
+         SQ.setProgressText(`${completed.size} / ${total} completed`);
+@@ -539,6 +594,114 @@
+             .replace(/[^a-z0-9 ]+/g, " ")
+             .replace(/\s+/g, " ")
+             .trim();
++    }
++
++    // Compute an antimeridian-aware bounding box around the active group using
++    // each country's largest/main polygon. This avoids overseas territories and
++    // correctly frames regions such as Oceania.
++    function getCurrentGroupBounds() {
++        try {
++            const longitudes = [];
++            let minLat = Infinity;
++            let maxLat = -Infinity;
++
++            for (const name of getNames()) {
++                const feature = SQ.getFeatureByName(name);
++                if (!feature || !feature.geometry) continue;
++
++                const bounds = (typeof SQ.getBestFeatureBounds === "function")
++                    ? SQ.getBestFeatureBounds(feature.geometry)
++                    : null;
++                if (!bounds) continue;
++
++                const [[minLng, featureMinLat], [maxLng, featureMaxLat]] = bounds;
++                if (![minLng, maxLng, featureMinLat, featureMaxLat].every(Number.isFinite)) continue;
++
++                longitudes.push(minLng, maxLng);
++                minLat = Math.min(minLat, featureMinLat);
++                maxLat = Math.max(maxLat, featureMaxLat);
++            }
++
++            if (longitudes.length < 2 || !Number.isFinite(minLat) || !Number.isFinite(maxLat)) {
++                return null;
++            }
++
++            const wrapped = longitudes
++                .map(lng => ((lng % 360) + 360) % 360)
++                .sort((a, b) => a - b);
++
++            let largestGap = -1;
++            let gapIndex = 0;
++            for (let i = 0; i < wrapped.length; i++) {
++                const next = (i === wrapped.length - 1)
++                    ? wrapped[0] + 360
++                    : wrapped[i + 1];
++                const gap = next - wrapped[i];
++                if (gap > largestGap) {
++                    largestGap = gap;
++                    gapIndex = i;
++                }
++            }
++
++            let start = wrapped[(gapIndex + 1) % wrapped.length];
++            let end = wrapped[gapIndex];
++            if (end < start) end += 360;
++
++            let span = end - start;
++            let west = start > 180 ? start - 360 : start;
++            let east = west + span;
++
++            if (span < 1) {
++                west -= 0.5;
++                east += 0.5;
++            }
++            if (maxLat - minLat < 1) {
++                minLat -= 0.5;
++                maxLat += 0.5;
++            }
++
++            minLat = Math.max(-85, minLat);
++            maxLat = Math.min(85, maxLat);
++
++            return [[west, minLat], [east, maxLat]];
++        } catch (_) {
++            return null;
++        }
++    }
++
++    // Frame the selected group only when a click-mode round begins or restarts.
++    // Individual click questions never trigger camera movement.
++    function zoomToCurrentGroup() {
++        if (mode !== "click" || !SQ.map || typeof SQ.map.fitBounds !== "function") {
++            return false;
++        }
++
++        const bounds = getCurrentGroupBounds();
++        if (!bounds) return false;
++
++        const isMobile =
++            (window.innerWidth || 0) <= 700 ||
++            /Mobi|Android/i.test(navigator.userAgent || "");
++
++        const panel = document.getElementById("quiz-panel");
++        const leftPadding = Math.min(
++            480,
++            Math.max(300, ((panel && panel.offsetWidth) || 360) + 40)
++        );
++
++        try {
++            if (typeof SQ.map.stop === "function") SQ.map.stop();
++            SQ.map.fitBounds(bounds, {
++                padding: isMobile
++                    ? { top: 120, right: 36, bottom: 120, left: 36 }
++                    : { top: 60, right: 60, bottom: 60, left: leftPadding },
++                maxZoom: 5.3,
++                duration: 650
++            });
++            return true;
++        } catch (_) {
++            return false;
++        }
+     }
+ 
+     // Return canonical display name for a feature object (prefer sovereign/admin/full name)
+@@ -857,10 +1020,10 @@
+         return true;
+     }
+ 
+-    // Try to pick a truly random point inside a remaining country's polygon part.
+-    async function pickRandomLandPoint(maxTries = 200) {
+-        const remainingNames = getRemaining();
+-        if (!remainingNames || remainingNames.length === 0) return null;
++    // Try to pick a truly random point inside one of the supplied countries.
++    async function pickRandomLandPoint(candidateNames, maxTries = 200) {
++        const remainingNames = Array.isArray(candidateNames) ? candidateNames : [];
++        if (remainingNames.length === 0) return null;
+ 
+         const triedNames = new Set();
+         const total = remainingNames.length;
+@@ -946,13 +1109,15 @@
+             return;
+         }
+  
++        const candidates = getQuestionCandidates(remaining);
++
+         // For findPoint mode, choose a random country and place the dot on its largest polygon part.
+         if (mode === "type" && findPoint) {
+             try { SQ.setShowBorders(false); } catch (e) {}
+             clearStates(); // clear previous point/state before picking
+             // ensure the layer exists (creates on first use)
+             ensureFindPointLayer();
+-            const picked = await pickRandomLandPoint();
++            const picked = await pickRandomLandPoint(candidates);
+             if (picked) {
+                 currentName = picked.name;
+                 showPointAt(picked.lnglat);
+@@ -961,11 +1126,13 @@
+                 } catch (e) {}
+             } else {
+                 // fallback: pick a country name if no suitable feature found
+-                currentName = randomChoice(remaining);
++                currentName = randomChoice(candidates);
+             }
+         } else {
+-            currentName = randomChoice(remaining);
+-        }
++            currentName = randomChoice(candidates);
++        }
++
++        lastQuestionName = currentName;
+         locked = false;
+ 
+         // Preserve the placed point for "findPoint" typing mode.
+@@ -1053,7 +1220,9 @@
+         // ensure panel uses the game UI when restarting
+         try { setQuizPanelMode("game"); } catch (e) {}
+  
+-         if (typeof SQ.resetView === "function") {
++         if (mode === "click") {
++             zoomToCurrentGroup();
++         } else if (typeof SQ.resetView === "function") {
+              SQ.resetView();
+          }
+          if (mode === "type" && inputEl) {
+@@ -1238,6 +1407,11 @@
+     updateAccuracy();
+     resetTimer();
+     startTimer();
++
++    // Click modes begin framed around the selected map group. Camera movement
++    // after this point remains fully controlled by the player.
++    if (mode === "click") zoomToCurrentGroup();
++
+     nextQuestion();
+ 
+     // Replace or add a single robust implementation of SmurdyQuiz.getFeatureByName
+--- a/src/js/app_core.js
++++ b/src/js/app_core.js
+@@ -1276,6 +1276,10 @@
+             div.style.height = "100%";
+             div.style.zIndex = "1000"; // overlay stacking
+             div.style.pointerEvents = "auto"; // let user pan/zoom the menu map
++            // Keep the existing map visible until the menu style is ready, then
++            // fade the overlay in instead of flashing partially loaded tiles.
++            div.style.opacity = "0";
++            div.style.transition = "opacity 180ms ease";
+             // keep same language as map container if set
+             try { const lang = container.getAttribute("lang"); if (lang) div.setAttribute("lang", lang); } catch (_) {}
+ 
+@@ -1311,6 +1315,8 @@
+                 center: Array.isArray(MODE.mapCenter) ? MODE.mapCenter.slice(0) : [17.49, 40.01],
+                 zoom: Math.max( Math.min(MODE.mapZoom || 3, 6), 2 ),
+                 interactive: true,
++                // Avoid an additional tile cross-fade after the style has loaded.
++                fadeDuration: 0,
+                 // do NOT add the built-in MapLibre attribution control for the overlay;
+                 // use the app's custom mobile "i" (setupMobileAttribution) which is only shown on mobile.
+                 attributionControl: false
+@@ -1367,6 +1373,12 @@
+                 } catch (e) {
+                     console.warn("menuMap: label formatting failed", e);
+                 }
++
++                requestAnimationFrame(() => {
++                    if (this._menuMap === menuMap && this._menuMapDiv === div) {
++                        div.style.opacity = "1";
++                    }
++                });
+             });
+ 
+             // remember instances so we can remove them later
+@@ -1408,6 +1420,14 @@
+ 
+ window.SmurdyQuiz = SmurdyQuiz;
+  
++// Start the independent menu map immediately instead of waiting for the quiz
++// map's style, aliases, groups, country GeoJSON, and tiny-country data.
++if (!urlParams.get("quiz")) {
++    requestAnimationFrame(() => {
++        try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
++    });
++}
++
+ map.on("load", async () => {
+     const style = map.getStyle();
+ 
+@@ -1876,11 +1896,17 @@
+     }
+ };
+ 
++// Apply homepage visibility immediately. This removes the empty result div's
++// min-height before the asynchronous map-loading pipeline finishes.
++if (!urlParams.get("quiz")) {
++    try { SmurdyQuiz.setQuizPanelMode("homepage"); } catch (_) {}
++}
++
+ // App version badge
+ // Update APP_VERSION per project rules when you change code:
+ // - patch (small bugfix): increment third digit (1.0.1)
+ // - feature (add/remove feature): increment second digit (1.1.0)
+-const APP_VERSION = "1.1.1";
++const APP_VERSION = "1.1.2";
+ 
+ function injectVersionBadge() {
+     try {

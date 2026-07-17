@@ -1276,10 +1276,6 @@ const SmurdyQuiz = {
             div.style.height = "100%";
             div.style.zIndex = "1000"; // overlay stacking
             div.style.pointerEvents = "auto"; // let user pan/zoom the menu map
-            // Keep the existing map visible until the menu style is ready, then
-            // fade the overlay in instead of flashing partially loaded tiles.
-            div.style.opacity = "0";
-            div.style.transition = "opacity 180ms ease";
             // keep same language as map container if set
             try { const lang = container.getAttribute("lang"); if (lang) div.setAttribute("lang", lang); } catch (_) {}
 
@@ -1315,8 +1311,6 @@ const SmurdyQuiz = {
                 center: Array.isArray(MODE.mapCenter) ? MODE.mapCenter.slice(0) : [17.49, 40.01],
                 zoom: Math.max( Math.min(MODE.mapZoom || 3, 6), 2 ),
                 interactive: true,
-                // Avoid an additional tile cross-fade after the style has loaded.
-                fadeDuration: 0,
                 // do NOT add the built-in MapLibre attribution control for the overlay;
                 // use the app's custom mobile "i" (setupMobileAttribution) which is only shown on mobile.
                 attributionControl: false
@@ -1373,12 +1367,6 @@ const SmurdyQuiz = {
                 } catch (e) {
                     console.warn("menuMap: label formatting failed", e);
                 }
-
-                requestAnimationFrame(() => {
-                    if (this._menuMap === menuMap && this._menuMapDiv === div) {
-                        div.style.opacity = "1";
-                    }
-                });
             });
 
             // remember instances so we can remove them later
@@ -1420,14 +1408,6 @@ const SmurdyQuiz = {
 
 window.SmurdyQuiz = SmurdyQuiz;
  
-// Start the independent menu map immediately instead of waiting for the quiz
-// map's style, aliases, groups, country GeoJSON, and tiny-country data.
-if (!urlParams.get("quiz")) {
-    requestAnimationFrame(() => {
-        try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
-    });
-}
-
 map.on("load", async () => {
     const style = map.getStyle();
 
@@ -1896,17 +1876,11 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
     }
 };
 
-// Apply homepage visibility immediately. This removes the empty result div's
-// min-height before the asynchronous map-loading pipeline finishes.
-if (!urlParams.get("quiz")) {
-    try { SmurdyQuiz.setQuizPanelMode("homepage"); } catch (_) {}
-}
-
 // App version badge
 // Update APP_VERSION per project rules when you change code:
 // - patch (small bugfix): increment third digit (1.0.1)
 // - feature (add/remove feature): increment second digit (1.1.0)
-const APP_VERSION = "1.1.2";
+const APP_VERSION = "1.1.1";
 
 function injectVersionBadge() {
     try {
