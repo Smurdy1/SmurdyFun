@@ -11,7 +11,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/click-country/africa/</loc>
+    <loc>https://smurdy.fun/quizzes/click-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -26,7 +26,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/click-country/north_america/</loc>
+    <loc>https://smurdy.fun/quizzes/click-country/africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -36,7 +36,92 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/click-country/eurasia/</loc>
+    <loc>https://smurdy.fun/quizzes/click-country/north_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/middle_east/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/european_union/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/southeast_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/latin_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/oceania/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/central_america_and_caribbean/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/caribbean_islands/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/balkans/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/eastern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/mena/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/west_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/southern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/east_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/south_and_central_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/northern_and_western_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/central_and_southern_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/sub_saharan_africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -46,7 +131,12 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/click-country/latin_america/</loc>
+    <loc>https://smurdy.fun/quizzes/click-country/eurasia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/click-country/former_soviet_union/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -61,27 +151,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/click-country/caribbean_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://smurdy.fun/quizzes/click-country/pacific_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/click-country/oceania/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/click-country/east_asia/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/click-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -91,7 +161,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/type-country/africa/</loc>
+    <loc>https://smurdy.fun/quizzes/type-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -106,7 +176,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/type-country/north_america/</loc>
+    <loc>https://smurdy.fun/quizzes/type-country/africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -116,7 +186,92 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/type-country/eurasia/</loc>
+    <loc>https://smurdy.fun/quizzes/type-country/north_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/middle_east/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/european_union/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/southeast_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/latin_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/oceania/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/central_america_and_caribbean/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/caribbean_islands/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/balkans/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/eastern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/mena/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/west_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/southern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/east_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/south_and_central_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/northern_and_western_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/central_and_southern_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/sub_saharan_africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -126,7 +281,12 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/type-country/latin_america/</loc>
+    <loc>https://smurdy.fun/quizzes/type-country/eurasia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-country/former_soviet_union/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -141,27 +301,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/type-country/caribbean_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://smurdy.fun/quizzes/type-country/pacific_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/type-country/oceania/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/type-country/east_asia/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/type-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -171,7 +311,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-country/africa/</loc>
+    <loc>https://smurdy.fun/quizzes/find-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -186,7 +326,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-country/north_america/</loc>
+    <loc>https://smurdy.fun/quizzes/find-country/africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -196,7 +336,92 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-country/eurasia/</loc>
+    <loc>https://smurdy.fun/quizzes/find-country/north_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/middle_east/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/european_union/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/southeast_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/latin_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/oceania/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/central_america_and_caribbean/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/caribbean_islands/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/balkans/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/eastern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/mena/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/west_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/southern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/east_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/south_and_central_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/northern_and_western_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/central_and_southern_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/sub_saharan_africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -206,7 +431,12 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-country/latin_america/</loc>
+    <loc>https://smurdy.fun/quizzes/find-country/eurasia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-country/former_soviet_union/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -221,27 +451,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-country/caribbean_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://smurdy.fun/quizzes/find-country/pacific_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-country/oceania/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-country/east_asia/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-country/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -251,7 +461,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-point/africa/</loc>
+    <loc>https://smurdy.fun/quizzes/find-point/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -266,7 +476,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-point/north_america/</loc>
+    <loc>https://smurdy.fun/quizzes/find-point/africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -276,7 +486,92 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-point/eurasia/</loc>
+    <loc>https://smurdy.fun/quizzes/find-point/north_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/middle_east/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/european_union/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/southeast_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/latin_america/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/oceania/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/central_america_and_caribbean/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/caribbean_islands/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/balkans/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/eastern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/mena/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/west_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/southern_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/east_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/south_and_central_asia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/northern_and_western_europe/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/central_and_southern_africa/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/sub_saharan_africa/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -286,7 +581,12 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-point/latin_america/</loc>
+    <loc>https://smurdy.fun/quizzes/find-point/eurasia/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point/former_soviet_union/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
@@ -301,27 +601,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://smurdy.fun/quizzes/find-point/caribbean_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://smurdy.fun/quizzes/find-point/pacific_islands/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-point/oceania/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-point/east_asia/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/find-point/us_states/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>

@@ -1904,9 +1904,10 @@ if (!urlParams.get("quiz")) {
 
 // App version badge
 // Update APP_VERSION per project rules when you change code:
-// - patch (small bugfix): increment third digit (1.0.1)
-// - feature (add/remove feature): increment second digit (1.1.0)
-const APP_VERSION = "1.1.2";
+// - small bugfix: increment third digit (1.0.1)
+// - add/remove feature: increment second digit (1.1.0)
+// - breaking change: increment first digit (2.0.0)
+const APP_VERSION = "1.2.0";
 
 function injectVersionBadge() {
     try {
