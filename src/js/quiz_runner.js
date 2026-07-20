@@ -1498,3 +1498,632 @@ window.runNameQuiz = function runNameQuiz(config) {
         return candidates[0].feature;
     };
 };
+
+/* --- Smurdy share result module v3 --- */
+(function () {
+    if (window.__smurdyShareResultModuleV3Loaded) return;
+    window.__smurdyShareResultModuleV3Loaded = true;
+
+    const SECTION_ID = "quiz-share";
+    const BUTTON_ID = "quiz-share-button";
+    const STYLE_ID = "smurdy-share-style-v3";
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
+
+    function textOf(id) {
+        const node = byId(id);
+        return node ? String(node.textContent || "").trim() : "";
+    }
+
+    function injectStyles() {
+        if (byId(STYLE_ID)) return;
+
+        const style = document.createElement("style");
+        style.id = STYLE_ID;
+        style.textContent = `
+            #${SECTION_ID} {
+                display: none;
+                width: 100%;
+                margin-top: 18px;
+                padding-top: 16px;
+                border-top: 1px solid rgba(0,0,0,.12);
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+            }
+            #${SECTION_ID} .quiz-share-copy {
+                display: flex;
+                min-width: 0;
+                flex-direction: column;
+                gap: 2px;
+                text-align: left;
+            }
+            #${SECTION_ID} .quiz-share-title {
+                font-weight: 800;
+                line-height: 1.2;
+            }
+            #${SECTION_ID} .quiz-share-subtitle {
+                color: rgba(0,0,0,.62);
+                font-size: .92rem;
+                line-height: 1.35;
+            }
+            #${BUTTON_ID} {
+                flex: 0 0 auto;
+                padding: 11px 16px;
+                border: 0;
+                border-radius: 10px;
+                background: #111;
+                color: #fff;
+                font: inherit;
+                font-weight: 800;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0,0,0,.18);
+                transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+            }
+            #${BUTTON_ID}:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 16px rgba(0,0,0,.22);
+            }
+            #${BUTTON_ID}:focus-visible {
+                outline: 3px solid rgba(0,119,204,.28);
+                outline-offset: 2px;
+            }
+            #${BUTTON_ID}:disabled {
+                cursor: default;
+                opacity: .7;
+                transform: none;
+            }
+            @media (max-width: 700px) {
+                #${SECTION_ID} {
+                    align-items: stretch;
+                    flex-direction: column;
+                }
+                #${BUTTON_ID} {
+                    width: 100%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function humanizeSlug(value) {
+        return String(value || "")
+            .replace(/^manifest:/i, "")
+            .replace(/[\-_]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/\b\w/g, character => character.toUpperCase());
+    }
+
+    function getSearchParams() {
+        try {
+            return new URLSearchParams(window.location.search || "");
+        } catch (_) {
+            return new URLSearchParams("");
+        }
+    }
+
+    function getRouteText() {
+        const params = getSearchParams();
+        return `${window.location.pathname || ""} ${params.get("quiz") || ""}`.toLowerCase();
+    }
+
+    function getModeKey() {
+        const route = getRouteText();
+        if (route.includes("find-point")) return "find-point";
+        if (route.includes("find-country")) return "find-country";
+        if (route.includes("type-country")) return "type-country";
+        if (route.includes("click-country")) return "click-country";
+
+        const currentTitle = String(
+            (window.SmurdyQuiz && window.SmurdyQuiz.currentQuizTitle) || ""
+        ).toLowerCase();
+        if (currentTitle.includes("find point")) return "find-point";
+        if (currentTitle.includes("find")) return "find-country";
+        if (currentTitle.includes("type")) return "type-country";
+        return "click-country";
+    }
+
+    function getModeLabel() {
+        const mode = getModeKey();
+        if (mode === "find-point") return "Find the Point";
+        if (mode === "find-country") return "Find the Region";
+        if (mode === "type-country") return "Type the Region";
+        return "Click the Region";
+    }
+
+    function getGroupId() {
+        const sq = window.SmurdyQuiz || {};
+        if (sq.currentGroupId) return String(sq.currentGroupId);
+        if (sq.groupId) return String(sq.groupId);
+
+        const params = getSearchParams();
+        const queryGroup = params.get("group");
+        if (queryGroup) return String(queryGroup);
+
+        const routeMatch = String(window.location.pathname || "")
+            .match(/\/quizzes\/[^/]+\/([^/]+)\/?/i);
+        if (routeMatch && routeMatch[1]) return routeMatch[1];
+
+        return "world";
+    }
+
+    function getGroupLabel() {
+        const sq = window.SmurdyQuiz || {};
+        try {
+            if (typeof sq.getCurrentGroup === "function") {
+                const current = sq.getCurrentGroup();
+                if (current && current.label) return String(current.label);
+            }
+        } catch (_) {}
+
+        const groupId = getGroupId();
+        const collections = [
+            sq.countryGroups,
+            sq.country_groups,
+            sq.groups,
+            window.SmurdyCountryGroups,
+            window.countryGroups
+        ];
+
+        for (const collection of collections) {
+            if (!collection || typeof collection !== "object") continue;
+            const entry = collection[groupId];
+            if (entry && entry.label) return String(entry.label);
+        }
+
+        if (!groupId || groupId === "__all__") return "World";
+        return humanizeSlug(groupId);
+    }
+
+    function getQuizLabel() {
+        return `${getGroupLabel()} · ${getModeLabel()}`;
+    }
+
+    function getCompletionState() {
+        const target = textOf("quiz-target");
+        const progress = textOf("quiz-progress");
+        const result = textOf("quiz-result");
+
+        const targetDone = /^done!?$/i.test(target);
+        const progressMatch = progress.match(/(\d+)\s*\/\s*(\d+)\s*completed/i);
+        const progressDone = Boolean(
+            progressMatch && Number(progressMatch[1]) === Number(progressMatch[2])
+        );
+        const resultDone = /\bfinished\s+in\b/i.test(result);
+
+        return {
+            completed: targetDone || (progressDone && resultDone),
+            target,
+            progress,
+            result
+        };
+    }
+
+    function extractAccuracyValue() {
+        const accuracy = textOf("quiz-accuracy");
+        const match = accuracy.match(/(\d+(?:\.\d+)?)\s*%/);
+        return match ? `${match[1]}%` : "--";
+    }
+
+    function extractTimeValue() {
+        const timer = textOf("quiz-timer").replace(/^time\s*:?\s*/i, "").trim();
+        if (/^\d{1,3}:\d{2}(?::\d{2})?$/.test(timer)) return timer;
+
+        const result = textOf("quiz-result");
+        const resultMatch = result.match(/finished\s+in\s+([^.!]+)/i);
+        return resultMatch ? resultMatch[1].trim() : (timer || "--:--");
+    }
+
+    function extractProgressValue() {
+        const progress = textOf("quiz-progress");
+        const match = progress.match(/(\d+)\s*\/\s*(\d+)/);
+        return match ? `${match[1]}/${match[2]}` : "Complete";
+    }
+
+    function ensureShareSection() {
+        injectStyles();
+
+        let section = byId(SECTION_ID);
+        if (section) return section;
+
+        const panel = byId("quiz-panel");
+        if (!panel) return null;
+
+        section = document.createElement("section");
+        section.id = SECTION_ID;
+        section.setAttribute("aria-label", "Share quiz result");
+
+        const copy = document.createElement("div");
+        copy.className = "quiz-share-copy";
+
+        const title = document.createElement("div");
+        title.className = "quiz-share-title";
+        title.textContent = "Challenge a friend";
+
+        const subtitle = document.createElement("div");
+        subtitle.className = "quiz-share-subtitle";
+        subtitle.textContent = "Share your result and see if they can beat it.";
+
+        const button = document.createElement("button");
+        button.id = BUTTON_ID;
+        button.type = "button";
+        button.textContent = "Share result";
+        button.setAttribute("aria-label", "Share your quiz result as an image");
+        button.addEventListener("click", onShareButtonClick);
+
+        copy.append(title, subtitle);
+        section.append(copy, button);
+
+        // Keep this out of #quiz-buttons. On mobile the normal controls may be
+        // moved into #quiz-bottom, while this share callout stays in the panel.
+        panel.appendChild(section);
+        return section;
+    }
+
+    function showShareSection() {
+        const section = ensureShareSection();
+        if (section) section.style.display = "flex";
+    }
+
+    function hideShareSection() {
+        const section = byId(SECTION_ID);
+        if (section) section.style.display = "none";
+
+        const button = byId(BUTTON_ID);
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Share result";
+        }
+    }
+
+    let lastCompleted = null;
+
+    function updateVisibility(force = false) {
+        const completed = getCompletionState().completed;
+        if (!force && completed === lastCompleted) return;
+        lastCompleted = completed;
+
+        if (completed) showShareSection();
+        else hideShareSection();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + width, y, x + width, y + height, r);
+        ctx.arcTo(x + width, y + height, x, y + height, r);
+        ctx.arcTo(x, y + height, x, y, r);
+        ctx.arcTo(x, y, x + width, y, r);
+        ctx.closePath();
+    }
+
+    function loadImage(source) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error(`Could not load image: ${source}`));
+            image.src = source;
+        });
+    }
+
+    async function loadExistingSmurdyLogo() {
+        const existing = document.querySelector('img[src*="Smurdeye"]');
+        const sources = [
+            existing && (existing.currentSrc || existing.src),
+            "/assets/images/SmurdeyeBig.png",
+            "/assets/images/Smurdeye.png"
+        ].filter(Boolean);
+
+        for (const source of [...new Set(sources)]) {
+            try {
+                return await loadImage(source);
+            } catch (_) {}
+        }
+        return null;
+    }
+
+    function drawContainedImage(ctx, image, x, y, width, height) {
+        const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+        const drawWidth = image.naturalWidth * scale;
+        const drawHeight = image.naturalHeight * scale;
+        ctx.drawImage(
+            image,
+            x + (width - drawWidth) / 2,
+            y + (height - drawHeight) / 2,
+            drawWidth,
+            drawHeight
+        );
+    }
+
+    function drawStatCard(ctx, x, y, width, label, value) {
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,.075)";
+        roundRect(ctx, x, y, width, 136, 20);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,255,255,.10)";
+        ctx.lineWidth = 2;
+        roundRect(ctx, x, y, width, 136, 20);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(255,255,255,.68)";
+        ctx.font = "650 25px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.fillText(label, x + 24, y + 40);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "850 44px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.fillText(value, x + 24, y + 94);
+        ctx.restore();
+    }
+
+    function splitTextIntoLines(ctx, text, maxWidth, maxLines) {
+        const words = String(text || "").split(/\s+/).filter(Boolean);
+        const lines = [];
+        let line = "";
+
+        for (const word of words) {
+            const candidate = line ? `${line} ${word}` : word;
+            if (ctx.measureText(candidate).width <= maxWidth || !line) {
+                line = candidate;
+            } else {
+                lines.push(line);
+                line = word;
+            }
+        }
+        if (line) lines.push(line);
+
+        if (lines.length <= maxLines) return lines;
+        const kept = lines.slice(0, maxLines);
+        kept[maxLines - 1] = `${kept[maxLines - 1].replace(/[.…]+$/, "")}…`;
+        return kept;
+    }
+
+    function drawAdaptiveHeadline(ctx, text, x, top, maxWidth) {
+        let fontSize = 50;
+        let lines = [];
+
+        while (fontSize >= 38) {
+            ctx.font = `850 ${fontSize}px system-ui, -apple-system, Segoe UI, Arial`;
+            lines = splitTextIntoLines(ctx, text, maxWidth, 2);
+            const originalLineCount = (() => {
+                const words = String(text || "").split(/\s+/).filter(Boolean);
+                let count = 1;
+                let line = "";
+                for (const word of words) {
+                    const candidate = line ? `${line} ${word}` : word;
+                    if (ctx.measureText(candidate).width <= maxWidth || !line) line = candidate;
+                    else { count++; line = word; }
+                }
+                return count;
+            })();
+            if (originalLineCount <= 2) break;
+            fontSize -= 2;
+        }
+
+        const lineHeight = fontSize + 8;
+        lines.forEach((line, index) => {
+            ctx.fillText(line, x, top + index * lineHeight);
+        });
+        return top + (lines.length - 1) * lineHeight;
+    }
+
+    function canvasToBlob(canvas) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => {
+                if (blob) resolve(blob);
+                else reject(new Error("Canvas export failed."));
+            }, "image/png");
+        });
+    }
+
+    async function buildShareImageBlob() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1200;
+        canvas.height = 630;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Could not create the share image canvas.");
+
+        const background = ctx.createLinearGradient(0, 0, 1200, 630);
+        background.addColorStop(0, "#0d0d0d");
+        background.addColorStop(.58, "#171717");
+        background.addColorStop(1, "#222");
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, 1200, 630);
+
+        // Procedural grid drawn entirely in Canvas.
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255,255,255,.025)";
+        for (let x = 0; x <= 1200; x += 86) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 630);
+            ctx.stroke();
+        }
+        for (let y = 0; y <= 630; y += 86) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(1200, y);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = "rgba(255,255,255,.055)";
+        roundRect(ctx, 44, 44, 1112, 542, 28);
+        ctx.fill();
+
+        const logo = await loadExistingSmurdyLogo();
+        if (logo) {
+            ctx.fillStyle = "rgba(255,255,255,.96)";
+            roundRect(ctx, 82, 78, 86, 70, 13);
+            ctx.fill();
+            drawContainedImage(ctx, logo, 91, 85, 68, 56);
+        }
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "850 34px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.fillText("Smurdy", logo ? 194 : 88, 111);
+
+        ctx.fillStyle = "rgba(255,255,255,.68)";
+        ctx.font = "650 22px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.fillText("Geography quiz result", logo ? 194 : 88, 143);
+
+        const headline = `I finished the ${getGroupLabel()} map quiz`;
+        ctx.fillStyle = "#fff";
+        const headlineBottom = drawAdaptiveHeadline(ctx, headline, 88, 225, 1024);
+
+        ctx.fillStyle = "rgba(255,255,255,.82)";
+        ctx.font = "750 28px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.fillText(getModeLabel(), 90, Math.max(322, headlineBottom + 52));
+
+        const cardY = 365;
+        drawStatCard(ctx, 88, cardY, 306, "Time", extractTimeValue());
+        drawStatCard(ctx, 420, cardY, 306, "Accuracy", extractAccuracyValue());
+        drawStatCard(ctx, 752, cardY, 306, "Completed", extractProgressValue());
+
+        // Keep the two footer items on opposite sides so they can never overlap.
+        ctx.fillStyle = "#fff";
+        ctx.font = "850 28px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Can you beat this?", 88, 558);
+
+        ctx.fillStyle = "rgba(255,255,255,.72)";
+        ctx.font = "700 24px system-ui, -apple-system, Segoe UI, Arial";
+        ctx.textAlign = "right";
+        ctx.fillText("Play at smurdy.fun", 1110, 558);
+        ctx.textAlign = "left";
+
+        return await canvasToBlob(canvas);
+    }
+
+    function buildShareText() {
+        return [
+            `I finished ${getQuizLabel()}`,
+            `${extractAccuracyValue()} accuracy`,
+            `${extractTimeValue()} time`,
+            "Can you beat it? https://smurdy.fun/"
+        ].join(" • ");
+    }
+
+    async function writeSharePayloadToClipboard(blob, text) {
+        if (!navigator.clipboard || !window.ClipboardItem) return false;
+
+        try {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    "image/png": blob,
+                    "text/plain": new Blob([text], { type: "text/plain" })
+                })
+            ]);
+            return true;
+        } catch (_) {
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({ "image/png": blob })
+                ]);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    async function onShareButtonClick() {
+        const button = byId(BUTTON_ID);
+        if (!button || button.disabled) return;
+
+        const originalText = "Share result";
+        button.disabled = true;
+        button.textContent = "Preparing...";
+
+        try {
+            const blob = await buildShareImageBlob();
+            const slug = String(getGroupId() || "quiz")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "") || "quiz";
+            const filename = `smurdy-${slug}-result.png`;
+            const file = new File([blob], filename, { type: "image/png" });
+            const shareText = buildShareText();
+
+            if (
+                typeof navigator.share === "function" &&
+                typeof navigator.canShare === "function" &&
+                navigator.canShare({ files: [file] })
+            ) {
+                button.textContent = "Sharing...";
+                try {
+                    await navigator.share({
+                        files: [file],
+                        text: shareText,
+                        title: `${getQuizLabel()} result`
+                    });
+                    button.textContent = "Shared";
+                } catch (error) {
+                    if (error && error.name === "AbortError") {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        return;
+                    }
+                    throw error;
+                }
+            } else {
+                button.textContent = "Copying...";
+                const copied = await writeSharePayloadToClipboard(blob, shareText);
+                if (copied) {
+                    button.textContent = "Copied image";
+                } else {
+                    downloadBlob(blob, filename);
+                    button.textContent = "Downloaded";
+                }
+            }
+
+            window.setTimeout(() => {
+                button.disabled = false;
+                button.textContent = originalText;
+            }, 1400);
+        } catch (error) {
+            console.warn("Smurdy share result failed:", error);
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+    function install() {
+        ensureShareSection();
+        updateVisibility(true);
+
+        // Read-only polling avoids the feedback loop caused by the first version's
+        // document-wide style observer. 400 ms is quick enough to feel immediate.
+        window.setInterval(() => updateVisibility(false), 400);
+
+        window.addEventListener("popstate", () => updateVisibility(true));
+        window.addEventListener("hashchange", () => updateVisibility(true));
+        window.addEventListener("smurdy:mainmenu", () => {
+            lastCompleted = false;
+            hideShareSection();
+        });
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) updateVisibility(true);
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", install, { once: true });
+    } else {
+        install();
+    }
+})();
