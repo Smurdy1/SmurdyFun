@@ -6,24 +6,17 @@ const vm = require("vm");
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
-    // write pages directly into the repo (quizzes/) instead of docs/
+    const copyPath = path.join(repoRoot, "src", "data", "quiz_page_descriptions.json");
     const outDir = path.join(repoRoot, "quizzes");
+
     const baseUrl = (process.env.BASE_URL || "https://smurdy.fun").replace(/\/+$/, "");
-    // PUBLIC_ROOT override: if set, use it verbatim. Default to baseUrl (no /docs).
     const publicRoot = (process.env.PUBLIC_ROOT && process.env.PUBLIC_ROOT.trim())
         ? process.env.PUBLIC_ROOT.replace(/\/+$/, "")
         : baseUrl.replace(/\/docs$/i, "");
 
-    // load groups JSON
-    let groups = {};
-    try {
-        const gtext = await fs.readFile(groupsPath, "utf8");
-        groups = JSON.parse(gtext);
-    } catch (e) {
-        console.warn("Could not load country_groups.json:", e.message);
-    }
+    const groups = await readJson(groupsPath, "country_groups.json");
+    const pageCopy = await readJson(copyPath, "quiz_page_descriptions.json");
 
-    // load manifest.js by evaluating in VM to capture window.SmurdyQuizManifest
     let manifest = [];
     try {
         const code = await fs.readFile(manifestPath, "utf8");
@@ -32,8 +25,9 @@ const vm = require("vm");
         vm.runInContext(code, sandbox, { filename: "manifest.js" });
         manifest = sandbox.window.SmurdyQuizManifest || [];
         if (!Array.isArray(manifest)) manifest = [];
-    } catch (e) {
-        console.warn("Could not load manifest.js:", e.message);
+    } catch (error) {
+        console.error("Could not load manifest.js:", error.message);
+        process.exit(1);
     }
 
     if (!manifest.length) {
@@ -41,272 +35,282 @@ const vm = require("vm");
         process.exit(1);
     }
 
-    // ensure output folder
+    const modeCopyMap = pageCopy.modes || {};
+    const groupCopyMap = pageCopy.groups || {};
+
+    validateCopyCoverage(groups, groupCopyMap);
+
     await fs.mkdir(outDir, { recursive: true });
 
-    function slug(s) {
-        return String(s || "")
-            .toLowerCase()
-            .replace(/[^\w\- ]+/g, "")
-            .trim()
-            .replace(/\s+/g, "-");
-    }
-
-    // helper: return the group keys that will be generated for a given manifest entry
-    function getGroupKeysForManifest(mm) {
-        return mm.groupSet ? Object.keys(groups || {}) : ["__all__"];
+    // The mode folders are generated output. Removing only those folders clears
+    // stale pages when a group's allowedTypes changes without touching unrelated files.
+    for (const manifestEntry of manifest) {
+        const manifestId = getManifestId(manifestEntry);
+        await fs.rm(path.join(outDir, slug(manifestId)), { recursive: true, force: true });
     }
 
     const pages = [];
     const pageRecords = [];
 
-    for (const m of manifest) {
-        const manifestId = m.id || slug(m.title || m.file || "quiz");
-        const titleBase = m.title || m.name || manifestId;
-        // choose groups to enumerate: if manifest has groupSet, use all groups; else create single global page
-        const groupSet = m.groupSet;
-        const groupKeys = groupSet ? Object.keys(groups || {}) : ["__all__"];
-        for (const gid of groupKeys) {
-            // determine the unit name for this group (singular)
-            const unitName = (gid !== "__all__" && groups[gid] && groups[gid].unitName) ? String(groups[gid].unitName).trim() : "region";
-            // simple pluralizer for common units (country/state/province/county), fallback to add 's'
-            function pluralizeUnit(u) {
-                const low = String(u || "").toLowerCase();
-                if (low === "country") return "countries";
-                if (low === "state") return "states";
-                if (low === "province") return "provinces";
-                if (low === "county") return "counties";
-                if (low.endsWith("y")) return low.slice(0, -1) + "ies";
-                return low + "s";
-            }
-            const unitPlural = pluralizeUnit(unitName);
-            const groupLabel = gid === "__all__" ? "All regions" : (groups[gid] && groups[gid].label) ? groups[gid].label : gid;
-            // produce more searchable titles like:
-            // "Africa Map Quiz – Click the Countries | Smurdy"
-            const actionType = (m.type || m.mode || "").toString().toLowerCase();
-            let actionVerb = "Play the";
-            if (actionType.includes("click")) actionVerb = "Click the";
-            else if (actionType.includes("type")) actionVerb = "Type the";
-            else if (actionType.includes("find")) actionVerb = "Find the";
-            // special-case find-point id to be clearer
-            if ((m.id || "").toString().toLowerCase().includes("find-point")) {
-                actionVerb = "Find the point in the";
-            }
-            function capitalizeWords(s) {
-                return String(s || "").replace(/\b\w/g, c => c.toUpperCase());
-            }
-            const unitPluralTitle = capitalizeWords(unitPlural);
-            const siteName = "Smurdy";
-            const pageTitle = `${groupLabel} Map Quiz – ${actionVerb} ${unitPluralTitle} | ${siteName}`;
+    for (const manifestEntry of manifest) {
+        const manifestId = getManifestId(manifestEntry);
+        const modeKey = normalizeModeKey(manifestEntry);
+        const modeCopy = modeCopyMap[manifestId] || modeCopyMap[modeKey] || {};
+        const titleBase = manifestEntry.title || manifestEntry.name || manifestId;
+        const groupKeys = getGroupKeysForManifest(manifestEntry);
 
-            // templating context: replace {unitName}, {unitPlural}, {adjective}, {borderset}, {group}, {label}, {title}
-            const groupObj = (gid !== "__all__" && groups[gid]) ? groups[gid] : {};
-            const templateContext = {
+        for (const groupId of groupKeys) {
+            const group = groupId === "__all__" ? {} : (groups[groupId] || {});
+            const groupCopy = groupCopyMap[groupId] || {};
+            const groupLabel = groupId === "__all__"
+                ? "All regions"
+                : (group.label || humanize(groupId));
+
+            const unitName = String(group.unitName || "region").trim();
+            const unitPlural = pluralizeUnit(unitName);
+            const unitPluralTitle = capitalizeWords(unitPlural);
+            const entries = Array.isArray(group.countries) ? group.countries.slice() : [];
+            const entryCount = entries.length;
+            const notable = Array.isArray(group.notable) && group.notable.length
+                ? group.notable.slice(0, 5)
+                : entries.slice(0, 5);
+
+            const context = {
                 group: groupLabel,
-                label: groupObj.label || groupLabel,
-                unitName: groupObj.unitName || unitName,
+                label: group.label || groupLabel,
+                adjective: group.adjective || "",
+                borderset: group.borderset || "",
+                unitName,
                 unitPlural,
-                borderset: groupObj.borderset || '',
-                adjective: groupObj.adjective || '',
+                unitPluralTitle,
+                countryCount: entryCount,
+                entryCount,
+                countPhrase: entryCount ? `all ${entryCount} ${unitPlural}` : `the full set of ${unitPlural}`,
+                examples: joinNatural(notable),
                 title: titleBase,
                 quizId: manifestId
             };
-            function renderTemplate(s) {
-                if (!s && s !== "") return "";
-                return String(s || "").replace(/\{([^}]+)\}/g, (_, key) => {
-                    const v = templateContext[key];
-                    return (v === undefined || v === null) ? "" : String(v);
-                }).trim();
-            }
-            // description sources: prefer explicit descriptionTemplate/description, then fallback title-based text
-            const descSource = (typeof m.descriptionTemplate === "string") ? m.descriptionTemplate : (m.description || "");
-            const description = renderTemplate(descSource) || `${titleBase} (${groupLabel})`;
-             const tags = (m.tags || []).slice(0,6).map(t => String(t));
-             // use POSIX URL-friendly path for the public URL
-             const relPath = `${slug(manifestId)}/${slug(gid)}`;
-            // file-system path for where we write the files (docs/quizzes/...)
-            const outPathDir = path.join(outDir, relPath);
-            await fs.mkdir(outPathDir, { recursive: true });
-            const outFile = path.join(outPathDir, "index.html");
 
-            // build the absolute page URL once and use it for canonical + sitemap (must be defined before pageHtml)
+            const pageTitle = buildPageTitle({
+                groupLabel,
+                unitPluralTitle,
+                manifestId,
+                modeKey
+            });
+
+            const lead = renderTemplate(
+                modeCopy.lead ||
+                manifestEntry.shortDescription ||
+                manifestEntry.descriptionTemplate ||
+                `Practice the ${groupLabel} map.`,
+                context
+            );
+
+            const overview = renderTemplate(
+                groupCopy.overview ||
+                `${groupLabel} is included as a focused geography practice group in Smurdy.`,
+                context
+            );
+
+            const challenge = renderTemplate(
+                groupCopy.challenge ||
+                `This group tests both name recognition and accurate map placement.`,
+                context
+            );
+
+            const studyTip = renderTemplate(
+                groupCopy.studyTip ||
+                `Review nearby places together, then return to the full group for mixed practice.`,
+                context
+            );
+
+            const howToPlay = renderTemplate(
+                modeCopy.howToPlay ||
+                inferModeInstructions(manifestEntry, context),
+                context
+            );
+
+            const gameplayTip = renderTemplate(
+                modeCopy.tip || "Use the map context around each answer before making your choice.",
+                context
+            );
+
+            const metaDescription = buildMetaDescription(
+                `${lead} ${overview}`,
+                pageTitle
+            );
+
+            const keywords = buildKeywords({
+                manifestEntry,
+                modeCopy,
+                groupCopy,
+                groupLabel,
+                unitPlural,
+                notable
+            });
+
+            const relPath = `${slug(manifestId)}/${slug(groupId)}`;
+            const outPathDir = path.join(outDir, relPath);
+            const outFile = path.join(outPathDir, "index.html");
+            await fs.mkdir(outPathDir, { recursive: true });
+
             const pageUrlRaw = `${publicRoot}/quizzes/${relPath}/`;
             const pageUrl = encodeURI(pageUrlRaw);
 
-            // Build minimal, unique HTML page (no redirect) with meta + JSON-LD + a short handcrafted paragraph
-            // Allow manifest authors to provide small SEO/play copy so new quizzes don't require editing this script.
-            // Priority:
-            //  1) m.playHint or m.config.playHint (short instruction shown above the button)
-            //  2) infer from m.type / m.config.mode as a fallback
-            // Build action note from manifest fields with templating (longDescription, shortDescription, playHint)
-            const actionCandidates = [
-                m.longDescription,
-                m.shortDescription,
-                m.playHint,
-                (m.config && typeof m.config.playHint === "function") ? m.config.playHint() : (m.config && m.config.playHint),
-                m.descriptionTemplate
-            ];
-            let actionNote = "";
-            for (const cand of actionCandidates) {
-                if (!cand && cand !== "") continue;
-                const rendered = renderTemplate(cand);
-                if (rendered) { actionNote = rendered; break; }
-            }
-            // fallback: infer from type/mode
-            if (!actionNote) {
-                const actionMode = String(m.type || (m.config && m.config.mode) || "").toLowerCase();
-                if (actionMode.includes("type")) actionNote = `You will type ${unitPlural} names to answer.`;
-                else if (actionMode.includes("click")) actionNote = `You will click the correct ${unitName} on the map.`;
-                else actionNote = "";
-            }
-
-            // Lead text: prefer shortDescription or seoIntro (templated), otherwise use description
-            const leadSourceRaw = (m.shortDescription || m.seoIntro || description);
-            const leadSource = renderTemplate(leadSourceRaw);
-            const leadText = `${escapeHtml(groupLabel)}: ${escapeHtml(leadSource)}`;
-
-            // pick 5 example units: prefer group.notable, otherwise fall back to first 5 in the group's countries array
-            const notableList = (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].notable) && groups[gid].notable.length)
-                ? groups[gid].notable.slice(0, 5)
-                : (gid !== "__all__" && groups[gid] && Array.isArray(groups[gid].countries) ? groups[gid].countries.slice(0, 5) : []);
-
-            // determine which mode to open the quiz with:
-            // For pages tied to a specific group prefer that group's borderset (e.g. "states" for US states).
-            // Otherwise fall back to manifest m.mode or "countries".
             let linkMode = "countries";
-            if (gid !== "__all__" && groups[gid] && groups[gid].borderset) {
-                linkMode = String(groups[gid].borderset).trim();
-            } else if (m.mode && String(m.mode).trim()) {
-                linkMode = String(m.mode).trim();
-            } else if (m.type && String(m.type).trim()) {
-                // fallback: use manifest type if it maps sensibly
-                linkMode = String(m.type).trim();
-            }
+            if (group.borderset) linkMode = String(group.borderset).trim();
+            else if (manifestEntry.mode) linkMode = String(manifestEntry.mode).trim();
+            else if (manifestEntry.type) linkMode = String(manifestEntry.type).trim();
 
-            // find other quizzes that also include this group (for the "Other quizzes" list)
             const otherQuizzes = manifest
-                .map(mm => {
-                    const mmId = mm.id || slug(mm.title || mm.file || "quiz");
-                    const mmTitle = mm.title || mm.name || mmId;
-                    const mmGroupKeys = getGroupKeysForManifest(mm);
-                    return { id: mmId, title: mmTitle, groups: mmGroupKeys };
-                })
-                .filter(mm => mm.id !== manifestId && mm.groups && mm.groups.includes(gid))
-                .slice(0, 8); // cap list to 8 items
+                .filter(other => getManifestId(other) !== manifestId)
+                .filter(other => getGroupKeysForManifest(other).includes(groupId))
+                .map(other => ({
+                    id: getManifestId(other),
+                    title: getModeDisplayName(other)
+                }))
+                .slice(0, 8);
+
+            const entryListHtml = entries.length
+                ? `<details class="included-list">
+                    <summary>${escapeHtml(capitalizeWords(unitPlural))} included in this quiz (${entryCount})</summary>
+                    <p>${entries.map(escapeHtml).join(", ")}.</p>
+                  </details>`
+                : "";
+
+            const exampleListHtml = notable.length
+                ? `<section class="examples" aria-labelledby="example-heading">
+                    <h2 id="example-heading">Example ${escapeHtml(unitPlural)}</h2>
+                    <ul>${notable.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
+                  </section>`
+                : "";
 
             const pageHtml = `<!doctype html>
- <html lang="en">
- <head>
-   <meta charset="utf-8"/>
-   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-   <title>${escapeHtml(pageTitle)}</title>
-   <meta name="description" content="${escapeHtml(description)}"/>
-   <meta name="keywords" content="${escapeHtml(tags.join(", "))}"/>
-   <link rel="canonical" href="${pageUrlRaw}" />
-   <meta name="robots" content="index, follow"/>
-   <!-- use same site icon as the main page -->
-   <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/Smurdeye.png">
-   <!-- social preview / in-page logo uses the larger SmurdeyeBig.png -->
-   <meta property="og:image" content="${publicRoot}/assets/images/SmurdeyeBig.png" />
-   <script type="application/ld+json">
-   ${JSON.stringify({
-         "@context": "https://schema.org",
-         "@type": "WebPage",
-         "name": pageTitle,
-         "description": description,
-         "url": pageUrlRaw
-     }, null, 2)}
-   </script>
-   <style>
-     /* simplified style aligned with the main page */
-     :root{--brand:#0077cc;--muted:#666}
-     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.5;color:#111;margin:0}
-     /* left floating brand / similar to main page */
-     .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background-color:rgba(180, 180, 180, 0.12);padding:18px}
-     .panel-brand img{width:56px;height:56px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)}
-     .panel-brand .brand-text{font-weight:700;font-size:18px}
-     main{max-width:980px;margin:24px auto;padding:10px}
-     header h1{font-size:22px;margin:0 0 8px}
-     .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
-     .lead{margin:14px 0;color:#222}
-     .examples{margin-top:14px}
-     .examples ul{padding-left:20px}
-     .action-row{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
-     .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent}
-     .qb-btn.primary{background:var(--brand);color:#fff}
-     .qb-btn.secondary{background:#f4f4f4;color:#111}
-     .other-quizzes{margin-top:20px;border-top:1px solid #eee;padding-top:14px}
-    /* pill/button list for other quizzes */
-    .other-quizzes .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;padding:0;list-style:none}
-    .other-quizzes .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 14px;
-      border-radius:999px;
-      background:#f4f4f4;
-      color:#111;
-      text-decoration:none;
-      border:1px solid rgba(0,0,0,0.04);
-      font-size:14px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 14px;
-      border-radius:999px;
-      background:#f4f4f4;
-      color:#111;
-      text-decoration:none;
-      border:1px solid rgba(0,0,0,0.06);
-      font-size:14px;
-      box-shadow:0 1px 0 rgba(0,0,0,0.02);
-      transition:all .12s ease;
-      cursor:pointer;
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>${escapeHtml(pageTitle)}</title>
+  <meta name="description" content="${escapeHtml(metaDescription)}"/>
+  <meta name="keywords" content="${escapeHtml(keywords.join(", "))}"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="${escapeHtml(pageUrlRaw)}"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/Smurdeye.png"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="${escapeHtml(pageTitle)}"/>
+  <meta property="og:description" content="${escapeHtml(metaDescription)}"/>
+  <meta property="og:url" content="${escapeHtml(pageUrlRaw)}"/>
+  <meta property="og:image" content="${publicRoot}/assets/images/SmurdeyeBig.png"/>
+  <script type="application/ld+json">
+${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": pageTitle,
+    "description": metaDescription,
+    "url": pageUrlRaw,
+    "about": {
+        "@type": "Thing",
+        "name": `${groupLabel} geography`
+    },
+    "educationalUse": "practice",
+    "isPartOf": {
+        "@type": "WebSite",
+        "name": "Smurdy",
+        "url": publicRoot
     }
-    .other-quizzes .chip:focus{outline:2px solid rgba(0,119,204,0.18);outline-offset:2px}
-    .other-quizzes .chip:hover{
-      background:#0077cc;
-      color:#fff;
-      transform:translateY(-1px);
-      border-color:rgba(0,119,204,0.22);
-    }
-     footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 20px 30px}
-   </style>
- </head>
- <body>
-  <a class="panel-brand" href="${publicRoot}" title="Smurdy">
-    <img src="/assets/images/SmurdeyeBig.png" alt="Smurdy logo">
+}, null, 2)}
+  </script>
+  <style>
+    :root{--brand:#0077cc;--muted:#666;--line:#e8e8e8;--soft:#f6f6f6}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#111;margin:0;background:#fff}
+    .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background:rgba(180,180,180,.12);padding:18px}
+    .panel-brand img{width:56px;height:56px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .panel-brand .brand-text{font-weight:700;font-size:18px}
+    main{max-width:980px;margin:24px auto;padding:10px 18px}
+    header h1{font-size:clamp(24px,3vw,34px);line-height:1.2;margin:0 0 8px}
+    .meta{color:var(--muted);font-size:14px;margin-bottom:18px}
+    .lead{font-size:18px;margin:0 0 22px;color:#222}
+    .content-section{margin:22px 0}
+    .content-section h2,.examples h2{font-size:20px;margin:0 0 8px}
+    .content-section p{margin:0}
+    .tip{background:var(--soft);border-left:4px solid var(--brand);padding:12px 14px;border-radius:4px;margin-top:12px}
+    .examples{margin:22px 0}
+    .examples ul{padding-left:22px;margin:8px 0}
+    .included-list{margin:22px 0;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+    .included-list summary{cursor:pointer;font-weight:700}
+    .included-list p{margin:12px 0 2px}
+    .action-row{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap}
+    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent}
+    .qb-btn.primary{background:var(--brand);color:#fff}
+    .qb-btn.secondary{background:#f4f4f4;color:#111}
+    .other-quizzes{margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
+    .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+    .chip{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;background:#f4f4f4;color:#111;text-decoration:none;border:1px solid rgba(0,0,0,.06);font-size:14px;transition:all .12s ease}
+    .chip:hover{background:var(--brand);color:#fff;transform:translateY(-1px)}
+    .chip:focus{outline:2px solid rgba(0,119,204,.22);outline-offset:2px}
+    footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 28px 30px}
+  </style>
+</head>
+<body>
+  <a class="panel-brand" href="${publicRoot}/" title="Smurdy">
+    <img src="/assets/images/SmurdeyeBig.png" alt="Smurdy logo"/>
     <div class="brand-text">Smurdy</div>
   </a>
 
-   <main>
-     <header>
-       <h1>${escapeHtml(pageTitle)}</h1>
-       <div class="meta">Quiz: ${escapeHtml(m.type || m.mode || "")} — Group: ${escapeHtml(groupLabel)}</div>
-     </header>
+  <main>
+    <header>
+      <h1>${escapeHtml(pageTitle)}</h1>
+      <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} · ${escapeHtml(groupLabel)} · ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
+    </header>
 
-     <section>
-       <p class="lead">${leadText}</p>
+    <p class="lead">${escapeHtml(lead)}</p>
 
-       ${actionNote ? `<p>${escapeHtml(actionNote)} Click "Open quiz" to begin.</p><p>Tip: zoom or pan the map to inspect small places and islands before answering.</p>` : `<p>Click "Open quiz" to begin.</p><p>Tip: zoom or pan the map to inspect small places and islands before answering.</p>`}
+    <section class="content-section">
+      <h2>What this ${escapeHtml(groupLabel)} quiz covers</h2>
+      <p>${escapeHtml(overview)}</p>
+    </section>
 
-       ${notableList.length ? `<section class="examples"><strong>Example ${escapeHtml(unitPlural)}:</strong><ul>${notableList.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul></section>` : ""}
+    <section class="content-section">
+      <h2>${escapeHtml(modeCopy.heading || "How this map quiz works")}</h2>
+      <p>${escapeHtml(howToPlay)}</p>
+      <p class="tip"><strong>Gameplay tip:</strong> ${escapeHtml(gameplayTip)}</p>
+    </section>
 
-       <div class="action-row">
-         <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(m.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${gid !== "__all__" ? "&group=" + encodeURIComponent(gid) : ""}">Open quiz</a>
-         <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
-       </div>
-     </section>
+    <section class="content-section">
+      <h2>What makes this group challenging</h2>
+      <p>${escapeHtml(challenge)}</p>
+    </section>
 
-     ${otherQuizzes.length ? `<aside class="other-quizzes"><strong>Other quizzes in ${escapeHtml(groupLabel)}:</strong><div class="chip-list">${otherQuizzes.map(q => `<a class="chip" href="${publicRoot}/quizzes/${slug(q.id)}/${slug(gid)}/">${escapeHtml(q.title)}</a>`).join("")}</div></aside>` : ""}
-   </main>
+    <section class="content-section">
+      <h2>Study tip</h2>
+      <p>${escapeHtml(studyTip)}</p>
+    </section>
 
-    <footer>Smurdy — geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
- </body>
- </html>`;
-             await fs.writeFile(outFile, pageHtml, "utf8");
-             // ensure sitemap uses the public root (without any /docs prefix)
- 
+    ${exampleListHtml}
+    ${entryListHtml}
+
+    <div class="action-row">
+      <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(manifestEntry.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${groupId !== "__all__" ? "&group=" + encodeURIComponent(groupId) : ""}">Open quiz</a>
+      <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
+    </div>
+
+    ${otherQuizzes.length
+        ? `<aside class="other-quizzes">
+            <strong>Other quizzes for ${escapeHtml(groupLabel)}</strong>
+            <div class="chip-list">${otherQuizzes.map(quiz =>
+                `<a class="chip" href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a>`
+            ).join("")}</div>
+          </aside>`
+        : ""}
+  </main>
+
+  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
+</body>
+</html>`;
+
+            await fs.writeFile(outFile, pageHtml, "utf8");
+
             pages.push(pageUrl);
             pageRecords.push({
                 url: pageUrl,
@@ -315,61 +319,166 @@ const vm = require("vm");
                 groupLabel,
                 quizTitle: titleBase,
                 manifestId,
-                groupId: gid
+                groupId
             });
-           // Use pageUrlRaw for canonical and JSON-LD inside the page HTML (see below)
         }
     }
 
-    // human + crawler browse page at /quizzes/
-    if (pageRecords.length) {
-        // group by manifest id (unique quiz type)
-        const byMode = new Map();
-        const modeDisplay = new Map(); // human-friendly display name for each manifestId
-        for (const p of pageRecords) {
-            const key = p.manifestId || "quiz";
-            if (!byMode.has(key)) byMode.set(key, []);
-            byMode.get(key).push(p);
-            if (!modeDisplay.has(key)) {
-                // prefer the manifest title / quizTitle if available, otherwise derive from id
-                const human = humanizeMode(p.quizTitle || key);
-                modeDisplay.set(key, human);
-            }
-        }
+    await writeQuizIndex({ outDir, pageRecords, publicRoot });
+    await writeSitemap({ repoRoot, pages });
 
-        function humanizeMode(s) {
-            if (!s) return "";
-            const raw = String(s).trim();
-            // normalize separators
-            const normalized = raw.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
-            const low = normalized.toLowerCase();
-            // a few helpful special cases
-            if (low.includes("find") && low.includes("point")) return "Find the Point";
-            if (low.includes("click") && low.includes("country")) return "Click the Countries";
-            if (low.includes("click") && low.includes("state")) return "Click the States";
-            if (low.includes("type") && low.includes("name")) return "Type the Name";
-            // title case fallback
-            return normalized.replace(/\b\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
-        }
+    console.log(`Wrote ${pages.length} quiz pages to quizzes/ and updated sitemap.xml.`);
+    console.log(`Editable descriptions: ${path.relative(repoRoot, copyPath)}`);
+    process.exit(0);
 
-        const allQuizzesHtml = `<!doctype html>
+    function getGroupKeysForManifest(entry) {
+        if (!entry.groupSet) return ["__all__"];
+        const mode = normalizeModeKey(entry);
+        return Object.keys(groups).filter(groupId => {
+            const allowed = groups[groupId] && groups[groupId].allowedTypes;
+            return !Array.isArray(allowed) || allowed.length === 0 || allowed.includes(mode);
+        });
+    }
+})().catch(error => {
+    console.error(error);
+    process.exit(1);
+});
+
+async function readJson(filePath, label) {
+    try {
+        return JSON.parse(await fs.readFile(filePath, "utf8"));
+    } catch (error) {
+        console.error(`Could not load ${label}:`, error.message);
+        process.exit(1);
+    }
+}
+
+function validateCopyCoverage(groups, groupCopyMap) {
+    const missing = Object.keys(groups).filter(groupId => !groupCopyMap[groupId]);
+    if (missing.length) {
+        console.warn(`Missing custom descriptions for: ${missing.join(", ")}. Fallback copy will be used.`);
+    }
+}
+
+function getManifestId(entry) {
+    return entry.id || slug(entry.title || entry.file || "quiz");
+}
+
+function normalizeModeKey(entry) {
+    const raw = String(entry.id || entry.type || entry.mode || "").toLowerCase();
+    if (raw.includes("find-point")) return "find-point";
+    if (raw.includes("find")) return "find";
+    if (raw.includes("type")) return "type";
+    if (raw.includes("click")) return "click";
+    return raw;
+}
+
+function getModeDisplayName(entry) {
+    const id = getManifestId(entry);
+    if (id === "click-country") return "Click the Countries";
+    if (id === "type-country") return "Type the Countries";
+    if (id === "find-country") return "Find the Countries";
+    if (id === "find-point") return "Find the Point";
+    return entry.title || humanize(id);
+}
+
+function buildPageTitle({ groupLabel, unitPluralTitle, manifestId, modeKey }) {
+    if (manifestId === "find-point" || modeKey === "find-point") {
+        return `${groupLabel} Find the Point Map Quiz | Smurdy`;
+    }
+    if (manifestId === "find-country" || modeKey === "find") {
+        return `${groupLabel} No-Borders Map Quiz – Find the ${unitPluralTitle} | Smurdy`;
+    }
+    if (manifestId === "type-country" || modeKey === "type") {
+        return `${groupLabel} Map Quiz – Type the ${unitPluralTitle} | Smurdy`;
+    }
+    return `${groupLabel} Map Quiz – Click the ${unitPluralTitle} | Smurdy`;
+}
+
+function inferModeInstructions(entry, context) {
+    const mode = normalizeModeKey(entry);
+    if (mode === "type") {
+        return `A ${context.unitName} is highlighted on the map. Type its name to answer.`;
+    }
+    if (mode === "find") {
+        return `Find and click each ${context.unitName} while political borders are hidden.`;
+    }
+    if (mode === "find-point") {
+        return `Type the ${context.unitName} that contains the point shown on the map.`;
+    }
+    return `Click the correct ${context.unitName} when its name appears.`;
+}
+
+function buildMetaDescription(text, pageTitle) {
+    const cleaned = String(text || "")
+        .replace(/\s+/g, " ")
+        .replace(/\s+([,.!?;:])/g, "$1")
+        .trim();
+
+    const fallback = `${pageTitle.replace(/\s*\|\s*Smurdy$/, "")}. Free interactive geography practice on Smurdy.`;
+    const source = cleaned || fallback;
+
+    if (source.length <= 158) return source;
+    const shortened = source.slice(0, 155);
+    const lastSpace = shortened.lastIndexOf(" ");
+    return `${shortened.slice(0, lastSpace > 110 ? lastSpace : 155).replace(/[,:;.-]+$/, "")}...`;
+}
+
+function buildKeywords({ manifestEntry, modeCopy, groupCopy, groupLabel, unitPlural, notable }) {
+    const values = [
+        `${groupLabel} map quiz`,
+        `${groupLabel} ${unitPlural} quiz`,
+        `learn ${groupLabel} geography`,
+        ...(manifestEntry.tags || []),
+        ...(modeCopy.searchTerms || []),
+        ...(groupCopy.searchTerms || []),
+        ...notable.map(name => `${name} map`)
+    ];
+
+    const seen = new Set();
+    return values
+        .map(value => String(value || "").trim())
+        .filter(Boolean)
+        .filter(value => {
+            const key = value.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, 18);
+}
+
+async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
+    if (!pageRecords.length) return;
+
+    const byMode = new Map();
+    for (const record of pageRecords) {
+        if (!byMode.has(record.manifestId)) byMode.set(record.manifestId, []);
+        byMode.get(record.manifestId).push(record);
+    }
+
+    const modeNames = {
+        "click-country": "Click the Countries",
+        "type-country": "Type the Countries",
+        "find-country": "Find the Countries Without Borders",
+        "find-point": "Find the Point"
+    };
+
+    const html = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>All Smurdy Geography Quizzes</title>
-  <meta name="description" content="Browse every Smurdy geography quiz, including world, region and specialty quizzes."/>
+  <meta name="description" content="Browse Smurdy map quizzes by region and game mode, including country clicking, typing, no-borders challenges, and point identification."/>
   <link rel="canonical" href="${publicRoot}/quizzes/"/>
-  <link rel="stylesheet" href="/styles/style.css"/>
   <style>
-    /* make the page fill the viewport and allow the quiz list to scroll */
-    html,body{height:100%}
-    body{font-family:system-ui,Arial,sans-serif;min-height:100vh;margin:0;padding:0;background:#f7f7f2;color:#111;display:flex;flex-direction:column}
-    main{flex:1 1 auto;max-width:1100px;margin:24px auto;padding:18px;overflow:auto}
-    header{margin-bottom:8px}
+    html,body{min-height:100%}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f7f7f2;color:#111}
+    main{max-width:1100px;margin:24px auto;padding:18px}
     a{color:#111}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:20px}
-    section{background:rgba(255,255,255,.98);border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
+    section{background:#fff;border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
     h1{margin:0 0 8px}
     h2{font-size:18px;margin:0 0 10px}
     ul{margin:0;padding-left:18px}
@@ -379,55 +488,99 @@ const vm = require("vm");
 </head>
 <body>
   <main>
-    <header><h1>All Smurdy Geography Quizzes</h1>
-    <p>Browse every Smurdy map quiz. These links also help search engines discover the quiz landing pages.</p>
-    <a class="home" href="${publicRoot}/">Back to Smurdy</a></header>
+    <header>
+      <h1>All Smurdy Geography Quizzes</h1>
+      <p>Choose a map region and game mode. Only combinations available in the main quiz browser are listed here.</p>
+      <a class="home" href="${publicRoot}/">Back to Smurdy</a>
+    </header>
     <div class="grid">
-      ${Array.from(byMode.entries()).map(([modeKey, items]) => `
+      ${Array.from(byMode.entries()).map(([modeId, records]) => `
       <section>
-        <h2>${escapeHtml(modeDisplay.get(modeKey) || modeKey)}</h2>
+        <h2>${escapeHtml(modeNames[modeId] || humanize(modeId))}</h2>
         <ul>
-          ${items.map(p => `<li><a href="${p.path}">${escapeHtml(p.title.replace(" | Smurdy", ""))}</a></li>`).join("\n          ")}
+          ${records.map(record =>
+              `<li><a href="${record.path}">${escapeHtml(record.title.replace(" | Smurdy", ""))}</a></li>`
+          ).join("\n          ")}
         </ul>
       </section>`).join("\n")}
     </div>
   </main>
 </body>
 </html>`;
-        await fs.writeFile(path.join(outDir, "index.html"), allQuizzesHtml, "utf8");
-    }
 
-    // sitemap
-    if (pages.length) {
-        const lastmod = "2026-05-22";
-        const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+    await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
+}
+
+async function writeSitemap({ repoRoot, pages }) {
+    if (!pages.length) return;
+    const lastmod = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://smurdy.fun/</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
   </url>
-${pages.map(u => `  <url>
-    <loc>${u}</loc>
+${pages.map(url => `  <url>
+    <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
   </url>`).join("\n")}
 </urlset>`;
-        // write sitemap to repo root so it will be available at /sitemap.xml
-        await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
-        console.log(`Wrote ${pages.length} quiz pages to quizzes/ and sitemap.xml to repo root`);
-    } else {
-        console.log("No pages generated.");
-    }
 
-    process.exit(0);
+    await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
+}
 
-    // util
-    function escapeHtml(s) {
-        return String(s || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
-    }
-})();
+function renderTemplate(value, context) {
+    if (value === undefined || value === null) return "";
+    return String(value).replace(/\{([^}]+)\}/g, (_, key) => {
+        const replacement = context[key];
+        return replacement === undefined || replacement === null ? "" : String(replacement);
+    }).replace(/\s+/g, " ").trim();
+}
+
+function pluralizeUnit(unit) {
+    const lower = String(unit || "").toLowerCase();
+    if (lower === "country") return "countries";
+    if (lower === "state") return "states";
+    if (lower === "province") return "provinces";
+    if (lower === "county") return "counties";
+    if (lower.endsWith("y")) return `${lower.slice(0, -1)}ies`;
+    return `${lower}s`;
+}
+
+function joinNatural(items) {
+    const values = (items || []).map(String).filter(Boolean);
+    if (values.length <= 1) return values[0] || "";
+    if (values.length === 2) return `${values[0]} and ${values[1]}`;
+    return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function slug(value) {
+    return String(value || "")
+        .toLowerCase()
+        .replace(/[^\w\- ]+/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
+}
+
+function humanize(value) {
+    return String(value || "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, character => character.toUpperCase());
+}
+
+function capitalizeWords(value) {
+    return String(value || "").replace(/\b\w/g, character => character.toUpperCase());
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}

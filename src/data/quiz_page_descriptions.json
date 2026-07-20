@@ -1,0 +1,373 @@
+{
+    "_editingGuide": {
+        "mainLocation": "Edit the entries inside the groups object in this file.",
+        "groupFields": {
+            "overview": "The main geographic description shown under What this quiz covers.",
+            "challenge": "A short explanation of what players commonly find difficult.",
+            "studyTip": "A practical way to learn or divide the region.",
+            "searchTerms": "Natural search phrases used in metadata. Keep these relevant and avoid repeating the same phrase."
+        },
+        "modeFields": {
+            "lead": "The first sentence on the page.",
+            "howToPlay": "The mode-specific instructions.",
+            "tip": "A mode-specific gameplay tip.",
+            "searchTerms": "Mode-related search phrases used in metadata."
+        }
+    },
+    "modes": {
+        "click-country": {
+            "displayName": "Click the Countries",
+            "lead": "Learn the {group} map by clicking each {unitName} when its name appears.",
+            "heading": "How the click map quiz works",
+            "howToPlay": "The quiz gives you one {unitName} at a time. Click the matching area on the map, then continue until you have completed {countPhrase}. Borders remain visible, so this mode works well for first learning the shapes and positions.",
+            "tip": "Start with the largest or most familiar places, then use their borders to place nearby answers.",
+            "searchTerms": [
+                "click countries map quiz",
+                "interactive geography quiz",
+                "country location quiz"
+            ]
+        },
+        "type-country": {
+            "displayName": "Type the Countries",
+            "lead": "Practice the names and locations of {group} by typing the highlighted {unitPlural}.",
+            "heading": "How the typing map quiz works",
+            "howToPlay": "One {unitName} is highlighted on the map. Type its name to answer, using the map shape and location as your clue. The round continues through {countPhrase}, making this useful for spelling practice as well as map recognition.",
+            "tip": "Say each answer in your head before typing it. That small pause helps connect the written name to the map.",
+            "searchTerms": [
+                "type countries quiz",
+                "country names map quiz",
+                "geography spelling quiz"
+            ]
+        },
+        "find-country": {
+            "displayName": "Find the Countries Without Borders",
+            "lead": "Test your knowledge of {group} by finding each {unitName} on a map with borders hidden.",
+            "heading": "How the no-borders map quiz works",
+            "howToPlay": "The quiz names a {unitName}, but the usual political borders are removed. Click where you think it belongs by using coastlines, neighboring landforms, distance, and your memory of the regional layout. This set covers {countPhrase}.",
+            "tip": "Use coastlines and the positions of nearby large countries as anchors before judging smaller inland areas.",
+            "searchTerms": [
+                "countries without borders quiz",
+                "hard geography map quiz",
+                "find countries on blank map"
+            ]
+        },
+        "find-point": {
+            "displayName": "Find the Point",
+            "lead": "Identify the {group} {unitName} that contains each point placed on the map.",
+            "heading": "How the point map quiz works",
+            "howToPlay": "A point appears somewhere inside one of the places in this group. Type the name of the {unitName} that contains it. The round covers {countPhrase} and tests whether you understand the full area of each place rather than only recognizing its outline.",
+            "tip": "Check the point against coastlines and nearby countries before answering, especially when it sits close to a border.",
+            "searchTerms": [
+                "find the point geography quiz",
+                "which country contains the point",
+                "country map point quiz"
+            ]
+        }
+    },
+    "groups": {
+        "world": {
+            "overview": "The full world map brings together countries from every continent, from the largest continental states to small island nations. The round tests country names, locations, shapes, and regional context instead of concentrating on one part of the globe.",
+            "challenge": "The hardest part is switching quickly between very different parts of the world. Small countries in Europe, the Caribbean, and the Pacific can also be easy to overlook.",
+            "studyTip": "Learn one continent at a time, then return to the world quiz to practice changing regions without warning.",
+            "searchTerms": [
+                "world map quiz",
+                "countries of the world quiz",
+                "all countries geography quiz",
+                "learn world countries"
+            ]
+        },
+        "us_states": {
+            "overview": "All 50 states and the District of Columbia appear in this United States practice set. It is useful for learning state locations, names, regional patterns, and the shapes created by state borders.",
+            "challenge": "The central and northeastern states are usually harder than the large western states because many are similar in size or packed closely together.",
+            "studyTip": "Break the map into the Northeast, South, Midwest, and West, then practice the full country after each section feels familiar.",
+            "searchTerms": [
+                "US states map quiz",
+                "50 states quiz",
+                "United States geography quiz",
+                "learn state locations"
+            ]
+        },
+        "europe": {
+            "overview": "Europe packs a large number of countries into a relatively small map. This set covers Western Europe, Eastern Europe, the Balkans, the Nordic region, the Mediterranean, and the continent's microstates.",
+            "challenge": "Europe has many small neighboring countries, especially around the Balkans and central Europe. Similar names and compact borders make exact placement more demanding than the continent's size suggests.",
+            "studyTip": "Use the Iberian Peninsula, Italy, the British Isles, and Scandinavia as anchors, then fill in the countries between them.",
+            "searchTerms": [
+                "Europe map quiz",
+                "European countries quiz",
+                "learn countries of Europe",
+                "Europe geography game"
+            ]
+        },
+        "asia": {
+            "overview": "Asia stretches from the Middle East and Central Asia to India, China, Southeast Asia, and the Pacific coast. The map combines some of the world's largest countries with dense clusters of smaller neighbors.",
+            "challenge": "Central Asia, the Caucasus, and mainland Southeast Asia contain several neighboring countries that are commonly confused. The continent also stretches across a very wide map.",
+            "studyTip": "Study Asia by subregion before attempting the full quiz, especially South Asia, Central Asia, Southeast Asia, and the Middle East.",
+            "searchTerms": [
+                "Asia map quiz",
+                "Asian countries quiz",
+                "learn countries of Asia",
+                "Asia geography game"
+            ]
+        },
+        "africa": {
+            "overview": "Africa contains more than fifty answers in this group, including North Africa, West Africa, the Horn, central Africa, southern Africa, and nearby island countries. It is one of the site's most detailed continent quizzes.",
+            "challenge": "West Africa contains many smaller countries with short coastlines, while central and eastern Africa have several large inland neighbors that can blend together at first.",
+            "studyTip": "Learn the coastline first, then use those coastal countries to place the landlocked countries behind them.",
+            "searchTerms": [
+                "Africa map quiz",
+                "African countries quiz",
+                "learn countries of Africa",
+                "Africa geography practice"
+            ]
+        },
+        "south_america": {
+            "overview": "South America has a manageable number of countries and several clear coastal shapes. The group runs from Colombia and Venezuela in the north to Argentina and Chile in the south.",
+            "challenge": "The Guianas in the northeast and the inland positions of Bolivia and Paraguay are the places most likely to cause mistakes.",
+            "studyTip": "Use Brazil as the central anchor, then learn which countries touch its long border and which do not.",
+            "searchTerms": [
+                "South America map quiz",
+                "South American countries quiz",
+                "learn South America geography"
+            ]
+        },
+        "north_america": {
+            "overview": "North America in this quiz includes Canada, the United States, Mexico, Central America, and the sovereign Caribbean countries stored in the group. Three very large mainland countries share the map with many smaller tropical states.",
+            "challenge": "The Caribbean islands and the narrow Central American isthmus require closer map reading than Canada, the United States, or Mexico.",
+            "studyTip": "Master the mainland from north to south, then learn the Caribbean as a separate cluster before combining them.",
+            "searchTerms": [
+                "North America map quiz",
+                "North American countries quiz",
+                "countries of North America"
+            ]
+        },
+        "middle_east": {
+            "overview": "The Middle East group centers on the eastern Mediterranean, the Arabian Peninsula, Iran, Iraq, and nearby parts of western Asia. It gives players a focused alternative to practicing the whole Asian continent at once.",
+            "challenge": "The Levant and Persian Gulf contain several small neighboring countries, while the boundaries between regional definitions can vary between sources.",
+            "studyTip": "Learn the Arabian Peninsula as one shape, then place the Levant, Iraq, and Iran around it.",
+            "searchTerms": [
+                "Middle East map quiz",
+                "Middle Eastern countries quiz",
+                "learn Middle East geography"
+            ]
+        },
+        "european_union": {
+            "overview": "The European Union group contains the current EU member states as both a political and geographic set. It helps separate EU countries from nearby non-members such as Norway, Switzerland, the United Kingdom, and several Balkan states.",
+            "challenge": "The main difficulty is remembering membership, not only location. Some countries in central and southeastern Europe are geographically close to the EU but are not members.",
+            "studyTip": "First learn the non-EU countries that sit inside or beside the wider European map, then the membership pattern becomes easier to see.",
+            "searchTerms": [
+                "European Union countries quiz",
+                "EU map quiz",
+                "EU member states geography"
+            ]
+        },
+        "southeast_asia": {
+            "overview": "Southeast Asia includes the mainland countries between India and China along with the major island states to the south and east. Thailand, Vietnam, Indonesia, the Philippines, and Malaysia are among the best-known landmarks in the group.",
+            "challenge": "Mainland borders are tightly packed, while Indonesia and the Philippines are spread across many islands. Malaysia is also split between the Malay Peninsula and Borneo.",
+            "studyTip": "Study mainland Southeast Asia from west to east, then learn the island countries as a second map pattern.",
+            "searchTerms": [
+                "Southeast Asia map quiz",
+                "Southeast Asian countries quiz",
+                "ASEAN geography quiz"
+            ]
+        },
+        "latin_america": {
+            "overview": "Latin America connects Mexico, Central America, much of the Caribbean, and South America in one broad regional set. The grouping mainly follows shared Spanish, Portuguese, and French colonial language history.",
+            "challenge": "The region stretches across two continents and includes both mainland countries and islands, so players must shift between several different map scales.",
+            "studyTip": "Learn Central America and South America separately, then add the Caribbean countries included in the group.",
+            "searchTerms": [
+                "Latin America map quiz",
+                "Latin American countries quiz",
+                "learn Latin America geography"
+            ]
+        },
+        "oceania": {
+            "overview": "Oceania covers Australia, New Zealand, Papua New Guinea, and the independent island countries of the Pacific. Unlike a continuous continental map, this group is built around widely separated land areas.",
+            "challenge": "Many countries are small and far apart, so relative position matters more than shared land borders. Several island nations can look like isolated points at a world scale.",
+            "studyTip": "Use Australia, New Zealand, and Papua New Guinea as anchors, then learn the island countries by their position north, east, or northeast of those anchors.",
+            "searchTerms": [
+                "Oceania map quiz",
+                "Oceania countries quiz",
+                "Pacific countries geography"
+            ]
+        },
+        "central_america_and_caribbean": {
+            "overview": "Central America and the Caribbean combines the seven mainland countries between Mexico and Colombia with the sovereign island countries of the Caribbean. It gives focused practice for places that are easy to lose inside a full North America round.",
+            "challenge": "Central America forms a narrow chain with several similarly sized neighbors, while the Caribbean requires remembering the order and position of separate islands.",
+            "studyTip": "Learn Central America north to south, then study the Greater Antilles and Lesser Antilles as separate island chains.",
+            "searchTerms": [
+                "Central America and Caribbean map quiz",
+                "Caribbean and Central American countries quiz"
+            ]
+        },
+        "caribbean_islands": {
+            "overview": "The Caribbean group focuses on sovereign countries spread across the Caribbean Sea and nearby Atlantic waters. It includes the large islands of the Greater Antilles and the smaller independent states curving toward South America.",
+            "challenge": "Several countries occupy small islands that appear close together, and some neighboring islands are territories rather than independent countries.",
+            "studyTip": "Start with Cuba, Hispaniola, Jamaica, and Puerto Rico as landmarks, then trace the smaller independent countries toward Trinidad and Tobago.",
+            "searchTerms": [
+                "Caribbean countries quiz",
+                "Caribbean islands map quiz",
+                "learn Caribbean geography"
+            ]
+        },
+        "balkans": {
+            "overview": "The Balkans occupy southeastern Europe around the Adriatic, Aegean, and western Black Sea region. This focused set is useful because the area has many countries packed into a small space.",
+            "challenge": "Several countries are small, landlocked, or have similar shapes. The exact cultural definition of the Balkans can also differ, so this quiz follows the country list stored in Smurdy.",
+            "studyTip": "Use Greece, Croatia, Romania, and Bulgaria as outer anchors, then place the smaller central countries between them.",
+            "searchTerms": [
+                "Balkans map quiz",
+                "Balkan countries quiz",
+                "southeastern Europe geography"
+            ]
+        },
+        "eastern_europe": {
+            "overview": "Eastern Europe provides a smaller practice set for the countries on the eastern side of the European map. The exact regional boundary varies by source, so Smurdy follows the consistent country list stored in its group file.",
+            "challenge": "Several countries share long inland borders, and regional definitions of Eastern Europe vary. The quiz uses one consistent list so the practice set stays predictable.",
+            "studyTip": "Place the Baltic area, Poland, Ukraine, and the Black Sea first, then fill the countries between those landmarks.",
+            "searchTerms": [
+                "Eastern Europe map quiz",
+                "Eastern European countries quiz",
+                "learn Eastern Europe geography"
+            ]
+        },
+        "mena": {
+            "overview": "MENA, short for Middle East and North Africa, stretches from Morocco and Algeria to Iran and the Arabian Peninsula. The group crosses Africa and Asia while keeping together countries that are often studied as one region.",
+            "challenge": "The group crosses Africa and Asia, and the smaller countries near the eastern Mediterranean and Persian Gulf can be difficult at the same scale as Algeria or Saudi Arabia.",
+            "studyTip": "Learn North Africa west to east, then attach the Levant, Arabian Peninsula, Iraq, and Iran.",
+            "searchTerms": [
+                "MENA map quiz",
+                "Middle East and North Africa countries quiz",
+                "MENA geography"
+            ]
+        },
+        "west_africa": {
+            "overview": "West Africa runs from the Atlantic coast into the Sahel and the inland countries behind the Gulf of Guinea. The group includes Senegal, Mali, Ghana, Nigeria, Ivory Coast, and many smaller neighbors.",
+            "challenge": "The coastline contains many smaller countries packed between larger neighbors, while several inland states have similar broad shapes.",
+            "studyTip": "Trace the coast from Senegal to Nigeria, then use that coastal order to place Mali, Burkina Faso, and Niger inland.",
+            "searchTerms": [
+                "West Africa map quiz",
+                "West African countries quiz",
+                "learn West Africa geography"
+            ]
+        },
+        "southern_europe": {
+            "overview": "Southern Europe centers on the Mediterranean-facing countries of the Iberian Peninsula, Italy, the Balkans, and nearby microstates included in the group. It gives concentrated practice for the lower half of the European map.",
+            "challenge": "The region combines familiar peninsulas with several very small countries and tightly packed Balkan borders.",
+            "studyTip": "Learn the three major peninsulas first, then add the island countries and microstates around them.",
+            "searchTerms": [
+                "Southern Europe map quiz",
+                "Southern European countries quiz",
+                "Mediterranean Europe geography"
+            ]
+        },
+        "east_africa": {
+            "overview": "East Africa in this group includes the Horn, the Great Lakes region, the Indian Ocean coast, and nearby island countries. Ethiopia, Kenya, Uganda, Tanzania, and Somalia provide several recognizable anchors.",
+            "challenge": "The Horn has distinctive coastlines, but the inland Great Lakes countries are smaller and closely grouped. Regional definitions can also differ near central and southern Africa.",
+            "studyTip": "Begin with the Horn and Indian Ocean coastline, then work inland around Lake Victoria and the Great Lakes.",
+            "searchTerms": [
+                "East Africa map quiz",
+                "East African countries quiz",
+                "learn East Africa geography"
+            ]
+        },
+        "south_and_central_asia": {
+            "overview": "South and Central Asia links the Indian subcontinent with the landlocked countries between the Caspian Sea, China, Russia, and Afghanistan. The combined set shows how the two neighboring regions fit together.",
+            "challenge": "The Central Asian countries have similar names and broad inland borders, while South Asia has several smaller states around India.",
+            "studyTip": "Use India and Kazakhstan as the two main anchors, then learn the countries surrounding each one.",
+            "searchTerms": [
+                "South and Central Asia map quiz",
+                "Central Asian countries quiz",
+                "South Asia geography quiz"
+            ]
+        },
+        "northern_and_western_europe": {
+            "overview": "Northern and Western Europe brings together the Atlantic-facing countries, the British Isles, Scandinavia, the Nordic area, and much of western continental Europe. The map mixes long northern coastlines with compact central borders.",
+            "challenge": "Benelux and the small central European countries require precision, while the northern countries extend across long coastlines and islands.",
+            "studyTip": "Separate the British Isles, Scandinavia, and mainland western Europe while studying, then combine them for the full round.",
+            "searchTerms": [
+                "Northern and Western Europe map quiz",
+                "Western Europe countries quiz",
+                "Northern Europe geography"
+            ]
+        },
+        "central_and_southern_africa": {
+            "overview": "Central and Southern Africa covers the Congo Basin and the countries toward the continent's southern end. The region includes large inland states, two ocean coastlines, and several smaller landlocked countries.",
+            "challenge": "The two Congos are easy to confuse, and the compact countries around South Africa require closer attention than the larger states to the north.",
+            "studyTip": "Learn the Congo Basin first, then move south through Angola, Zambia, Zimbabwe, Botswana, and the countries around South Africa.",
+            "searchTerms": [
+                "Central and Southern Africa map quiz",
+                "Central Africa countries quiz",
+                "Southern Africa geography"
+            ]
+        },
+        "sub_saharan_africa": {
+            "overview": "Sub-Saharan Africa contains the countries south of the Sahara according to Smurdy's stored group list. Removing North Africa still leaves a large map spanning West, Central, East, and Southern Africa.",
+            "challenge": "The group is still large and includes many landlocked countries, so memorizing regional clusters is more effective than treating it as one uninterrupted list.",
+            "studyTip": "Practice West, East, Central, and Southern Africa separately before using this combined quiz.",
+            "searchTerms": [
+                "Sub-Saharan Africa map quiz",
+                "Sub-Saharan African countries quiz",
+                "Africa south of Sahara geography"
+            ]
+        },
+        "americas": {
+            "overview": "The Americas round combines North America, Central America, the Caribbean, and South America. It is a full western hemisphere challenge with both continental countries and small island nations.",
+            "challenge": "The map moves from very large countries to tiny islands, so players must adjust quickly between different scales and regional patterns.",
+            "studyTip": "Master North America and South America separately, then use this quiz to connect them through Central America and the Caribbean.",
+            "searchTerms": [
+                "Americas map quiz",
+                "countries of the Americas quiz",
+                "western hemisphere geography quiz"
+            ]
+        },
+        "eurasia": {
+            "overview": "Eurasia treats Europe and Asia as one continuous landmass. The quiz reaches from the Atlantic coast to East Asia and includes the transcontinental countries that connect the two conventional continents.",
+            "challenge": "The number of answers is high, and the map includes every kind of regional pattern found in Europe and Asia. Small European states appear beside some of the world's largest countries.",
+            "studyTip": "Treat Eurasia as several linked regions rather than one list, then practice moving between those regions in the combined quiz.",
+            "searchTerms": [
+                "Eurasia map quiz",
+                "European and Asian countries quiz",
+                "Eurasian geography game"
+            ]
+        },
+        "former_soviet_union": {
+            "overview": "The Former Soviet Union group contains the countries that became independent after the Soviet Union dissolved. Its map stretches from the Baltic Sea and Eastern Europe through the Caucasus and Central Asia.",
+            "challenge": "The countries are spread across several subregions, and the five Central Asian states are often confused because of their similar names and inland positions.",
+            "studyTip": "Learn the Baltic states, the eastern European states, the Caucasus, and Central Asia as separate clusters before combining them.",
+            "searchTerms": [
+                "Former Soviet Union countries quiz",
+                "post-Soviet states map quiz",
+                "USSR countries geography"
+            ]
+        },
+        "tiny_countries": {
+            "overview": "Tiny Countries gathers small sovereign states from Europe, the Caribbean, the Indian Ocean, and the Pacific. These are the places most likely to disappear into a normal world map at first glance.",
+            "challenge": "Most answers occupy very little screen space, and many do not share land borders with larger countries. Precise zooming and recognition of regional context matter more than outline shape.",
+            "studyTip": "Group the countries by region, especially European microstates, Caribbean islands, and Pacific island nations.",
+            "searchTerms": [
+                "smallest countries map quiz",
+                "tiny countries quiz",
+                "microstates geography quiz"
+            ]
+        },
+        "small_island_countries": {
+            "overview": "Small Island Countries brings together independent island states from the Caribbean, Atlantic, Indian Ocean, Mediterranean, and Pacific. The set is designed for places that often appear only as small shapes or points.",
+            "challenge": "Many answers are far apart and visually small, so players cannot rely on a chain of neighboring land borders.",
+            "studyTip": "Study the islands by ocean or subregion instead of trying to memorize the full list in one pass.",
+            "searchTerms": [
+                "small island countries quiz",
+                "island nations map quiz",
+                "learn island countries"
+            ]
+        },
+        "pacific_islands": {
+            "overview": "Pacific Islands focuses on the independent countries scattered across the Pacific, including Melanesian, Micronesian, and Polynesian states in Smurdy's group list. Australia and New Zealand are left out so the island nations remain the focus.",
+            "challenge": "The countries are separated by huge ocean distances, and several are represented by very small map areas. Relative position is more useful than border shape.",
+            "studyTip": "Use Papua New Guinea and Fiji as reference points, then learn which countries lie north, east, or northeast of them.",
+            "searchTerms": [
+                "Pacific islands map quiz",
+                "Pacific island countries quiz",
+                "Micronesia Melanesia Polynesia geography"
+            ]
+        }
+    }
+}

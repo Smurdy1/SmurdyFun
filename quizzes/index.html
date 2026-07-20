@@ -4,18 +4,15 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>All Smurdy Geography Quizzes</title>
-  <meta name="description" content="Browse every Smurdy geography quiz, including world, region and specialty quizzes."/>
+  <meta name="description" content="Browse Smurdy map quizzes by region and game mode, including country clicking, typing, no-borders challenges, and point identification."/>
   <link rel="canonical" href="https://smurdy.fun/quizzes/"/>
-  <link rel="stylesheet" href="/styles/style.css"/>
   <style>
-    /* make the page fill the viewport and allow the quiz list to scroll */
-    html,body{height:100%}
-    body{font-family:system-ui,Arial,sans-serif;min-height:100vh;margin:0;padding:0;background:#f7f7f2;color:#111;display:flex;flex-direction:column}
-    main{flex:1 1 auto;max-width:1100px;margin:24px auto;padding:18px;overflow:auto}
-    header{margin-bottom:8px}
+    html,body{min-height:100%}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f7f7f2;color:#111}
+    main{max-width:1100px;margin:24px auto;padding:18px}
     a{color:#111}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:20px}
-    section{background:rgba(255,255,255,.98);border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
+    section{background:#fff;border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
     h1{margin:0 0 8px}
     h2{font-size:18px;margin:0 0 10px}
     ul{margin:0;padding-left:18px}
@@ -25,13 +22,15 @@
 </head>
 <body>
   <main>
-    <header><h1>All Smurdy Geography Quizzes</h1>
-    <p>Browse every Smurdy map quiz. These links also help search engines discover the quiz landing pages.</p>
-    <a class="home" href="https://smurdy.fun/">Back to Smurdy</a></header>
+    <header>
+      <h1>All Smurdy Geography Quizzes</h1>
+      <p>Choose a map region and game mode. Only combinations available in the main quiz browser are listed here.</p>
+      <a class="home" href="https://smurdy.fun/">Back to Smurdy</a>
+    </header>
     <div class="grid">
       
       <section>
-        <h2>Click The Region</h2>
+        <h2>Click the Countries</h2>
         <ul>
           <li><a href="/quizzes/click-country/world/">World Map Quiz – Click the Countries</a></li>
           <li><a href="/quizzes/click-country/us_states/">US States Map Quiz – Click the States</a></li>
@@ -67,7 +66,7 @@
       </section>
 
       <section>
-        <h2>Type The Region</h2>
+        <h2>Type the Countries</h2>
         <ul>
           <li><a href="/quizzes/type-country/world/">World Map Quiz – Type the Countries</a></li>
           <li><a href="/quizzes/type-country/us_states/">US States Map Quiz – Type the States</a></li>
@@ -103,74 +102,62 @@
       </section>
 
       <section>
-        <h2>Find The Region</h2>
+        <h2>Find the Countries Without Borders</h2>
         <ul>
-          <li><a href="/quizzes/find-country/world/">World Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/us_states/">US States Map Quiz – Find the States</a></li>
-          <li><a href="/quizzes/find-country/europe/">Europe Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/asia/">Asia Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/africa/">Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/south_america/">South America Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/north_america/">North America Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/middle_east/">Middle East Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/european_union/">European Union Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/southeast_asia/">Southeast Asia Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/latin_america/">Latin America Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/oceania/">Oceania Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/central_america_and_caribbean/">Central America and the Caribbean Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/caribbean_islands/">Caribbean Islands Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/balkans/">Balkans Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/eastern_europe/">Eastern Europe Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/mena/">Middle East and North Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/west_africa/">West Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/southern_europe/">Southern Europe Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/east_africa/">East Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/south_and_central_asia/">South and Central Asia Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/northern_and_western_europe/">Northern and Western Europe Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/central_and_southern_africa/">Central and Southern Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/sub_saharan_africa/">Sub-Saharan Africa Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/americas/">Americas Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/eurasia/">Eurasia Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/former_soviet_union/">Former Soviet Union Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/tiny_countries/">Tiny Countries Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/small_island_countries/">Small Island Countries Map Quiz – Find the Countries</a></li>
-          <li><a href="/quizzes/find-country/pacific_islands/">Pacific Islands Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/world/">World No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/us_states/">US States No-Borders Map Quiz – Find the States</a></li>
+          <li><a href="/quizzes/find-country/europe/">Europe No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/asia/">Asia No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/africa/">Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/south_america/">South America No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/north_america/">North America No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/middle_east/">Middle East No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/european_union/">European Union No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/southeast_asia/">Southeast Asia No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/latin_america/">Latin America No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/balkans/">Balkans No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/eastern_europe/">Eastern Europe No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/mena/">Middle East and North Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/west_africa/">West Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/southern_europe/">Southern Europe No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/east_africa/">East Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/south_and_central_asia/">South and Central Asia No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/northern_and_western_europe/">Northern and Western Europe No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/central_and_southern_africa/">Central and Southern Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/sub_saharan_africa/">Sub-Saharan Africa No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/americas/">Americas No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/eurasia/">Eurasia No-Borders Map Quiz – Find the Countries</a></li>
+          <li><a href="/quizzes/find-country/former_soviet_union/">Former Soviet Union No-Borders Map Quiz – Find the Countries</a></li>
         </ul>
       </section>
 
       <section>
         <h2>Find the Point</h2>
         <ul>
-          <li><a href="/quizzes/find-point/world/">World Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/us_states/">US States Map Quiz – Find the point in the States</a></li>
-          <li><a href="/quizzes/find-point/europe/">Europe Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/asia/">Asia Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/africa/">Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/south_america/">South America Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/north_america/">North America Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/middle_east/">Middle East Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/european_union/">European Union Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/southeast_asia/">Southeast Asia Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/latin_america/">Latin America Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/oceania/">Oceania Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/central_america_and_caribbean/">Central America and the Caribbean Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/caribbean_islands/">Caribbean Islands Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/balkans/">Balkans Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/eastern_europe/">Eastern Europe Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/mena/">Middle East and North Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/west_africa/">West Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/southern_europe/">Southern Europe Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/east_africa/">East Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/south_and_central_asia/">South and Central Asia Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/northern_and_western_europe/">Northern and Western Europe Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/central_and_southern_africa/">Central and Southern Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/sub_saharan_africa/">Sub-Saharan Africa Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/americas/">Americas Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/eurasia/">Eurasia Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/former_soviet_union/">Former Soviet Union Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/tiny_countries/">Tiny Countries Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/small_island_countries/">Small Island Countries Map Quiz – Find the point in the Countries</a></li>
-          <li><a href="/quizzes/find-point/pacific_islands/">Pacific Islands Map Quiz – Find the point in the Countries</a></li>
+          <li><a href="/quizzes/find-point/world/">World Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/us_states/">US States Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/europe/">Europe Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/asia/">Asia Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/africa/">Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/south_america/">South America Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/north_america/">North America Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/middle_east/">Middle East Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/european_union/">European Union Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/southeast_asia/">Southeast Asia Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/latin_america/">Latin America Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/balkans/">Balkans Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/eastern_europe/">Eastern Europe Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/mena/">Middle East and North Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/west_africa/">West Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/southern_europe/">Southern Europe Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/east_africa/">East Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/south_and_central_asia/">South and Central Asia Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/northern_and_western_europe/">Northern and Western Europe Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/central_and_southern_africa/">Central and Southern Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/sub_saharan_africa/">Sub-Saharan Africa Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/americas/">Americas Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/eurasia/">Eurasia Find the Point Map Quiz</a></li>
+          <li><a href="/quizzes/find-point/former_soviet_union/">Former Soviet Union Find the Point Map Quiz</a></li>
         </ul>
       </section>
     </div>
