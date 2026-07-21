@@ -177,7 +177,10 @@
     /* UI creation -------------------------------------------------------- */
     function ensureBrowserUI() {
         let panel = document.getElementById("quiz-browser");
-        if (panel) return panel;
+        if (panel) {
+            injectBrowserStyles();
+            return panel;
+        }
 
         panel = document.createElement("div");
         panel.id = "quiz-browser";
@@ -231,6 +234,52 @@
         .qb-empty { padding:18px; text-align:center; color:#777; }
         .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
 
+        /* Always-visible directory links at the bottom of the browser panel. */
+        #qb-list {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        #qb-directory-links {
+            flex: 0 0 auto;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.10);
+            background: rgba(255,255,255,0.98);
+        }
+        .qb-directory-primary {
+            display: block;
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 9px;
+            background: #0077cc;
+            color: #fff;
+            text-decoration: none;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .qb-directory-primary:hover,
+        .qb-directory-primary:focus {
+            background: #005fa3;
+        }
+        .qb-directory-popular {
+            display: flex;
+            justify-content: center;
+            gap: 5px 10px;
+            flex-wrap: wrap;
+            margin-top: 9px;
+            font-size: 12px;
+        }
+        .qb-directory-popular a {
+            color: #174f76;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .qb-directory-popular a:hover,
+        .qb-directory-popular a:focus {
+            text-decoration: underline;
+        }
+
         /* Mobile / narrow-screen adjustments: centered and inset with safe-area padding + extra margin */
         @media (max-width: 700px) {
             /* add an extra 12px margin inside safe-area so panel always appears floating */
@@ -242,7 +291,8 @@
                 width: auto !important;
                 /* ensure there's extra horizontal breathing room beyond safe-area */
                 max-width: calc(100% - (env(safe-area-inset-left, 12px) + env(safe-area-inset-right, 12px) + 48px));
-                max-height: calc( (3 * 76px) + 140px );
+                max-height: calc(100vh - 36px);
+                max-height: calc(100dvh - 36px);
                 overflow: auto !important;
                 margin: 0 auto;
                 border-radius: 10px;
@@ -260,6 +310,22 @@
         input#qb-filter { -webkit-tap-highlight-color: rgba(0,0,0,0.05); touch-action: manipulation; }
         `;
         document.head.appendChild(style);
+    }
+
+    /* smurdy-browser-directory-v1 */
+    function renderDirectoryLinks() {
+        return `
+            <nav id="qb-directory-links" aria-label="Browse geography quizzes">
+                <a class="qb-directory-primary" href="/quizzes/">Browse All Quizzes</a>
+                <div class="qb-directory-popular" aria-label="Popular quiz pages">
+                    <a href="/quizzes/click-country/world/">World</a>
+                    <a href="/quizzes/click-country/europe/">Europe</a>
+                    <a href="/quizzes/click-country/asia/">Asia</a>
+                    <a href="/quizzes/click-country/africa/">Africa</a>
+                    <a href="/quizzes/click-country/us_states/">US States</a>
+                </div>
+            </nav>
+        `;
     }
 
     /* Views --------------------------------------------------------------- */
@@ -321,6 +387,7 @@
                     </div>
                 `).join("") : `<div class="qb-empty">No quizzes match your search.</div>`}
             </div>
+            ${renderDirectoryLinks()}
         `;
 
         // restore focus/selection to the recreated input so typing continues smoothly
@@ -412,6 +479,7 @@
                     </div>
                 `).join("") : `<div class="qb-empty">No groups match your search.</div>`}
             </div>
+            ${renderDirectoryLinks()}
         `;
 
          // restore focus/selection to the recreated input so typing continues smoothly

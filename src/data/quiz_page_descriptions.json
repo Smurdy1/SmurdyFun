@@ -11,7 +11,15 @@
             "lead": "The first sentence on the page.",
             "howToPlay": "The mode-specific instructions.",
             "tip": "A mode-specific gameplay tip.",
-            "searchTerms": "Mode-related search phrases used in metadata."
+            "searchTerms": "Mode-related search phrases used in metadata.",
+            "skillsHeading": "Heading for the mode-specific skills section.",
+            "skills": "What this mode trains that the other modes do not.",
+            "strategyHeading": "Heading for the mode-specific answering strategy.",
+            "strategy": "A practical answer process unique to the mode.",
+            "bestForHeading": "Heading explaining which learners should choose the mode.",
+            "bestFor": "When this mode is most useful.",
+            "mistakesHeading": "Heading for a mode-specific common mistake.",
+            "mistakes": "A common mistake and how to avoid it."
         }
     },
     "modes": {
@@ -25,7 +33,15 @@
                 "click countries map quiz",
                 "interactive geography quiz",
                 "country location quiz"
-            ]
+            ],
+            "skillsHeading": "Skills this click quiz develops",
+            "skills": "This mode builds fast border recognition, relative-position memory, and the ability to connect a written {unitName} name with its exact outline. Because borders remain visible, each answer also reinforces which nearby {unitPlural} touch one another.",
+            "strategyHeading": "A reliable click-answering process",
+            "strategy": "First identify the broad part of the map, then locate one or two familiar anchors. Compare the target with the borders and shapes around those anchors before clicking. This is usually more reliable than searching the entire map for an isolated outline.",
+            "bestForHeading": "Who should use the click mode",
+            "bestFor": "Choose this version when you are first learning {group}, returning after a long break, or trying to improve speed without removing all visual support. It is the most direct bridge between studying a labeled map and recalling locations independently.",
+            "mistakesHeading": "Common mistake in click mode",
+            "mistakes": "A common mistake is clicking a familiar neighboring {unitName} immediately after recognizing the general area. Pause long enough to compare the target's borders with the countries or states beside it."
         },
         "type-country": {
             "displayName": "Type the Countries",
@@ -37,7 +53,15 @@
                 "type countries quiz",
                 "country names map quiz",
                 "geography spelling quiz"
-            ]
+            ],
+            "skillsHeading": "Skills this typing quiz develops",
+            "skills": "Typing answers trains active name recall, spelling, and the connection between a map shape and the word used for it. Unlike clicking, recognizing the correct area is not enough: you must retrieve the complete {unitName} name from memory.",
+            "strategyHeading": "A reliable typing-answer process",
+            "strategy": "Use the highlighted shape to identify the subregion first. Recall nearby anchors, say the likely answer silently, and then type the full name. Separating recognition from spelling makes difficult names easier to retrieve accurately.",
+            "bestForHeading": "Who should use the typing mode",
+            "bestFor": "Choose this version when locations look familiar but names do not come quickly, or when you want spelling practice alongside geography. It is especially useful after completing the click version of the same {group} set.",
+            "mistakesHeading": "Common mistake in typing mode",
+            "mistakes": "A common mistake is guessing from the first letter or from a vaguely similar outline. Confirm the highlighted area's position and neighbors before committing to a name."
         },
         "find-country": {
             "displayName": "Find the Countries Without Borders",
@@ -49,7 +73,15 @@
                 "countries without borders quiz",
                 "hard geography map quiz",
                 "find countries on blank map"
-            ]
+            ],
+            "skillsHeading": "Skills this no-borders quiz develops",
+            "skills": "This mode develops a mental map rather than simple border matching. It trains coastline recognition, proportional distance, subregional layout, and memory for where each {unitName} sits when political outlines are unavailable.",
+            "strategyHeading": "A reliable no-borders process",
+            "strategy": "Locate the continent or subregion, identify a coastline or large anchor, and then estimate the target's position relative to that anchor. For inland answers, think in terms of neighboring countries, latitude, and distance from the nearest coast.",
+            "bestForHeading": "Who should use the no-borders mode",
+            "bestFor": "Choose this version after the normal click map feels comfortable. It is designed for players who want to test whether they understand the layout of {group}, not merely recognize visible border shapes.",
+            "mistakesHeading": "Common mistake without borders",
+            "mistakes": "A common mistake is treating the blank landmass as if every location were equally likely. Coastlines, peninsulas, large rivers, and the positions of familiar countries still provide a strong coordinate system."
         },
         "find-point": {
             "displayName": "Find the Point",
@@ -61,7 +93,15 @@
                 "find the point geography quiz",
                 "which country contains the point",
                 "country map point quiz"
-            ]
+            ],
+            "skillsHeading": "Skills this point quiz develops",
+            "skills": "The point mode tests territorial extent, interior geography, and precise boundary awareness. You must decide which {unitName} actually contains a location rather than identify an outline shown in isolation.",
+            "strategyHeading": "A reliable point-answering process",
+            "strategy": "Check whether the point is coastal, inland, or on an island, then compare it with nearby borders and recognizable shapes. When it lies near a boundary, consider how far each neighboring territory extends around the point.",
+            "bestForHeading": "Who should use the point mode",
+            "bestFor": "Choose this version when you already recognize the main shapes and want a more spatial challenge. It is useful for exposing cases where you know a capital or outline but not the full geographic area of the {unitName}.",
+            "mistakesHeading": "Common mistake in point mode",
+            "mistakes": "A common mistake is naming the closest familiar country or state instead of the territory that contains the point. Judge containment, not visual proximity to a label or coastline."
         }
     },
     "groups": {

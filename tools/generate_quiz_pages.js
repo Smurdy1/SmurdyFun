@@ -135,8 +135,34 @@ const vm = require("vm");
                 context
             );
 
-            const metaDescription = buildMetaDescription(
-                `${lead} ${overview}`,
+                        // smurdy-indexing-links-v1
+            const defaultModeSections = getModeDistinctiveSections(manifestEntry);
+            const modeSections = [
+                {
+                    heading: renderTemplate(modeCopy.skillsHeading || defaultModeSections.skillsHeading, context),
+                    body: renderTemplate(modeCopy.skills || defaultModeSections.skills, context)
+                },
+                {
+                    heading: renderTemplate(modeCopy.strategyHeading || defaultModeSections.strategyHeading, context),
+                    body: renderTemplate(modeCopy.strategy || defaultModeSections.strategy, context)
+                },
+                {
+                    heading: renderTemplate(modeCopy.bestForHeading || defaultModeSections.bestForHeading, context),
+                    body: renderTemplate(modeCopy.bestFor || defaultModeSections.bestFor, context)
+                },
+                {
+                    heading: renderTemplate(modeCopy.mistakesHeading || defaultModeSections.mistakesHeading, context),
+                    body: renderTemplate(modeCopy.mistakes || defaultModeSections.mistakes, context)
+                }
+            ].filter(section => section.heading && section.body);
+
+            const modeSectionsHtml = modeSections.map(section => `<section class="content-section mode-specific">
+              <h2>${escapeHtml(section.heading)}</h2>
+              <p>${escapeHtml(section.body)}</p>
+            </section>`).join("\n");
+
+const metaDescription = buildMetaDescription(
+                `${lead} ${howToPlay} ${modeSections[0] ? modeSections[0].body : overview}`,
                 pageTitle
             );
 
@@ -171,7 +197,38 @@ const vm = require("vm");
                 }))
                 .slice(0, 8);
 
-            const entryListHtml = entries.length
+                        const availableGroupIds = groupKeys.filter(id => id !== "__all__");
+            const relatedGroups = getRelatedGroupIds({
+                groupId,
+                groups,
+                availableGroupIds,
+                limit: 8
+            }).map(id => ({
+                id,
+                label: (groups[id] && groups[id].label) || humanize(id)
+            }));
+
+            const popularGroups = getPopularGroupIds({
+                availableGroupIds,
+                groupId,
+                excludedIds: relatedGroups.map(region => region.id),
+                limit: 6
+            }).map(id => ({
+                id,
+                label: (groups[id] && groups[id].label) || humanize(id)
+            }));
+
+            const navigationHtml = buildPageNavigationHtml({
+                publicRoot,
+                manifestId,
+                groupId,
+                groupLabel,
+                otherQuizzes,
+                relatedGroups,
+                popularGroups
+            });
+
+const entryListHtml = entries.length
                 ? `<details class="included-list">
                     <summary>${escapeHtml(capitalizeWords(unitPlural))} included in this quiz (${entryCount})</summary>
                     <p>${entries.map(escapeHtml).join(", ")}.</p>
@@ -249,6 +306,16 @@ ${JSON.stringify({
     .chip{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;background:#f4f4f4;color:#111;text-decoration:none;border:1px solid rgba(0,0,0,.06);font-size:14px;transition:all .12s ease}
     .chip:hover{background:var(--brand);color:#fff;transform:translateY(-1px)}
     .chip:focus{outline:2px solid rgba(0,119,204,.22);outline-offset:2px}
+    .breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:0 0 18px}
+    .breadcrumbs a{color:#315f86;text-decoration:none}
+    .breadcrumbs a:hover{text-decoration:underline}
+    .mode-specific{padding:15px 16px;border:1px solid var(--line);border-radius:10px;background:#fbfbfb}
+    .link-section{margin-top:30px;border-top:2px solid var(--line);padding-top:20px}
+    .link-section>h2{font-size:22px;margin:0 0 14px}
+    .link-block{margin:18px 0}
+    .link-block h3{font-size:16px;margin:0 0 8px}
+    .browse-all-line{margin:20px 0 0;font-weight:700}
+    .browse-all-line a{color:#075f9e}
     footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 28px 30px}
   </style>
 </head>
@@ -259,6 +326,13 @@ ${JSON.stringify({
   </a>
 
   <main>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="${publicRoot}/">Smurdy</a>
+      <span aria-hidden="true">›</span>
+      <a href="${publicRoot}/quizzes/">All quizzes</a>
+      <span aria-hidden="true">›</span>
+      <span>${escapeHtml(groupLabel)} · ${escapeHtml(getModeDisplayName(manifestEntry))}</span>
+    </nav>
     <header>
       <h1>${escapeHtml(pageTitle)}</h1>
       <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} · ${escapeHtml(groupLabel)} · ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
@@ -277,6 +351,8 @@ ${JSON.stringify({
       <p class="tip"><strong>Gameplay tip:</strong> ${escapeHtml(gameplayTip)}</p>
     </section>
 
+    ${modeSectionsHtml}
+
     <section class="content-section">
       <h2>What makes this group challenging</h2>
       <p>${escapeHtml(challenge)}</p>
@@ -292,17 +368,11 @@ ${JSON.stringify({
 
     <div class="action-row">
       <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(manifestEntry.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${groupId !== "__all__" ? "&group=" + encodeURIComponent(groupId) : ""}">Open quiz</a>
+      <a class="qb-btn secondary" href="${publicRoot}/quizzes/">Browse all quizzes</a>
       <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
     </div>
 
-    ${otherQuizzes.length
-        ? `<aside class="other-quizzes">
-            <strong>Other quizzes for ${escapeHtml(groupLabel)}</strong>
-            <div class="chip-list">${otherQuizzes.map(quiz =>
-                `<a class="chip" href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a>`
-            ).join("")}</div>
-          </aside>`
-        : ""}
+    ${navigationHtml}
   </main>
 
   <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
@@ -407,6 +477,183 @@ function inferModeInstructions(entry, context) {
         return `Type the ${context.unitName} that contains the point shown on the map.`;
     }
     return `Click the correct ${context.unitName} when its name appears.`;
+}
+
+const RELATED_GROUP_HINTS = {
+    world: ["europe", "asia", "africa", "north_america", "south_america", "oceania", "us_states"],
+    us_states: ["north_america", "americas", "world"],
+    europe: ["european_union", "eastern_europe", "southern_europe", "northern_and_western_europe", "balkans", "eurasia", "former_soviet_union", "world"],
+    asia: ["southeast_asia", "middle_east", "south_and_central_asia", "eurasia", "former_soviet_union", "mena", "world"],
+    africa: ["west_africa", "east_africa", "central_and_southern_africa", "sub_saharan_africa", "mena", "world"],
+    north_america: ["central_america_and_caribbean", "caribbean_islands", "latin_america", "americas", "us_states", "world"],
+    south_america: ["latin_america", "americas", "north_america", "world"],
+    oceania: ["pacific_islands", "small_island_countries", "asia", "world"],
+    middle_east: ["mena", "asia", "south_and_central_asia", "former_soviet_union", "world"]
+};
+
+function getModeDistinctiveSections(entry) {
+    const mode = normalizeModeKey(entry);
+    const defaults = {
+        click: {
+            skillsHeading: "Skills this click quiz develops",
+            skills: "This mode builds border recognition, relative-position memory, and fast matching between names and map outlines.",
+            strategyHeading: "A reliable click-answering process",
+            strategy: "Identify the broad region, find familiar anchors, and compare the target with the borders around those anchors before clicking.",
+            bestForHeading: "Who should use the click mode",
+            bestFor: "This version works best for first learning a map or rebuilding familiarity after time away.",
+            mistakesHeading: "Common mistake in click mode",
+            mistakes: "Do not click the first familiar neighbor you see; compare the target's actual borders first."
+        },
+        type: {
+            skillsHeading: "Skills this typing quiz develops",
+            skills: "This mode trains active name recall, spelling, and the connection between a highlighted shape and its written name.",
+            strategyHeading: "A reliable typing-answer process",
+            strategy: "Identify the subregion, recall nearby anchors, say the answer silently, and then type the complete name.",
+            bestForHeading: "Who should use the typing mode",
+            bestFor: "This version is useful when locations look familiar but their names do not come quickly.",
+            mistakesHeading: "Common mistake in typing mode",
+            mistakes: "Do not guess only from an initial letter; confirm the highlighted area's position and neighbors."
+        },
+        find: {
+            skillsHeading: "Skills this no-borders quiz develops",
+            skills: "This mode trains coastline recognition, proportional distance, and a mental map that does not depend on political outlines.",
+            strategyHeading: "A reliable no-borders process",
+            strategy: "Locate the subregion, choose a coastline or large anchor, and estimate the target relative to that anchor.",
+            bestForHeading: "Who should use the no-borders mode",
+            bestFor: "This version is intended for players who already feel comfortable with the normal bordered map.",
+            mistakesHeading: "Common mistake without borders",
+            mistakes: "A blank political map still has geographic structure; use coastlines, peninsulas, and familiar large countries."
+        },
+        "find-point": {
+            skillsHeading: "Skills this point quiz develops",
+            skills: "This mode tests territorial extent, interior geography, and precise awareness of which place contains a location.",
+            strategyHeading: "A reliable point-answering process",
+            strategy: "Decide whether the point is coastal, inland, or insular, and then compare it with nearby boundaries and shapes.",
+            bestForHeading: "Who should use the point mode",
+            bestFor: "This version is useful after you recognize the main outlines and want a more spatial challenge.",
+            mistakesHeading: "Common mistake in point mode",
+            mistakes: "Name the territory containing the point, not merely the closest familiar place."
+        }
+    };
+    return defaults[mode] || defaults.click;
+}
+
+function getRelatedGroupIds({ groupId, groups, availableGroupIds, limit = 8 }) {
+    const available = availableGroupIds.filter(id => id && id !== "__all__");
+    const availableSet = new Set(available);
+    const result = [];
+
+    function add(id) {
+        if (!id || id === groupId || !availableSet.has(id) || result.includes(id)) return;
+        result.push(id);
+    }
+
+    for (const id of RELATED_GROUP_HINTS[groupId] || []) add(id);
+
+    const current = groups[groupId] || {};
+    const currentMembers = new Set(
+        (Array.isArray(current.countries) ? current.countries : [])
+            .map(value => String(value).trim().toLowerCase())
+    );
+
+    const scored = available
+        .filter(id => id !== groupId && !result.includes(id))
+        .map(id => {
+            const candidate = groups[id] || {};
+            const candidateMembers = new Set(
+                (Array.isArray(candidate.countries) ? candidate.countries : [])
+                    .map(value => String(value).trim().toLowerCase())
+            );
+
+            let intersection = 0;
+            for (const member of currentMembers) {
+                if (candidateMembers.has(member)) intersection++;
+            }
+
+            const smaller = Math.min(currentMembers.size, candidateMembers.size);
+            const union = new Set([...currentMembers, ...candidateMembers]).size;
+            const containment = smaller ? intersection / smaller : 0;
+            const jaccard = union ? intersection / union : 0;
+            const sameUnit = current.unitName && current.unitName === candidate.unitName ? 0.08 : 0;
+            const sameBorders = current.borderset && current.borderset === candidate.borderset ? 0.04 : 0;
+
+            return { id, score: containment * 3 + jaccard + sameUnit + sameBorders };
+        })
+        .sort((a, b) => b.score - a.score || available.indexOf(a.id) - available.indexOf(b.id));
+
+    for (const item of scored) {
+        if (item.score <= 0.12) continue;
+        add(item.id);
+        if (result.length >= limit) return result.slice(0, limit);
+    }
+
+    const position = available.indexOf(groupId);
+    for (let offset = 1; result.length < limit && offset < available.length; offset++) {
+        add(available[position - offset]);
+        add(available[position + offset]);
+    }
+
+    add("world");
+    return result.slice(0, limit);
+}
+
+function getPopularGroupIds({ availableGroupIds, groupId, excludedIds = [], limit = 6 }) {
+    const availableSet = new Set(availableGroupIds);
+    const excluded = new Set([groupId, ...excludedIds]);
+    const preferred = [
+        "world", "us_states", "europe", "asia", "africa", "south_america",
+        "north_america", "middle_east", "european_union", "southeast_asia",
+        "latin_america", "oceania"
+    ];
+
+    return preferred
+        .filter(id => availableSet.has(id) && !excluded.has(id))
+        .slice(0, limit);
+}
+
+function buildPageNavigationHtml({
+    publicRoot,
+    manifestId,
+    groupId,
+    groupLabel,
+    otherQuizzes,
+    relatedGroups,
+    popularGroups
+}) {
+    const blocks = [];
+
+    if (otherQuizzes.length) {
+        blocks.push(`<div class="link-block">
+          <h3>Try another mode for ${escapeHtml(groupLabel)}</h3>
+          <div class="chip-list">${otherQuizzes.map(quiz =>
+              `<a class="chip" href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a>`
+          ).join("")}</div>
+        </div>`);
+    }
+
+    if (relatedGroups.length) {
+        blocks.push(`<div class="link-block">
+          <h3>Related regions in this mode</h3>
+          <div class="chip-list">${relatedGroups.map(region =>
+              `<a class="chip" href="${publicRoot}/quizzes/${slug(manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)} map quiz</a>`
+          ).join("")}</div>
+        </div>`);
+    }
+
+    if (popularGroups.length) {
+        blocks.push(`<div class="link-block">
+          <h3>Popular map sets</h3>
+          <div class="chip-list">${popularGroups.map(region =>
+              `<a class="chip" href="${publicRoot}/quizzes/${slug(manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)}</a>`
+          ).join("")}</div>
+        </div>`);
+    }
+
+    return `<section class="link-section" aria-labelledby="explore-more-heading">
+      <h2 id="explore-more-heading">Explore more geography quizzes</h2>
+      ${blocks.join("\n")}
+      <p class="browse-all-line"><a href="${publicRoot}/quizzes/">Browse the complete Smurdy quiz directory</a></p>
+    </section>`;
 }
 
 function buildMetaDescription(text, pageTitle) {
