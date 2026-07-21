@@ -325,9 +325,9 @@ ${JSON.stringify({
     }
 
     await writeQuizIndex({ outDir, pageRecords, publicRoot });
-    await writeSitemap({ repoRoot, pages });
+    await writeSitemap({ repoRoot, pages, publicRoot });
 
-    console.log(`Wrote ${pages.length} quiz pages to quizzes/ and updated sitemap.xml.`);
+    console.log(`Wrote ${pages.length} quiz pages to quizzes/ and updated sitemap.xml + sitemap.txt.`);
     console.log(`Editable descriptions: ${path.relative(repoRoot, copyPath)}`);
     process.exit(0);
 
@@ -511,30 +511,34 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
     await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
 }
 
-async function writeSitemap({ repoRoot, pages }) {
+async function writeSitemap({ repoRoot, pages, publicRoot }) {
     if (!pages.length) return;
     const lastmod = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
 
+    // Generate both sitemap formats from one canonical, deduplicated URL list.
+    const sitemapUrls = Array.from(new Set([
+        `${publicRoot}/`,
+        `${publicRoot}/quizzes/`,
+        ...pages
+    ]));
+
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://smurdy.fun/</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://smurdy.fun/quizzes/</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-${pages.map(url => `  <url>
+${sitemapUrls.map((url, index) => `  <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>${index < 2 ? "weekly" : "monthly"}</changefreq>
   </url>`).join("\n")}
 </urlset>`;
 
-    await fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8");
+    // Google-supported text sitemap: one absolute canonical URL per line.
+    // The generated quiz URLs already include their trailing slash.
+    const textSitemap = `${sitemapUrls.join("\n")}\n`;
+
+    await Promise.all([
+        fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8"),
+        fs.writeFile(path.join(repoRoot, "sitemap.txt"), textSitemap, "utf8")
+    ]);
 }
 
 function renderTemplate(value, context) {
