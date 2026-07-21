@@ -280,34 +280,8 @@ window.runNameQuiz = function runNameQuiz(config) {
     RUN._canonByKey = null;
     RUN._canonByBestName = null;
 
-    /* --- Smurdy subdivision canonicalization fix --- */
-    function isSubdivisionMapMode() {
-        try {
-            const runtimeMode = String(
-                SQ.currentMode ||
-                SQ.mode ||
-                ""
-            ).toLowerCase();
-
-            const group = (typeof SQ.getCurrentGroup === "function")
-                ? SQ.getCurrentGroup()
-                : (SQ.groups && SQ.currentGroupId ? SQ.groups[SQ.currentGroupId] : null);
-
-            const borderSet = String(group?.borderset || "").toLowerCase();
-            const groupId = String(SQ.currentGroupId || "").toLowerCase();
-
-            return (
-                runtimeMode === "states" ||
-                borderSet === "states" ||
-                groupId === "us_states"
-            );
-        } catch (_) {
-            return false;
-        }
-    }
-
-    // Build a canonical index that maps each country sovereign, or each
-    // individual subdivision in state/province mode, to its best feature.
+    // Build a canonical index that maps each sovereign -> best feature (prefer mainland).
+    // This avoids counting overseas territories separately and ensures zoom targets the largest/mainland part.
     function buildCanonicalIndex() {
         if (RUN._canonBuilt) return;
         RUN._canonBuilt = true;
@@ -364,27 +338,11 @@ window.runNameQuiz = function runNameQuiz(config) {
             return 0;
         }
 
-        const subdivisionMode = isSubdivisionMapMode();
-
         for (const f of SQ.mainData.features) {
             const p = f.properties || {};
-
-            // In country mode, SQ.getFeatureName() may still return a sovereign
-            // name by design. In subdivision mode it returns the state name.
-            const featureName = String(
-                (typeof SQ.getFeatureName === "function"
-                    ? SQ.getFeatureName(f)
-                    : (p.name || p.NAME || p.name_en || p.NAME_EN || p.postal || p.POSTAL || p.admin || p.ADMIN || "")
-                ) || ""
-            ).trim();
-
-            // Country maps intentionally merge overseas pieces by sovereign.
-            // State/province maps must instead keep every subdivision separate.
-            const sovereign = String(
-                subdivisionMode
-                    ? featureName
-                    : (p.sovereignt || p.SOVEREIGNT || p.sovereignty || p.ADMIN || p.admin || featureName || "")
-            ).trim();
+            const featureName = (p.name || p.NAME || p.admin || p.ADMIN || "").trim();
+            // Use sovereign as canonical grouping if present; fallback to admin/name.
+            const sovereign = (p.sovereignt || p.SOVEREIGNT || p.sovereignty || p.ADMIN || p.admin || featureName || "").trim();
             if (!sovereign) continue;
             const key = norm(sovereign);
             if (!key) continue;
@@ -405,9 +363,7 @@ window.runNameQuiz = function runNameQuiz(config) {
                 RUN._canonByKey.set(key, {
                     key,
                     bestName: featureName,
-                    displayName: subdivisionMode
-                        ? featureName
-                        : (p.sovereignt || p.SOVEREIGNT || p.admin || p.ADMIN || p.name || p.NAME || featureName),
+                    displayName: (p.sovereignt || p.admin || p.name || featureName),
                     score,
                     area,
                     feature: f
@@ -748,39 +704,14 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     }
 
-    // Return the answer label represented by a feature.
-    // Countries prefer sovereign/admin names; subdivision maps must use the
-    // individual state/province name instead of collapsing to its country.
+    // Return canonical display name for a feature object (prefer sovereign/admin/full name)
     function canonicalNameForFeature(feature) {
         try {
             if (!feature || !feature.properties) return "";
             const p = feature.properties;
-
-            if (isSubdivisionMapMode()) {
-                return String(
-                    (typeof SQ.getFeatureName === "function"
-                        ? SQ.getFeatureName(feature)
-                        : (p.name || p.NAME || p.name_en || p.NAME_EN || p.postal || p.POSTAL || "")
-                    ) || ""
-                );
-            }
-
-            // Prefer full sovereign/admin fields so abbreviated map labels
-            // such as "S. Sudan" do not become quiz answers.
-            return String(
-                p.sovereignt ||
-                p.SOVEREIGNT ||
-                p.admin ||
-                p.ADMIN ||
-                p.name ||
-                p.NAME ||
-                p.NAME_EN ||
-                p.name_en ||
-                ""
-            );
-        } catch (e) {
-            return "";
-        }
+            // prefer full sovereign/admin fields so we avoid abbreviated labels (e.g. "S. Sudan")
+            return String(p.sovereignt || p.SOVEREIGNT || p.admin || p.ADMIN || p.name || p.NAME || p.NAME_EN || p.name_en || "");
+        } catch (e) { return ""; }
     }
 
     // Return a stable canonical display name for a feature/name (avoid abbreviated/display variants).
