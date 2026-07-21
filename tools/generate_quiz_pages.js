@@ -522,6 +522,11 @@ async function writeSitemap({ repoRoot, pages }) {
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
   </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>
 ${pages.map(url => `  <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
