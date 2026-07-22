@@ -1999,7 +1999,7 @@ if (!urlParams.get("quiz")) {
 // - small bugfix: increment third digit (1.0.1)
 // - add/remove feature: increment second digit (1.1.0)
 // - breaking change: increment first digit (2.0.0)
-const APP_VERSION = "1.5.1"; 
+const APP_VERSION = "1.5.2"; 
 
 function injectVersionBadge() {
     try {

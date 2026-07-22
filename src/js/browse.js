@@ -1514,7 +1514,201 @@
         });
     }
 
+
+    /* smurdy-menu-map-launch-gate-v1 */
+    let menuMapReadyPromise = null;
+    let menuMapReadyConfirmed = false;
+
+    function isHomepageLaunchContext() {
+        try {
+            const params = new URLSearchParams(location.search);
+            return (
+                !params.has("quiz") &&
+                !/^\/quizzes\//i.test(location.pathname || "")
+            );
+        } catch (_) {
+            return true;
+        }
+    }
+
+    function getMenuMap() {
+        return window.SmurdyQuiz?._menuMap || null;
+    }
+
+    function menuMapIsReady(menuMap) {
+        if (!menuMap) return false;
+
+        try {
+            if (
+                typeof menuMap.loaded === "function" &&
+                menuMap.loaded()
+            ) {
+                return true;
+            }
+        } catch (_) {}
+
+        try {
+            if (
+                typeof menuMap.isStyleLoaded === "function" &&
+                menuMap.isStyleLoaded()
+            ) {
+                return true;
+            }
+        } catch (_) {}
+
+        return false;
+    }
+
+    function waitForMainMenuMapReady() {
+        if (!isHomepageLaunchContext()) {
+            return Promise.resolve();
+        }
+
+        if (
+            menuMapReadyConfirmed ||
+            menuMapIsReady(getMenuMap())
+        ) {
+            menuMapReadyConfirmed = true;
+            return Promise.resolve();
+        }
+
+        if (menuMapReadyPromise) {
+            return menuMapReadyPromise;
+        }
+
+        menuMapReadyPromise = new Promise(resolve => {
+            let watchedMap = null;
+            let timer = null;
+            let finished = false;
+
+            const cleanUp = () => {
+                if (timer !== null) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+
+                if (
+                    watchedMap &&
+                    typeof watchedMap.off === "function"
+                ) {
+                    try {
+                        watchedMap.off("load", finish);
+                    } catch (_) {}
+                }
+            };
+
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                cleanUp();
+                menuMapReadyConfirmed = true;
+                resolve();
+            };
+
+            const inspect = () => {
+                timer = null;
+                if (finished) return;
+
+                if (!isHomepageLaunchContext()) {
+                    finish();
+                    return;
+                }
+
+                const menuMap = getMenuMap();
+
+                if (menuMap !== watchedMap) {
+                    if (
+                        watchedMap &&
+                        typeof watchedMap.off === "function"
+                    ) {
+                        try {
+                            watchedMap.off("load", finish);
+                        } catch (_) {}
+                    }
+
+                    watchedMap = menuMap;
+
+                    if (
+                        watchedMap &&
+                        typeof watchedMap.on === "function"
+                    ) {
+                        watchedMap.on("load", finish);
+                    }
+                }
+
+                /*
+                 * Register the load listener first, then check readiness,
+                 * so the event cannot slip through between those steps.
+                 */
+                if (menuMapIsReady(menuMap)) {
+                    finish();
+                    return;
+                }
+
+                timer = setTimeout(inspect, 30);
+            };
+
+            inspect();
+        }).finally(() => {
+            menuMapReadyPromise = null;
+        });
+
+        return menuMapReadyPromise;
+    }
+
+    function setQuizLaunchLinksReady(panel, ready) {
+        const links = panel.querySelectorAll(
+            ".qb-play[data-group][data-manifest-id]"
+        );
+
+        for (const link of links) {
+            if (!link.dataset.readyText) {
+                link.dataset.readyText =
+                    link.textContent.trim() || "Play";
+            }
+
+            if (ready) {
+                link.removeAttribute("aria-disabled");
+                link.removeAttribute("tabindex");
+                link.style.removeProperty("pointer-events");
+                link.style.removeProperty("opacity");
+                link.style.removeProperty("cursor");
+                link.textContent = link.dataset.readyText;
+            } else {
+                link.setAttribute("aria-disabled", "true");
+                link.setAttribute("tabindex", "-1");
+                link.style.setProperty(
+                    "pointer-events",
+                    "none",
+                    "important"
+                );
+                link.style.opacity = ".58";
+                link.style.cursor = "wait";
+                link.textContent = "Loading map…";
+            }
+        }
+    }
+
+    async function synchronizeQuizLaunchAvailability(panel) {
+        if (
+            !isHomepageLaunchContext() ||
+            menuMapReadyConfirmed ||
+            menuMapIsReady(getMenuMap())
+        ) {
+            menuMapReadyConfirmed = true;
+            setQuizLaunchLinksReady(panel, true);
+            return;
+        }
+
+        setQuizLaunchLinksReady(panel, false);
+        await waitForMainMenuMapReady();
+        setQuizLaunchLinksReady(panel, true);
+    }
+
     function attachCardEvents(panel) {
+
+        void synchronizeQuizLaunchAvailability(panel);
+
         panel.querySelectorAll(
             ".qb-play[data-group][data-manifest-id]"
         ).forEach(link => {
@@ -1526,6 +1720,14 @@
                     }
 
                     event.preventDefault();
+
+                    if (
+                        link.getAttribute("aria-disabled") === "true"
+                    ) {
+                        return;
+                    }
+
+                    await waitForMainMenuMapReady();
 
                     const manifestItem =
                         (baseManifest || []).find(
@@ -1696,6 +1898,8 @@
 
     // Launch a specific manifest entry for a chosen group (used when a manifest was selected first)
     async function startQuizForManifest(manifestItem, groupId) {
+        await waitForMainMenuMapReady();
+
         if (!manifestItem) return;
 
         const groupSetId = manifestItem.groupSet || "country_groups";
