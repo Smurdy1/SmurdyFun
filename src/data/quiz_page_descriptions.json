@@ -102,6 +102,86 @@
             "bestFor": "Choose this version when you already recognize the main shapes and want a more spatial challenge. It is useful for exposing cases where you know a capital or outline but not the full geographic area of the {unitName}.",
             "mistakesHeading": "Common mistake in point mode",
             "mistakes": "A common mistake is naming the closest familiar country or state instead of the territory that contains the point. Judge containment, not visual proximity to a label or coastline."
+        },
+        "click-subdivision": {
+            "lead": "Learn {group} by clicking each {unitName} when its name appears.",
+            "heading": "How the subdivision click quiz works",
+            "howToPlay": "The quiz names one {unitName} at a time. Click the matching subdivision on the map until you have completed {countPhrase}.",
+            "tip": "Use neighboring subdivisions and recognizable boundary shapes as anchors.",
+            "skillsHeading": "Skills this subdivision click quiz develops",
+            "skills": "This mode builds recognition of internal administrative boundaries and the relative positions of {unitPlural} inside their parent country.",
+            "strategyHeading": "A reliable subdivision-clicking process",
+            "strategy": "Start with major regions of the parent country, then compare the target with neighboring subdivisions before clicking.",
+            "bestForHeading": "Who should use this subdivision mode",
+            "bestFor": "Choose this version when first learning a country's internal map or rebuilding familiarity with its states, provinces, or regions.",
+            "mistakesHeading": "Common subdivision-clicking mistake",
+            "mistakes": "Do not rely only on size. Many subdivisions have similar rectangular or compact shapes, so use regional position and neighbors.",
+            "displayName": "Click the Subdivisions",
+            "searchTerms": [
+                "subdivision map quiz",
+                "states and provinces quiz",
+                "click subdivision geography quiz"
+            ]
+        },
+        "type-subdivision": {
+            "lead": "Practice {group} by typing the highlighted {unitPlural}.",
+            "heading": "How the subdivision typing quiz works",
+            "howToPlay": "One {unitName} is highlighted. Type its name to answer and continue through {countPhrase}.",
+            "tip": "Connect each subdivision name with its position inside the parent country before typing.",
+            "skillsHeading": "Skills this subdivision typing quiz develops",
+            "skills": "This mode trains active recall of subdivision names, spelling, and recognition of internal boundary shapes.",
+            "strategyHeading": "A reliable subdivision-typing process",
+            "strategy": "Identify the broad part of the parent country, compare the highlighted area with its neighbors, then retrieve the complete subdivision name.",
+            "bestForHeading": "Who should use this subdivision mode",
+            "bestFor": "Choose this after the click version feels familiar and you want stronger name recall.",
+            "mistakesHeading": "Common subdivision-typing mistake",
+            "mistakes": "Avoid guessing from shape alone when several nearby subdivisions look alike; confirm the regional position first.",
+            "displayName": "Type the Subdivisions",
+            "searchTerms": [
+                "subdivision map quiz",
+                "states and provinces quiz",
+                "type subdivision geography quiz"
+            ]
+        },
+        "find-subdivision": {
+            "lead": "Test your knowledge of {group} by locating each {unitName} without subdivision borders.",
+            "heading": "How the no-borders subdivision quiz works",
+            "howToPlay": "The quiz names a {unitName}, but its internal borders are hidden. Click where it belongs using the parent country's outline and your mental map.",
+            "tip": "Use coastlines, corners of the parent country, and major neighboring subdivisions as anchors.",
+            "skillsHeading": "Skills this no-borders subdivision quiz develops",
+            "skills": "This mode tests whether you understand the internal layout of a country rather than merely recognizing visible state or province outlines.",
+            "strategyHeading": "A reliable no-borders subdivision process",
+            "strategy": "Divide the parent country into broad regions, place familiar anchors, and estimate the target's position relative to them.",
+            "bestForHeading": "Who should use this subdivision mode",
+            "bestFor": "Choose this after bordered subdivision maps have become comfortable.",
+            "mistakesHeading": "Common no-borders subdivision mistake",
+            "mistakes": "Do not treat the parent-country outline as empty space; coastlines and outer borders still provide a coordinate system.",
+            "displayName": "Find the Subdivisions",
+            "searchTerms": [
+                "subdivision map quiz",
+                "states and provinces quiz",
+                "find subdivision geography quiz"
+            ]
+        },
+        "find-point-subdivision": {
+            "lead": "Identify the {group} {unitName} containing each point.",
+            "heading": "How the subdivision point quiz works",
+            "howToPlay": "A point appears inside one subdivision. Type the {unitName} that contains it.",
+            "tip": "Judge which subdivision contains the point, especially when it lies near an internal boundary.",
+            "skillsHeading": "Skills this subdivision point quiz develops",
+            "skills": "This mode tests precise knowledge of subdivision extent and internal boundaries.",
+            "strategyHeading": "A reliable subdivision-point process",
+            "strategy": "Locate the point within the parent country, compare it with nearby subdivision boundaries, and answer based on containment.",
+            "bestForHeading": "Who should use this subdivision mode",
+            "bestFor": "Choose this when you already recognize the main subdivision shapes and want a more spatial test.",
+            "mistakesHeading": "Common subdivision-point mistake",
+            "mistakes": "Do not name the nearest familiar subdivision; identify the one whose territory actually contains the point.",
+            "displayName": "Find the Subdivision from a Point",
+            "searchTerms": [
+                "subdivision map quiz",
+                "states and provinces quiz",
+                "find point subdivision geography quiz"
+            ]
         }
     },
     "groups": {
@@ -117,7 +197,7 @@
             ]
         },
         "us_states": {
-            "overview": "All 50 states and the District of Columbia appear in this United States practice set. It is useful for learning state locations, names, regional patterns, and the shapes created by state borders.",
+            "overview": "This practice set covers the 50 states, the first-level political subdivisions of the United States. It focuses on internal locations, state names, regional patterns, and the shapes created by state borders.",
             "challenge": "The central and northeastern states are usually harder than the large western states because many are similar in size or packed closely together.",
             "studyTip": "Break the map into the Northeast, South, Midwest, and West, then practice the full country after each section feels familiar.",
             "searchTerms": [

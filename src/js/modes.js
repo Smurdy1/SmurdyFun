@@ -140,9 +140,12 @@
 
         // 2) group-level hint (preferred)
         const g = (groups && groupId) ? groups[groupId] : null;
-        if (g && g.borderset) {
-            borderset = String(g.borderset);
-            if (!mode) mode = borderset;
+        const groupDataMode = g
+            ? (g.dataMode || g.mapMode || g.borderset || null)
+            : null;
+        if (groupDataMode) {
+            borderset = String(g.borderset || groupDataMode);
+            if (!mode) mode = String(groupDataMode);
         }
 
         // 3) manifest-level weak hints (do NOT read manifest.mode)

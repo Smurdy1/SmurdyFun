@@ -5,7 +5,8 @@
     window.__SmurdyConfig = {
         mode: urlParams.get("mode") || "countries",
         showBorders: urlParams.get("borders") === "1",
-        quizGroupId: urlParams.get("group") || "world"
+        quizGroupId: urlParams.get("group") || "world",
+        quizGroupSet: urlParams.get("groupSet") || "country_groups"
     };
 
     function loadScript(src, onload){

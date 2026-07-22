@@ -6,6 +6,7 @@ const vm = require("vm");
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
+    const subdivisionGroupsPath = path.join(repoRoot, "src", "data", "subdivision_groups.json");
     const copyPath = path.join(repoRoot, "src", "data", "quiz_page_descriptions.json");
     const outDir = path.join(repoRoot, "quizzes");
 
@@ -15,6 +16,11 @@ const vm = require("vm");
         : baseUrl.replace(/\/docs$/i, "");
 
     const groups = await readJson(groupsPath, "country_groups.json");
+    const subdivisionGroups = await readJson(subdivisionGroupsPath, "subdivision_groups.json");
+    const groupSets = {
+        country_groups: groups,
+        subdivision_groups: subdivisionGroups
+    };
     const pageCopy = await readJson(copyPath, "quiz_page_descriptions.json");
 
     let manifest = [];
@@ -39,6 +45,7 @@ const vm = require("vm");
     const groupCopyMap = pageCopy.groups || {};
 
     validateCopyCoverage(groups, groupCopyMap);
+    validateCopyCoverage(subdivisionGroups, groupCopyMap);
 
     await fs.mkdir(outDir, { recursive: true });
 
@@ -57,10 +64,12 @@ const vm = require("vm");
         const modeKey = normalizeModeKey(manifestEntry);
         const modeCopy = modeCopyMap[manifestId] || modeCopyMap[modeKey] || {};
         const titleBase = manifestEntry.title || manifestEntry.name || manifestId;
-        const groupKeys = getGroupKeysForManifest(manifestEntry);
+        const activeGroupSetId = manifestEntry.groupSet || "country_groups";
+        const groupsForEntry = groupSets[activeGroupSetId] || {};
+        const groupKeys = getGroupKeysForManifest(manifestEntry, groupsForEntry);
 
         for (const groupId of groupKeys) {
-            const group = groupId === "__all__" ? {} : (groups[groupId] || {});
+            const group = groupId === "__all__" ? {} : (groupsForEntry[groupId] || {});
             const groupCopy = groupCopyMap[groupId] || {};
             const groupLabel = groupId === "__all__"
                 ? "All regions"
@@ -69,7 +78,9 @@ const vm = require("vm");
             const unitName = String(group.unitName || "region").trim();
             const unitPlural = pluralizeUnit(unitName);
             const unitPluralTitle = capitalizeWords(unitPlural);
-            const entries = Array.isArray(group.countries) ? group.countries.slice() : [];
+            const entries = Array.isArray(group.members)
+                ? group.members.slice()
+                : (Array.isArray(group.countries) ? group.countries.slice() : []);
             const entryCount = entries.length;
             const notable = Array.isArray(group.notable) && group.notable.length
                 ? group.notable.slice(0, 5)
@@ -184,13 +195,15 @@ const metaDescription = buildMetaDescription(
             const pageUrl = encodeURI(pageUrlRaw);
 
             let linkMode = "countries";
-            if (group.borderset) linkMode = String(group.borderset).trim();
+            if (group.dataMode || group.mapMode) linkMode = String(group.dataMode || group.mapMode).trim();
+            else if (group.borderset) linkMode = String(group.borderset).trim();
             else if (manifestEntry.mode) linkMode = String(manifestEntry.mode).trim();
             else if (manifestEntry.type) linkMode = String(manifestEntry.type).trim();
 
             const otherQuizzes = manifest
                 .filter(other => getManifestId(other) !== manifestId)
-                .filter(other => getGroupKeysForManifest(other).includes(groupId))
+                .filter(other => (other.groupSet || "country_groups") === activeGroupSetId)
+                .filter(other => getGroupKeysForManifest(other, groupsForEntry).includes(groupId))
                 .map(other => ({
                     id: getManifestId(other),
                     title: getModeDisplayName(other)
@@ -200,12 +213,12 @@ const metaDescription = buildMetaDescription(
                         const availableGroupIds = groupKeys.filter(id => id !== "__all__");
             const relatedGroups = getRelatedGroupIds({
                 groupId,
-                groups,
+                groups: groupsForEntry,
                 availableGroupIds,
                 limit: 8
             }).map(id => ({
                 id,
-                label: (groups[id] && groups[id].label) || humanize(id)
+                label: (groupsForEntry[id] && groupsForEntry[id].label) || humanize(id)
             }));
 
             const popularGroups = getPopularGroupIds({
@@ -215,7 +228,7 @@ const metaDescription = buildMetaDescription(
                 limit: 6
             }).map(id => ({
                 id,
-                label: (groups[id] && groups[id].label) || humanize(id)
+                label: (groupsForEntry[id] && groupsForEntry[id].label) || humanize(id)
             }));
 
             const navigationHtml = buildPageNavigationHtml({
@@ -367,7 +380,7 @@ ${JSON.stringify({
     ${entryListHtml}
 
     <div class="action-row">
-      <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(manifestEntry.file || manifestId)}&mode=${encodeURIComponent(linkMode)}${groupId !== "__all__" ? "&group=" + encodeURIComponent(groupId) : ""}">Open quiz</a>
+      <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(manifestEntry.file || manifestId)}&mode=${encodeURIComponent(linkMode)}&groupSet=${encodeURIComponent(activeGroupSetId)}${groupId !== "__all__" ? "&group=" + encodeURIComponent(groupId) : ""}">Open quiz</a>
       <a class="qb-btn secondary" href="${publicRoot}/quizzes/">Browse all quizzes</a>
       <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
     </div>
@@ -389,11 +402,13 @@ ${JSON.stringify({
                 groupLabel,
                 quizTitle: titleBase,
                 manifestId,
-                groupId
+                groupId,
+                groupSet: activeGroupSetId
             });
         }
     }
 
+    await writeLegacySubdivisionPages({ outDir, publicRoot });
     await writeQuizIndex({ outDir, pageRecords, publicRoot });
     await writeSitemap({ repoRoot, pages, publicRoot });
 
@@ -401,11 +416,11 @@ ${JSON.stringify({
     console.log(`Editable descriptions: ${path.relative(repoRoot, copyPath)}`);
     process.exit(0);
 
-    function getGroupKeysForManifest(entry) {
+    function getGroupKeysForManifest(entry, groupCollection = {}) {
         if (!entry.groupSet) return ["__all__"];
         const mode = normalizeModeKey(entry);
-        return Object.keys(groups).filter(groupId => {
-            const allowed = groups[groupId] && groups[groupId].allowedTypes;
+        return Object.keys(groupCollection).filter(groupId => {
+            const allowed = groupCollection[groupId] && groupCollection[groupId].allowedTypes;
             return !Array.isArray(allowed) || allowed.length === 0 || allowed.includes(mode);
         });
     }
@@ -413,6 +428,39 @@ ${JSON.stringify({
     console.error(error);
     process.exit(1);
 });
+
+
+async function writeLegacySubdivisionPages({ outDir, publicRoot }) {
+    const mappings = {
+        "click-country": "click-subdivision",
+        "type-country": "type-subdivision",
+        "find-country": "find-subdivision",
+        "find-point": "find-point-subdivision"
+    };
+
+    for (const [oldMode, newMode] of Object.entries(mappings)) {
+        const legacyDir = path.join(outDir, oldMode, "us_states");
+        await fs.mkdir(legacyDir, { recursive: true });
+        const destination = `${publicRoot}/quizzes/${newMode}/us_states/`;
+        const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>US States Quiz Moved | Smurdy</title>
+  <meta name="robots" content="noindex, follow"/>
+  <link rel="canonical" href="${destination}"/>
+  <meta http-equiv="refresh" content="0;url=${destination}"/>
+  <script>location.replace(${JSON.stringify(destination)});</script>
+</head>
+<body>
+  <p>The US States quiz is now part of Smurdy's subdivision system.
+     <a href="${destination}">Continue to the US States quiz</a>.</p>
+</body>
+</html>`;
+        await fs.writeFile(path.join(legacyDir, "index.html"), html, "utf8");
+    }
+}
 
 async function readJson(filePath, label) {
     try {
@@ -448,7 +496,11 @@ function getModeDisplayName(entry) {
     if (id === "click-country") return "Click the Countries";
     if (id === "type-country") return "Type the Countries";
     if (id === "find-country") return "Find the Countries";
-    if (id === "find-point") return "Find the Point";
+    if (id === "find-point") return "Find the Country from a Point";
+    if (id === "click-subdivision") return "Click the Subdivisions";
+    if (id === "type-subdivision") return "Type the Subdivisions";
+    if (id === "find-subdivision") return "Find the Subdivisions";
+    if (id === "find-point-subdivision") return "Find the Subdivision from a Point";
     return entry.title || humanize(id);
 }
 

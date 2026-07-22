@@ -8,6 +8,7 @@ if (typeof window.__SmurdyMode === "undefined") {
 const mode = window.__SmurdyMode;
 const showBorders = (typeof cfg.showBorders === "boolean") ? cfg.showBorders : (urlParams.get("borders") === "1");
 const quizGroupId = cfg.quizGroupId || urlParams.get("group") || "world";
+const quizGroupSet = cfg.quizGroupSet || urlParams.get("groupSet") || "country_groups";
 
 // MODE_CONFIGS + TINY_COUNTRIES are provided by modes.js (bootstrap loads modes.js before this file)
 const appModes = window.AppModes || {};
@@ -139,6 +140,8 @@ const SmurdyQuiz = {
     rawAliases: {},
     aliases: {},
     groups: {},
+    groupSets: {},
+    currentGroupSet: quizGroupSet,
     currentGroupId: quizGroupId,
     showBordersInitial: showBorders,
     currentShowBorders: showBorders,
@@ -437,6 +440,41 @@ const SmurdyQuiz = {
         } catch (e) {
             // ignore errors if layers/sources are not yet ready
         }
+    },
+
+
+    // smurdy-subdivision-system-v1
+    async loadGroupSet(groupSetId) {
+        const safeId = String(groupSetId || "country_groups").trim();
+        if (!/^[a-z0-9_-]+$/i.test(safeId)) {
+            throw new Error(`Invalid group-set id: ${safeId}`);
+        }
+
+        if (this.groupSets && this.groupSets[safeId]) {
+            return this.groupSets[safeId];
+        }
+
+        const response = await fetch(`/src/data/${safeId}.json`);
+        if (!response.ok) {
+            throw new Error(`Could not load group set ${safeId}: HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data || Array.isArray(data) || typeof data !== "object") {
+            throw new Error(`Invalid group-set data: ${safeId}`);
+        }
+
+        this.groupSets = this.groupSets || {};
+        this.groupSets[safeId] = data;
+        return data;
+    },
+
+    async setCurrentGroupSet(groupSetId) {
+        const safeId = String(groupSetId || "country_groups").trim();
+        const data = await this.loadGroupSet(safeId);
+        this.currentGroupSet = safeId;
+        this.groups = data;
+        return data;
     },
 
     normalizeAnswer(text) {
@@ -778,6 +816,12 @@ const SmurdyQuiz = {
                 manifestDef = (window.SmurdyQuizManifest || []).find(m => m.id === id) || null;
             }
 
+            const requestedGroupSet =
+                manifestDef?.groupSet ||
+                this.currentGroupSet ||
+                quizGroupSet;
+            await this.setCurrentGroupSet(requestedGroupSet);
+
             if (window.AppModes && typeof window.AppModes.inferRunOptions === "function") {
                 const inferred = window.AppModes.inferRunOptions({
                     manifestItem: manifestDef,
@@ -793,6 +837,7 @@ const SmurdyQuiz = {
                     if (typeof quizRef === "string" && quizRef) params.set("quiz", quizRef);
                     params.set("mode", inferred.mode);
                     if (this.currentGroupId) params.set("group", this.currentGroupId);
+                    if (this.currentGroupSet) params.set("groupSet", this.currentGroupSet);
                     if (typeof this.currentShowBorders !== "undefined") params.set("borders", this.currentShowBorders ? "1" : "0");
                     try { history.replaceState({}, "", "?" + params.toString()); } catch(e) {}
                     // perform hot-swap and then continue (no full reload)
@@ -982,12 +1027,17 @@ const SmurdyQuiz = {
         const group = this.getCurrentGroup();
         if (!group) return null;
 
-        // If explicit country list exists, build allowed set from it (including aliases)
-        if (Array.isArray(group.countries) && group.countries.length > 0) {
+        // If an explicit member list exists, build the allowed set from it.
+        // Country groups use "countries"; subdivision groups use the generic "members".
+        const explicitMembers = Array.isArray(group.members)
+            ? group.members
+            : (Array.isArray(group.countries) ? group.countries : []);
+
+        if (explicitMembers.length > 0) {
             const allowed = new Set();
             const allFeatures = (this.mainData && Array.isArray(this.mainData.features)) ? this.mainData.features : [];
 
-            for (const rawName of group.countries) {
+            for (const rawName of explicitMembers) {
                 const normRaw = this.normalizeAnswer(rawName);
                 if (!normRaw) continue;
                 // don't add obviously tiny tokens (e.g. "of", "the", single letters)
@@ -1440,10 +1490,9 @@ map.on("load", async () => {
     }
 
     try {
-        const groupsResponse = await fetch("/src/data/country_groups.json");
-        SmurdyQuiz.groups = await groupsResponse.json();
+        await SmurdyQuiz.setCurrentGroupSet(quizGroupSet);
     } catch (err) {
-        console.warn("Could not load country_groups.json, continuing without groups.", err);
+        console.warn(`Could not load ${quizGroupSet}.json, continuing without groups.`, err);
         SmurdyQuiz.groups = {};
     }
 
@@ -1907,7 +1956,7 @@ if (!urlParams.get("quiz")) {
 // - small bugfix: increment third digit (1.0.1)
 // - add/remove feature: increment second digit (1.1.0)
 // - breaking change: increment first digit (2.0.0)
-const APP_VERSION = "1.4.4"; 
+const APP_VERSION = "1.5.0"; 
 
 function injectVersionBadge() {
     try {

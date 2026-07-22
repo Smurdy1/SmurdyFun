@@ -433,7 +433,7 @@ window.runNameQuiz = function runNameQuiz(config) {
                     const group = (typeof SQ.getCurrentGroup === "function")
                         ? SQ.getCurrentGroup()
                         : null;
-                    for (const groupName of (group?.countries || [])) {
+                    for (const groupName of (group?.members || group?.countries || [])) {
                         const key = (typeof SQ.normalizeAnswer === "function")
                             ? SQ.normalizeAnswer(groupName)
                             : norm(groupName);
