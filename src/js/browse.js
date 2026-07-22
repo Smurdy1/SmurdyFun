@@ -754,6 +754,33 @@
             }
         }
 
+
+        /* smurdy-simple-browser-heading-v1 */
+        #qb-mobile-brand {
+            display: none !important;
+        }
+
+        .qb-desktop-browser-title {
+            display: block;
+        }
+
+        @media (max-width: 700px) {
+            .qb-desktop-browser-title {
+                display: none !important;
+            }
+
+            #qb-mobile-brand {
+                display: flex !important;
+                margin: 0 !important;
+            }
+
+            #qb-header {
+                display: flex;
+                align-items: center;
+                min-height: 48px;
+            }
+        }
+
         /* Mobile / narrow-screen adjustments: centered and inset with safe-area padding + extra margin */
         @media (max-width: 700px) {
             /* add an extra 12px margin inside safe-area so panel always appears floating */
@@ -1777,13 +1804,26 @@
 
         panel.innerHTML = `
             <div id="qb-header">
-                <div id="qb-title">
-                    ${escapeHtml(categoryTitle)}
-                    ·
-                    ${escapeHtml(modeTitle)}
-                    ·
-                    ${escapeHtml(familyTitle)}
-                </div>
+                <div
+                    id="qb-title"
+                    class="qb-desktop-browser-title"
+                >Choose a Quiz</div>
+
+                <a
+                    id="qb-mobile-brand"
+                    href="https://smurdy.fun"
+                    class="panel-brand"
+                    style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin-bottom:8px;"
+                >
+                    <img
+                        src="/assets/images/SmurdeyeBig.png"
+                        alt="Smurdy logo"
+                        style="width:48px;height:48px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.12)"
+                    >
+                    <div style="display:flex;flex-direction:column;line-height:1;">
+                        <span style="font-weight:700;font-size:16px;color:#000">Smurdy</span>
+                    </div>
+                </a>
             </div>
 
             ${renderCategoryTabs()}
