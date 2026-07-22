@@ -574,15 +574,15 @@
                 position: fixed !important;
                 left: 50% !important;
                 right: auto !important;
-                top: 24px !important;
+                top: 12px !important;
                 bottom: auto !important;
                 transform: translateX(-50%) !important;
 
                 /*
-                 * The panel is 24px from both sides and 24px from the top,
+                 * The panel is 12px from both sides and 12px from the top,
                  * so the top and side gaps are exactly equal.
                  */
-                width: calc(100vw - 48px) !important;
+                width: calc(100vw - 24px) !important;
                 max-width: 540px !important;
 
                 height: min(
@@ -654,6 +654,106 @@
             }
         }
 
+
+        /* smurdy-map-controls-and-collapse-v1 */
+
+        /*
+         * Keep MapLibre's zoom/compass controls in an always-available,
+         * horizontal row at the bottom-left of the map.
+         */
+        .maplibregl-ctrl-bottom-left {
+            left: 12px;
+            bottom: 12px;
+            z-index: 1500;
+        }
+
+        .maplibregl-ctrl-bottom-left .maplibregl-ctrl-group {
+            display: flex !important;
+            flex-direction: row !important;
+            overflow: hidden;
+        }
+
+        .maplibregl-ctrl-bottom-left .maplibregl-ctrl-group button {
+            float: none !important;
+            border-top: 0 !important;
+            border-bottom: 0 !important;
+        }
+
+        .maplibregl-ctrl-bottom-left .maplibregl-ctrl-group button + button {
+            border-top: 0 !important;
+            border-left: 1px solid #ddd !important;
+        }
+
+        #qb-mobile-collapse {
+            display: none;
+        }
+
+        @media (max-width: 700px) {
+            html body #quiz-browser {
+                transition:
+                    transform 320ms cubic-bezier(.22, .8, .25, 1),
+                    box-shadow 320ms ease !important;
+                will-change: transform;
+            }
+
+            html body #quiz-browser.qb-mobile-collapsed {
+                /*
+                 * Slide the whole panel upward while leaving its final
+                 * 40px visible as a reopening handle.
+                 */
+                transform:
+                    translate(-50%, calc(-100% + 40px))
+                    !important;
+                box-shadow: 0 5px 18px rgba(0,0,0,.16) !important;
+            }
+
+            #qb-mobile-collapse {
+                appearance: none;
+                display: flex;
+                flex: 0 0 40px;
+                align-items: center;
+                justify-content: center;
+                width: calc(100% + 28px);
+                height: 40px;
+                min-height: 40px;
+                margin: 8px -14px -10px;
+                padding: 0;
+                border: 0;
+                border-top: 1px solid rgba(0,0,0,.10);
+                border-radius: 0 0 14px 14px;
+                background: rgba(248,248,248,.98);
+                color: #333;
+                cursor: pointer;
+                font: inherit;
+                font-size: 17px;
+                font-weight: 900;
+                line-height: 1;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #qb-mobile-collapse:hover,
+            #qb-mobile-collapse:focus-visible {
+                background: #efefef;
+            }
+
+            #qb-mobile-collapse-arrow {
+                display: block;
+                transform: translateY(1px);
+                transition: transform 220ms ease;
+            }
+
+            html body #quiz-browser.qb-mobile-collapsed
+            #qb-mobile-collapse-arrow {
+                transform: rotate(180deg) translateY(-1px);
+            }
+
+            .maplibregl-ctrl-bottom-left {
+                left: 10px;
+                bottom: 10px;
+            }
+        }
+
         /* Mobile / narrow-screen adjustments: centered and inset with safe-area padding + extra margin */
         @media (max-width: 700px) {
             /* add an extra 12px margin inside safe-area so panel always appears floating */
@@ -709,6 +809,7 @@
     let activeFamily = "countries";
     let browserFilter = "";
     let renderVersion = 0;
+    let browserCollapsed = false;
     let pageDescriptionsPromise = null;
 
     const CATEGORY_PRESENTATION = {
@@ -1315,7 +1416,57 @@
         `;
     }
 
+
+    function renderMobileCollapseHandle() {
+        return `
+            <button
+                id="qb-mobile-collapse"
+                type="button"
+                aria-expanded="${browserCollapsed ? "false" : "true"}"
+                aria-label="${browserCollapsed
+                    ? "Open quiz browser"
+                    : "Hide quiz browser and explore the map"}"
+            >
+                <span
+                    id="qb-mobile-collapse-arrow"
+                    aria-hidden="true"
+                >▲</span>
+            </button>
+        `;
+    }
+
+    function applyBrowserCollapsedState(panel) {
+        panel.classList.toggle(
+            "qb-mobile-collapsed",
+            browserCollapsed
+        );
+
+        const button = panel.querySelector(
+            "#qb-mobile-collapse"
+        );
+
+        if (button) {
+            button.setAttribute(
+                "aria-expanded",
+                browserCollapsed ? "false" : "true"
+            );
+            button.setAttribute(
+                "aria-label",
+                browserCollapsed
+                    ? "Open quiz browser"
+                    : "Hide quiz browser and explore the map"
+            );
+        }
+    }
+
     function attachChromeEvents(panel) {
+        panel.querySelector(
+            "#qb-mobile-collapse"
+        )?.addEventListener("click", () => {
+            browserCollapsed = !browserCollapsed;
+            applyBrowserCollapsedState(panel);
+        });
+
         panel.querySelectorAll(
             "[data-category]"
         ).forEach(button => {
@@ -1452,9 +1603,11 @@
             </div>
 
             ${renderDirectoryLinks()}
+            ${renderMobileCollapseHandle()}
         `;
 
         attachChromeEvents(panel);
+        applyBrowserCollapsedState(panel);
 
         const cards = filterCards(
             await loadCardsForSelection(),

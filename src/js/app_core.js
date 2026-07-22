@@ -49,24 +49,11 @@ const map = new maplibregl.Map({
     attributionControl: false
 });
  
-// remove built-in zoom UI on small screens: add NavigationControl only for non-mobile and toggle on resize
-const isMobileViewport = () => (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
+// smurdy-map-controls-and-collapse-v1
+// Keep the built-in navigation controls available on every screen size.
+// Their horizontal appearance is defined by browse.js.
 const navControl = new maplibregl.NavigationControl();
-let navAdded = false;
-if (!isMobileViewport()) {
-    map.addControl(navControl, "top-right");
-    navAdded = true;
-}
-window.addEventListener("resize", () => {
-    const mobile = isMobileViewport();
-    if (mobile && navAdded) {
-        try { map.removeControl(navControl); } catch (e) {}
-        navAdded = false;
-    } else if (!mobile && !navAdded) {
-        try { map.addControl(navControl, "top-right"); } catch (e) {}
-        navAdded = true;
-    }
-});
+map.addControl(navControl, "bottom-left");
  
 map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
@@ -1374,8 +1361,57 @@ const SmurdyQuiz = {
 
             // show a few UI controls on the menu map (optional)
             try {
-                const nav = new maplibregl.NavigationControl();
-                menuMap.addControl(nav, 'top-right');
+                
+            // smurdy-independent-menu-map-control-v1
+            // This control belongs to the independent homepage menu map.
+            const menuNavigationControl =
+                new maplibregl.NavigationControl();
+
+            menuMap.addControl(
+                menuNavigationControl,
+                "bottom-left"
+            );
+
+            try {
+                const menuControlElement =
+                    menuNavigationControl._container;
+
+                if (menuControlElement) {
+                    menuControlElement.classList.add(
+                        "smurdy-map-nav",
+                        "smurdy-menu-map-nav"
+                    );
+                }
+            } catch (_) {}
+
+            /*
+             * The normal quiz map still exists underneath the independent
+             * menu map. Hide its controls while the menu map is active, or
+             * both control sets appear and the lower one manipulates the
+             * wrong map.
+             */
+            try {
+                if (navControl && navControl._container) {
+                    navControl._container.style.display = "none";
+                }
+            } catch (_) {}
+
+            const restoreUnderlyingQuizMapControl = () => {
+                try {
+                    if (navControl && navControl._container) {
+                        navControl._container.style.display = "";
+                    }
+                } catch (_) {}
+            };
+
+            try {
+                menuMap.once(
+                    "remove",
+                    restoreUnderlyingQuizMapControl
+                );
+            } catch (_) {}
+
+
             } catch (_) {}
 
             // When menu map loads, set the country label formatting similar to the example.
@@ -1441,6 +1477,13 @@ const SmurdyQuiz = {
     },
 
     hideMainMenuMap() {
+        // Restore the quiz map's controls after removing the menu map.
+        try {
+            if (navControl && navControl._container) {
+                navControl._container.style.display = "";
+            }
+        } catch (_) {}
+
         try {
             if (this._menuMap) {
                 try { this._menuMap.remove(); } catch (_) {}
@@ -1956,7 +1999,7 @@ if (!urlParams.get("quiz")) {
 // - small bugfix: increment third digit (1.0.1)
 // - add/remove feature: increment second digit (1.1.0)
 // - breaking change: increment first digit (2.0.0)
-const APP_VERSION = "1.5.0"; 
+const APP_VERSION = "1.5.1"; 
 
 function injectVersionBadge() {
     try {

@@ -83,9 +83,9 @@
 
      <div id="map"></div>
      <script src="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.js"></script>
-     <script src="/src/js/app.js" defer></script>
-     <script src="/src/js/manifest.js" defer></script>
-     <script src="/src/js/browse.js" defer></script>
+     <script src="/src/js/app.js?v=20260722-independent-menu-control-1" defer></script>
+     <script src="/src/js/manifest.js?v=20260722-independent-menu-control-1" defer></script>
+     <script src="/src/js/browse.js?v=20260722-independent-menu-control-1" defer></script>
  
      <script>
 
@@ -100,5 +100,197 @@
      });
      </script>
     
- </body>
+ 
+<!-- smurdy-global-map-control-visibility-v1 -->
+<script>
+(() => {
+    const MARKER = "smurdy-global-map-control-visibility-v1";
+
+    function quizIsActive() {
+        try {
+            return new URLSearchParams(location.search).has("quiz");
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function isNavigationGroup(element) {
+        return Boolean(
+            element &&
+            element.querySelector &&
+            element.querySelector(
+                ".maplibregl-ctrl-zoom-in, " +
+                ".maplibregl-ctrl-zoom-out, " +
+                ".maplibregl-ctrl-compass"
+            )
+        );
+    }
+
+    function isRealQuizMapControl(group) {
+        const mapElement = group.closest(".maplibregl-map");
+        const corner = group.parentElement;
+
+        return Boolean(
+            mapElement &&
+            mapElement.id === "map" &&
+            corner &&
+            corner.classList.contains(
+                "maplibregl-ctrl-bottom-left"
+            )
+        );
+    }
+
+    function setGroupVisible(group, visible) {
+        if (visible) {
+            group.style.removeProperty("display");
+            group.style.removeProperty("visibility");
+            group.style.removeProperty("pointer-events");
+            group.removeAttribute(
+                "data-smurdy-control-hidden"
+            );
+            return;
+        }
+
+        group.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+        group.style.setProperty(
+            "visibility",
+            "hidden",
+            "important"
+        );
+        group.style.setProperty(
+            "pointer-events",
+            "none",
+            "important"
+        );
+        group.setAttribute(
+            "data-smurdy-control-hidden",
+            "true"
+        );
+    }
+
+    function synchronizeMapControls() {
+        const inQuiz = quizIsActive();
+
+        const groups = Array.from(
+            document.querySelectorAll(
+                ".maplibregl-ctrl-group"
+            )
+        ).filter(isNavigationGroup);
+
+        for (const group of groups) {
+            /*
+             * Homepage:
+             *   Hide every zoom/compass control, regardless of map.
+             *
+             * Quiz:
+             *   Show only the bottom-left control belonging to the
+             *   real #map quiz map. Hide any stale menu-map controls.
+             */
+            setGroupVisible(
+                group,
+                inQuiz && isRealQuizMapControl(group)
+            );
+        }
+
+        document.documentElement.classList.toggle(
+            "smurdy-quiz-active",
+            inQuiz
+        );
+        document.documentElement.classList.toggle(
+            "smurdy-home-active",
+            !inQuiz
+        );
+    }
+
+    let queued = false;
+
+    function queueSynchronization() {
+        if (queued) return;
+        queued = true;
+
+        requestAnimationFrame(() => {
+            queued = false;
+            synchronizeMapControls();
+        });
+    }
+
+    for (const methodName of [
+        "pushState",
+        "replaceState"
+    ]) {
+        const original = history[methodName];
+
+        if (
+            typeof original !== "function" ||
+            original.__smurdyWrapped
+        ) {
+            continue;
+        }
+
+        function wrappedHistoryMethod(...args) {
+            const result = original.apply(
+                this,
+                args
+            );
+            queueSynchronization();
+            return result;
+        }
+
+        wrappedHistoryMethod.__smurdyWrapped = true;
+        history[methodName] = wrappedHistoryMethod;
+    }
+
+    addEventListener(
+        "popstate",
+        queueSynchronization
+    );
+    addEventListener(
+        "hashchange",
+        queueSynchronization
+    );
+
+    const observer = new MutationObserver(
+        queueSynchronization
+    );
+
+    function beginWatching() {
+        const target =
+            document.body ||
+            document.documentElement;
+
+        observer.observe(target, {
+            childList: true,
+            subtree: true
+        });
+
+        synchronizeMapControls();
+        setTimeout(synchronizeMapControls, 50);
+        setTimeout(synchronizeMapControls, 250);
+        setTimeout(synchronizeMapControls, 1000);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            beginWatching,
+            { once: true }
+        );
+    } else {
+        beginWatching();
+    }
+
+    window.SmurdySynchronizeMapControls =
+        synchronizeMapControls;
+
+    console.debug(
+        MARKER + ": installed"
+    );
+})();
+</script>
+
+</body>
  </html>
