@@ -116,6 +116,72 @@ function setupMobileAttribution() {
 }
 try { setupMobileAttribution(); } catch (_) {}
  
+
+// smurdy-global-siachen-exclusion-v1
+const SMURDY_GLOBALLY_IGNORED_FEATURE_NAMES = new Set([
+    "siachen glacier"
+]);
+
+function smurdyNormalizeGlobalFeatureName(value) {
+    return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9 ]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function smurdyShouldIgnoreFeatureGlobally(feature) {
+    if (!feature) return false;
+
+    const properties =
+        feature && feature.properties
+            ? feature.properties
+            : {};
+
+    const candidates = [
+        properties.NAME,
+        properties.name,
+        properties.NAME_LONG,
+        properties.NAME_EN,
+        properties.ADMIN,
+        properties.GEOUNIT,
+        properties.SUBUNIT,
+        properties.SOVEREIGNT,
+        properties.BRK_NAME,
+        properties.FORMAL_EN
+    ];
+
+    try {
+        if (
+            typeof MODE !== "undefined" &&
+            MODE &&
+            typeof MODE.getCanonicalFeatureName === "function"
+        ) {
+            candidates.unshift(
+                MODE.getCanonicalFeatureName(feature)
+            );
+        }
+    } catch (_) {}
+
+    return candidates.some(candidate =>
+        SMURDY_GLOBALLY_IGNORED_FEATURE_NAMES.has(
+            smurdyNormalizeGlobalFeatureName(candidate)
+        )
+    );
+}
+
+function smurdyFilterGloballyIgnoredFeatures(features) {
+    if (!Array.isArray(features)) return [];
+
+    return features.filter(
+        feature =>
+            !smurdyShouldIgnoreFeatureGlobally(feature)
+    );
+}
+
 const SmurdyQuiz = {
     map,
     mode,
@@ -1169,7 +1235,7 @@ const SmurdyQuiz = {
             }
 
             // apply mode-specific filtering
-            this.mainData.features = MODE.filterFeatures(this.mainData.features);
+            this.mainData.features = smurdyFilterGloballyIgnoredFeatures(MODE.filterFeatures(this.mainData.features));
 
             // assign ids and rebuild nameIndex (minimal)
             this.mainData.features.forEach((f, i) => { f.id = i; });
@@ -1604,7 +1670,7 @@ map.on("load", async () => {
     // --- end counting helpers ---
 
     // keep the full dataset but allow mode-specific filtering (e.g. remove non-US states)
-    SmurdyQuiz.mainData.features = MODE.filterFeatures(SmurdyQuiz.mainData.features);
+    SmurdyQuiz.mainData.features = smurdyFilterGloballyIgnoredFeatures(MODE.filterFeatures(SmurdyQuiz.mainData.features));
 
     // playableCount will be computed after we build the nameIndex (dedup by canonical name) below
     // (temporary placeholder until nameIndex exists)
@@ -1999,7 +2065,7 @@ if (!urlParams.get("quiz")) {
 // - small bugfix: increment third digit (1.0.1)
 // - add/remove feature: increment second digit (1.1.0)
 // - breaking change: increment first digit (2.0.0)
-const APP_VERSION = "1.5.3"; 
+const APP_VERSION = "1.5.4"; 
 
 function injectVersionBadge() {
     try {
