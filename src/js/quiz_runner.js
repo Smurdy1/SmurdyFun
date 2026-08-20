@@ -1395,7 +1395,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
             // ignore clicks on already completed canonical keys
             for (const c of completed) {
-                if (normalizeName(c) === clickedCanon) return;
+                if (normalizeName(c) === clickedCanon && borders !== false) return;
             }
 
             locked = true;
