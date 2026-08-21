@@ -502,13 +502,29 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     }
 
+    // Snapshot this run's canonical names. RUN's cache is shared between runner
+    // instances and may be rebuilt by another initialization before this quiz's
+    // final delayed nextQuestion() executes.
+    let quizNames = null;
+
     // Override getNames used by this runner to return canonical list (one entry per sovereign).
     function getNames() {
+        if (Array.isArray(quizNames)) return quizNames.slice();
+
         try {
             buildCanonicalIndex();
-            if (Array.isArray(RUN._canonList) && RUN._canonList.length) return RUN._canonList.slice();
+            if (Array.isArray(RUN._canonList) && RUN._canonList.length) {
+                quizNames = RUN._canonList.slice();
+                return quizNames.slice();
+            }
         } catch (_) {}
-        return SQ.getAllNames ? SQ.getAllNames() : [];
+
+        const fallbackNames = SQ.getAllNames ? SQ.getAllNames() : [];
+        if (Array.isArray(fallbackNames) && fallbackNames.length) {
+            quizNames = fallbackNames.slice();
+            return quizNames.slice();
+        }
+        return [];
     }
 
     // Optionally wrap/patch SQ.getFeatureByName to resolve canonical bestName matches first.
@@ -1173,6 +1189,12 @@ window.runNameQuiz = function runNameQuiz(config) {
             stopTimer();
             setInputEnabled(false);
 
+            // The share section replaces the answer controls after a typing quiz.
+            if (mode === "type") {
+                const typeControls = document.getElementById("type-quiz-controls");
+                if (typeControls) typeControls.style.display = "none";
+            }
+
             // Keep the quiz panel in game-mode showing "Done!" until the user clicks Back.
             try { setQuizPanelMode("game"); } catch (e) {}
             return;
@@ -1295,6 +1317,8 @@ window.runNameQuiz = function runNameQuiz(config) {
              SQ.resetView();
          }
          if (mode === "type" && inputEl) {
+             const typeControls = document.getElementById("type-quiz-controls");
+             if (typeControls) typeControls.style.display = "flex";
              inputEl.value = "";
              setInputEnabled(true);
          }
