@@ -411,8 +411,9 @@ ${JSON.stringify({
     }
 
     await writeLegacySubdivisionPages({ outDir, publicRoot });
+    const modeHubPages = await writeModeIndexes({ outDir, pageRecords, publicRoot });
     await writeQuizIndex({ outDir, pageRecords, publicRoot });
-    await writeSitemap({ repoRoot, pages, publicRoot });
+    await writeSitemap({ repoRoot, pages: [...pages, ...modeHubPages], publicRoot });
 
     console.log(`Wrote ${pages.length} quiz pages to quizzes/ and updated sitemap.xml + sitemap.txt.`);
     console.log(`Editable descriptions: ${path.relative(repoRoot, copyPath)}`);
@@ -749,6 +750,110 @@ function buildKeywords({ manifestEntry, modeCopy, groupCopy, groupLabel, unitPlu
         .slice(0, 18);
 }
 
+async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
+    const modes = {
+        "click-country": {
+            name: "Click the Countries",
+            title: "Click the Countries Map Quizzes | Smurdy",
+            description: "Choose a region and practice identifying countries by clicking the correct country on an interactive map."
+        },
+        "type-country": {
+            name: "Type the Countries",
+            title: "Type the Countries Map Quizzes | Smurdy",
+            description: "Choose a region and practice identifying highlighted countries by typing each country name."
+        },
+        "find-country": {
+            name: "Find Countries Without Borders",
+            title: "No-Borders Country Map Quizzes | Smurdy",
+            description: "Choose a region and practice locating countries on a map without visible country borders."
+        },
+        "find-point": {
+            name: "Find the Country from a Point",
+            title: "Find the Country from a Point Quizzes | Smurdy",
+            description: "Choose a region and identify which country contains a highlighted point on the map."
+        }
+    };
+
+    const availableModeIds = Object.keys(modes).filter(modeId =>
+        pageRecords.some(record => record.manifestId === modeId)
+    );
+    const modeHubPages = [];
+
+    for (const modeId of availableModeIds) {
+        const mode = modes[modeId];
+        const records = pageRecords.filter(record => record.manifestId === modeId);
+        const hubUrl = `${publicRoot}/quizzes/${modeId}/`;
+        const otherModes = availableModeIds
+            .filter(otherId => otherId !== modeId)
+            .map(otherId =>
+                `<a href="${publicRoot}/quizzes/${otherId}/">${escapeHtml(modes[otherId].name)}</a>`
+            )
+            .join("");
+
+        const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>${escapeHtml(mode.title)}</title>
+  <meta name="description" content="${escapeHtml(mode.description)}"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="${hubUrl}"/>
+  <style>
+    :root{--brand:#0077cc;--muted:#666;--line:#e8e8e0}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f7f7f2;color:#111;line-height:1.5}
+    main{max-width:900px;margin:24px auto;padding:18px}
+    a{color:#075f9e}
+    .breadcrumbs{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:18px}
+    .breadcrumbs a{text-decoration:none}
+    .breadcrumbs a:hover{text-decoration:underline}
+    h1{margin:0 0 8px;line-height:1.2}
+    .lead{font-size:17px;margin:0 0 22px;color:#333}
+    .quiz-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+    .quiz-list a{display:block;height:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,.04)}
+    .quiz-list a:hover,.quiz-list a:focus{border-color:var(--brand);color:#075f9e}
+    .other-modes{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+    .other-modes h2{font-size:19px;margin:0 0 10px}
+    .mode-links{display:flex;gap:8px;flex-wrap:wrap}
+    .mode-links a{padding:8px 11px;border-radius:8px;background:#fff;border:1px solid var(--line);text-decoration:none}
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="${publicRoot}/">Smurdy</a>
+      <span aria-hidden="true">›</span>
+      <a href="${publicRoot}/quizzes/">All quizzes</a>
+      <span aria-hidden="true">›</span>
+      <span>${escapeHtml(mode.name)}</span>
+    </nav>
+    <header>
+      <h1>${escapeHtml(mode.name)} Map Quizzes</h1>
+      <p class="lead">${escapeHtml(mode.description)} Choose from ${records.length} available groups.</p>
+    </header>
+    <ul class="quiz-list">
+      ${records.map(record =>
+          `<li><a href="${record.path}">${escapeHtml(record.title.replace(" | Smurdy", ""))}</a></li>`
+      ).join("\n      ")}
+    </ul>
+    <nav class="other-modes" aria-label="Other quiz modes">
+      <h2>Other quiz modes</h2>
+      <div class="mode-links">${otherModes}</div>
+    </nav>
+  </main>
+</body>
+</html>`;
+
+        const modeDir = path.join(outDir, modeId);
+        await fs.mkdir(modeDir, { recursive: true });
+        await fs.writeFile(path.join(modeDir, "index.html"), html, "utf8");
+        modeHubPages.push(hubUrl);
+    }
+
+    return modeHubPages;
+}
+
 async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
     if (!pageRecords.length) return;
 
@@ -797,7 +902,9 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
     <div class="grid">
       ${Array.from(byMode.entries()).map(([modeId, records]) => `
       <section>
-        <h2>${escapeHtml(modeNames[modeId] || humanize(modeId))}</h2>
+        <h2>${modeNames[modeId]
+            ? `<a href="${publicRoot}/quizzes/${slug(modeId)}/">${escapeHtml(modeNames[modeId])}</a>`
+            : escapeHtml(humanize(modeId))}</h2>
         <ul>
           ${records.map(record =>
               `<li><a href="${record.path}">${escapeHtml(record.title.replace(" | Smurdy", ""))}</a></li>`
