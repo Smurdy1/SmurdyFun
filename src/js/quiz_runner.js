@@ -1459,8 +1459,11 @@ window.runNameQuiz = function runNameQuiz(config) {
     const restartButton = document.getElementById("quiz-restart");
     if (restartButton) restartButton.onclick = restartQuiz;
 
-    const backButton = document.getElementById("quiz-back");
-    if (backButton) backButton.onclick = () => SQ.goToMainMenu();
+    const backLink = document.getElementById("quiz-back");
+    if (backLink && backLink.tagName !== "A") {
+        // Backward-compatible fallback for older host pages. Current pages use <a href="/">.
+        backLink.onclick = () => SQ.goToMainMenu();
+    }
 
     if (mode === "type") {
         createTypingUI();
