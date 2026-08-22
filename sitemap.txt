@@ -108,3 +108,7 @@ https://smurdy.fun/quizzes/click-subdivision/us_states/
 https://smurdy.fun/quizzes/type-subdivision/us_states/
 https://smurdy.fun/quizzes/find-subdivision/us_states/
 https://smurdy.fun/quizzes/find-point-subdivision/us_states/
+https://smurdy.fun/quizzes/click-country/
+https://smurdy.fun/quizzes/type-country/
+https://smurdy.fun/quizzes/find-country/
+https://smurdy.fun/quizzes/find-point/
