@@ -45,6 +45,12 @@ const map = new maplibregl.Map({
     zoom: MODE.mapZoom,
     minZoom: MODE.minZoom,
     maxZoom: MODE.maxZoom,
+    // Keep the full-screen quiz map directly touch-interactive on phones.
+    interactive: true,
+    dragPan: true,
+    touchZoomRotate: true,
+    touchPitch: false,
+    cooperativeGestures: false,
     // disable built-in attribution control so we can show a compact, compliant mobile attribution
     attributionControl: false
 });
@@ -55,8 +61,31 @@ const map = new maplibregl.Map({
 const navControl = new maplibregl.NavigationControl();
 map.addControl(navControl, "bottom-left");
  
+function enableQuizMapTouchNavigation() {
+    try {
+        if (map.dragPan && typeof map.dragPan.enable === "function") {
+            map.dragPan.enable();
+        }
+        if (map.touchZoomRotate && typeof map.touchZoomRotate.enable === "function") {
+            map.touchZoomRotate.enable();
+            map.touchZoomRotate.disableRotation();
+        }
+        if (map.touchPitch && typeof map.touchPitch.disable === "function") {
+            map.touchPitch.disable();
+        }
+
+        // Tell mobile browsers that MapLibre, rather than page scrolling, owns
+        // gestures that begin on the full-screen quiz map.
+        const container = typeof map.getContainer === "function" ? map.getContainer() : null;
+        const canvas = typeof map.getCanvas === "function" ? map.getCanvas() : null;
+        if (container) container.style.touchAction = "none";
+        if (canvas) canvas.style.touchAction = "none";
+    } catch (_) {}
+}
+
 map.dragRotate.disable();
-map.touchZoomRotate.disableRotation();
+enableQuizMapTouchNavigation();
+map.on("load", enableQuizMapTouchNavigation);
  
 // Mobile/top-panel collapsed "i" attribution control (defaults collapsed).
 // Provides the minimal required attribution links: OpenStreetMap, OpenMapTiles, (MapLibre credit).
@@ -861,6 +890,10 @@ const SmurdyQuiz = {
     },
 
     async loadQuizScript(quizRef, options = { updateUrl: true }) {
+        // Menu/quiz transitions and mode hot-swaps must never leave the real
+        // quiz map with its mobile gesture handlers disabled.
+        enableQuizMapTouchNavigation();
+
         // Use the centralized inference helper (if present) so all launch paths agree.
         try {
             let manifestDef = null;
