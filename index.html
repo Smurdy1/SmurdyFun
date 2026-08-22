@@ -108,7 +108,10 @@
 
     function quizIsActive() {
         try {
-            return new URLSearchParams(location.search).has("quiz");
+            return (
+                new URLSearchParams(location.search).has("quiz") ||
+                /^\/quizzes\/[^/]+\/[^/]+\/?$/.test(location.pathname)
+            );
         } catch (_) {
             return false;
         }

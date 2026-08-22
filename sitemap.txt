@@ -1,7 +1,6 @@
 https://smurdy.fun/
 https://smurdy.fun/quizzes/
 https://smurdy.fun/quizzes/click-country/world/
-https://smurdy.fun/quizzes/click-country/us_states/
 https://smurdy.fun/quizzes/click-country/europe/
 https://smurdy.fun/quizzes/click-country/asia/
 https://smurdy.fun/quizzes/click-country/africa/
@@ -31,7 +30,6 @@ https://smurdy.fun/quizzes/click-country/tiny_countries/
 https://smurdy.fun/quizzes/click-country/small_island_countries/
 https://smurdy.fun/quizzes/click-country/pacific_islands/
 https://smurdy.fun/quizzes/type-country/world/
-https://smurdy.fun/quizzes/type-country/us_states/
 https://smurdy.fun/quizzes/type-country/europe/
 https://smurdy.fun/quizzes/type-country/asia/
 https://smurdy.fun/quizzes/type-country/africa/
@@ -61,7 +59,6 @@ https://smurdy.fun/quizzes/type-country/tiny_countries/
 https://smurdy.fun/quizzes/type-country/small_island_countries/
 https://smurdy.fun/quizzes/type-country/pacific_islands/
 https://smurdy.fun/quizzes/find-country/world/
-https://smurdy.fun/quizzes/find-country/us_states/
 https://smurdy.fun/quizzes/find-country/europe/
 https://smurdy.fun/quizzes/find-country/asia/
 https://smurdy.fun/quizzes/find-country/africa/
@@ -85,7 +82,6 @@ https://smurdy.fun/quizzes/find-country/americas/
 https://smurdy.fun/quizzes/find-country/eurasia/
 https://smurdy.fun/quizzes/find-country/former_soviet_union/
 https://smurdy.fun/quizzes/find-point/world/
-https://smurdy.fun/quizzes/find-point/us_states/
 https://smurdy.fun/quizzes/find-point/europe/
 https://smurdy.fun/quizzes/find-point/asia/
 https://smurdy.fun/quizzes/find-point/africa/
@@ -108,3 +104,7 @@ https://smurdy.fun/quizzes/find-point/sub_saharan_africa/
 https://smurdy.fun/quizzes/find-point/americas/
 https://smurdy.fun/quizzes/find-point/eurasia/
 https://smurdy.fun/quizzes/find-point/former_soviet_union/
+https://smurdy.fun/quizzes/click-subdivision/us_states/
+https://smurdy.fun/quizzes/type-subdivision/us_states/
+https://smurdy.fun/quizzes/find-subdivision/us_states/
+https://smurdy.fun/quizzes/find-point-subdivision/us_states/

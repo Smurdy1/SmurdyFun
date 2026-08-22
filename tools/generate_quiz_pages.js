@@ -311,8 +311,9 @@ ${JSON.stringify({
     .included-list summary{cursor:pointer;font-weight:700}
     .included-list p{margin:12px 0 2px}
     .action-row{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap}
-    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent}
+    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent;font:inherit;line-height:inherit;cursor:pointer}
     .qb-btn.primary{background:var(--brand);color:#fff}
+    .qb-btn.primary:disabled{cursor:wait;opacity:.72}
     .qb-btn.secondary{background:#f4f4f4;color:#111}
     .other-quizzes{margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
     .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
@@ -380,7 +381,7 @@ ${JSON.stringify({
     ${entryListHtml}
 
     <div class="action-row">
-      <a class="qb-btn primary" href="/?quiz=${encodeURIComponent(manifestEntry.file || manifestId)}&mode=${encodeURIComponent(linkMode)}&groupSet=${encodeURIComponent(activeGroupSetId)}${groupId !== "__all__" ? "&group=" + encodeURIComponent(groupId) : ""}">Open quiz</a>
+      <button class="qb-btn primary" type="button" data-smurdy-quiz-launch>Open quiz</button>
       <a class="qb-btn secondary" href="${publicRoot}/quizzes/">Browse all quizzes</a>
       <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
     </div>
@@ -389,6 +390,7 @@ ${JSON.stringify({
   </main>
 
   <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
+  <script src="/src/js/quiz_landing.js" defer></script>
 </body>
 </html>`;
 

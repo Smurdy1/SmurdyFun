@@ -4,13 +4,27 @@
     const ASSET_VERSION = "20260722-independent-menu-control-1";
 
     const urlParams = new URLSearchParams(window.location.search);
+    const cleanPathMatch = window.location.pathname.match(
+        /^\/quizzes\/([^/]+)\/([^/]+)\/?$/
+    );
+    const cleanQuizId = cleanPathMatch
+        ? decodeURIComponent(cleanPathMatch[1])
+        : null;
+    const cleanGroupId = cleanPathMatch
+        ? decodeURIComponent(cleanPathMatch[2])
+        : null;
+    const cleanUsesSubdivisions = Boolean(
+        cleanQuizId && cleanQuizId.includes("subdivision")
+    );
 
     window.__SmurdyConfig = {
-        mode: urlParams.get("mode") || "countries",
+        mode: urlParams.get("mode") || (cleanUsesSubdivisions ? "states" : "countries"),
         showBorders: urlParams.get("borders") === "1",
-        quizGroupId: urlParams.get("group") || "world",
+        quizGroupId: urlParams.get("group") || cleanGroupId || "world",
         quizGroupSet:
-            urlParams.get("groupSet") || "country_groups"
+            urlParams.get("groupSet") ||
+            (cleanUsesSubdivisions ? "subdivision_groups" : "country_groups"),
+        cleanQuizId
     };
 
     function versioned(src) {

@@ -1892,13 +1892,14 @@ map.on("load", async () => {
         map.getCanvas().style.cursor = "";
     });
 
-    const quizFile = urlParams.get("quiz");
+    const cleanQuizId = cfg.cleanQuizId || null;
+    const quizFile = urlParams.get("quiz") || (cleanQuizId ? `manifest:${cleanQuizId}` : null);
     // show main-menu decorations only when no quiz is selected (safe, non-destructive)
     if (!quizFile) {
         try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
     }
     if (quizFile) {
-        SmurdyQuiz.loadQuizScript(quizFile, { updateUrl: true });
+        SmurdyQuiz.loadQuizScript(quizFile, { updateUrl: !cleanQuizId });
     } else {
         const manifestScript = document.createElement("script");
         // ensure manifest comes from the new location
