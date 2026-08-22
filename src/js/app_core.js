@@ -941,7 +941,7 @@ const SmurdyQuiz = {
         try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js";
+        runner.src = "/src/js/quiz_runner.js?v=20260822-real-navigation-links-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
