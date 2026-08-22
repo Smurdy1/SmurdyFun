@@ -2064,11 +2064,15 @@ if (!hasInitialQuiz) {
 }
 
 // App version badge
-// Update APP_VERSION per project rules when you change code:
-// - small bugfix: increment third digit (1.0.1)
-// - add/remove feature: increment second digit (1.1.0)
-// - breaking change: increment first digit (2.0.0)
-const APP_VERSION = "1.6.3";
+//
+// Versioning rules:
+// - patch (1.7.1): fixes, polish, performance, content, or other changes
+//   that do not add a meaningful new user capability
+// - minor (1.8.0): adds a meaningful new feature/capability or substantially
+//   changes an existing user workflow
+// - major (2.0.0): changes Smurdy's fundamental product structure/identity
+// - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
+const APP_VERSION = "1.7.1";
 
 function injectVersionBadge() {
     try {
