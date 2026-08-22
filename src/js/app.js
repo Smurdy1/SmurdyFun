@@ -34,13 +34,15 @@
     function safeSlug(value) {
         return String(value || "")
             .toLowerCase()
-            .replace(/[^\\w\\- ]+/g, "")
-            .trim()
-            .replace(/\\s+/g, "-");
+            .replace(/[^a-z0-9_-]+/g, "-")
+            .replace(/^-+|-+$/g, "");
     }
 
     function getLegacyQuizId() {
-        if (!/^\\/(?:index\\.html)?$/.test(window.location.pathname)) {
+        if (
+            window.location.pathname !== "/" &&
+            window.location.pathname !== "/index.html"
+        ) {
             return null;
         }
 
