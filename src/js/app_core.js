@@ -87,6 +87,146 @@ function enableQuizMapTouchNavigation() {
 map.dragRotate.disable();
 enableQuizMapTouchNavigation();
 map.on("load", enableQuizMapTouchNavigation);
+
+// Native MapLibre touch navigation is unreliable on the quiz map in mobile
+// browsers even though the independent menu map works. This fallback owns only
+// moving touch gestures; motionless taps still reach the normal quiz click flow.
+function installQuizTouchNavigationFallback() {
+    const container = typeof map.getContainer === "function"
+        ? map.getContainer()
+        : document.getElementById("map");
+    if (!container || container.dataset.smurdyTouchFallback === "true") return;
+
+    container.dataset.smurdyTouchFallback = "true";
+    container.style.touchAction = "none";
+
+    let gesture = null;
+    let suppressClickUntil = 0;
+    const MOVE_THRESHOLD = 5;
+
+    function point(touch) {
+        return { x: touch.clientX, y: touch.clientY };
+    }
+
+    function distance(a, b) {
+        return Math.hypot(b.x - a.x, b.y - a.y);
+    }
+
+    function midpoint(a, b) {
+        return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function beginPinch(event) {
+        const first = point(event.touches[0]);
+        const second = point(event.touches[1]);
+        gesture = {
+            type: "pinch",
+            distance: Math.max(1, distance(first, second)),
+            midpoint: midpoint(first, second)
+        };
+    }
+
+    function beginPan(touch) {
+        const current = point(touch);
+        gesture = {
+            type: "pan",
+            start: current,
+            last: current,
+            moved: false
+        };
+    }
+
+    container.addEventListener("touchstart", event => {
+        if (event.touches.length >= 2) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            beginPinch(event);
+        } else if (event.touches.length === 1) {
+            // Do not consume the start of a possible tap. Quiz answers still
+            // use MapLibre's normal click event when the finger does not move.
+            beginPan(event.touches[0]);
+        }
+    }, { capture: true, passive: false });
+
+    container.addEventListener("touchmove", event => {
+        if (event.touches.length >= 2) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            if (!gesture || gesture.type !== "pinch") beginPinch(event);
+
+            const first = point(event.touches[0]);
+            const second = point(event.touches[1]);
+            const nextDistance = Math.max(1, distance(first, second));
+            const nextMidpoint = midpoint(first, second);
+            const zoomDelta = Math.log2(nextDistance / gesture.distance);
+
+            if (Number.isFinite(zoomDelta) && Math.abs(zoomDelta) > 0.001) {
+                map.setZoom(map.getZoom() + zoomDelta);
+            }
+
+            map.panBy([
+                gesture.midpoint.x - nextMidpoint.x,
+                gesture.midpoint.y - nextMidpoint.y
+            ], { duration: 0 });
+
+            gesture.distance = nextDistance;
+            gesture.midpoint = nextMidpoint;
+            suppressClickUntil = Date.now() + 450;
+            return;
+        }
+
+        if (event.touches.length !== 1) return;
+        const current = point(event.touches[0]);
+        if (!gesture || gesture.type !== "pan") beginPan(event.touches[0]);
+
+        const totalMovement = distance(gesture.start, current);
+        if (gesture.moved || totalMovement >= MOVE_THRESHOLD) {
+            gesture.moved = true;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            map.panBy([
+                gesture.last.x - current.x,
+                gesture.last.y - current.y
+            ], { duration: 0 });
+            suppressClickUntil = Date.now() + 450;
+        }
+
+        gesture.last = current;
+    }, { capture: true, passive: false });
+
+    function finishTouch(event) {
+        if (gesture && (gesture.type === "pinch" || gesture.moved)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            suppressClickUntil = Date.now() + 450;
+        }
+
+        if (event.touches.length === 1) beginPan(event.touches[0]);
+        else gesture = null;
+    }
+
+    container.addEventListener("touchend", finishTouch, {
+        capture: true,
+        passive: false
+    });
+    container.addEventListener("touchcancel", finishTouch, {
+        capture: true,
+        passive: false
+    });
+
+    // Mobile browsers may synthesize a click after a completed drag or pinch.
+    // Suppress only that click; ordinary motionless taps remain quiz answers.
+    container.addEventListener("click", event => {
+        if (Date.now() < suppressClickUntil) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    }, true);
+}
+
+installQuizTouchNavigationFallback();
  
 // Mobile/top-panel collapsed "i" attribution control (defaults collapsed).
 // Provides the minimal required attribution links: OpenStreetMap, OpenMapTiles, (MapLibre credit).
