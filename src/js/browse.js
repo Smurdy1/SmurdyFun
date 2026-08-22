@@ -140,9 +140,16 @@
             .replace(/\s+/g, "-");
     }
 
-    function quizLandingPath(manifestItem, groupId) {
-        const quizId = manifestItem?.id || manifestItem?.file || manifestItem?.title || "quiz";
-        return `/quizzes/${slug(quizId)}/${slug(groupId || "world")}/`;
+    function quizLandingPath(manifestItemOrId, groupId) {
+        const rawQuizId = typeof manifestItemOrId === "string"
+            ? manifestItemOrId.replace(/^manifest:/i, "")
+            : (
+                manifestItemOrId?.id ||
+                manifestItemOrId?.file ||
+                manifestItemOrId?.title ||
+                "quiz"
+            );
+        return `/quizzes/${slug(rawQuizId)}/${slug(groupId || "world")}/`;
     }
 
     function isPlainLeftClick(e) {
@@ -1927,12 +1934,9 @@
         if (typeof window.launchQuiz === "function") {
             window.launchQuiz(quizDef.file, run.mode, extra);
         } else {
-            const params = new URLSearchParams();
-            params.set("mode", run.mode);
-            params.set("quiz", quizDef.file);
-            params.set("group", groupId);
-            params.set("borders", String(run.bordersFlag));
-            window.location.search = params.toString();
+            window.location.assign(
+                quizLandingPath(quizDef, groupId)
+            );
         }
     }
 
@@ -1974,13 +1978,9 @@
                  }
              } catch (err) {
                  console.warn("startQuizForManifest: in-place launch failed, falling back to navigation", err);
-                 const params = new URLSearchParams();
-                params.set("mode", run.mode);
-                 if (quizRef) params.set("quiz", quizRef);
-                 params.set("group", groupId);
-                 params.set("groupSet", groupSetId);
-                 params.set("borders", String(run.bordersFlag));
-                 window.location.search = params.toString();
+                 window.location.assign(
+                     quizLandingPath(manifestItem, groupId)
+                 );
              }
              // hide panel
              const panel = document.getElementById("quiz-browser");
@@ -1994,13 +1994,9 @@
          }
  
          // fallback to URL navigation
-         const params = new URLSearchParams();
-         params.set("mode", run.mode);
-         if (quizRef) params.set("quiz", quizRef);
-         params.set("group", groupId);
-         params.set("groupSet", groupSetId);
-         params.set("borders", String(run.bordersFlag));
-         window.location.search = params.toString();
+         window.location.assign(
+             quizLandingPath(manifestItem, groupId)
+         );
      }
 
     /* Existing launchQuiz lives in this file already - keep it as-is; if not present,
@@ -2068,6 +2064,23 @@
                 console.warn("In-place launch failed, falling back to navigation:", err);
                 try { updateMobileRunState(); } catch(_) {}
             }
+        }
+
+        const cleanQuizId = String(file || "")
+            .replace(/^manifest:/i, "")
+            .toLowerCase();
+        const cleanGroupId = String(
+            extraParams.group || "world"
+        ).toLowerCase();
+
+        if (
+            /^[a-z0-9_-]+$/.test(cleanQuizId) &&
+            /^[a-z0-9_-]+$/.test(cleanGroupId)
+        ) {
+            window.location.assign(
+                `/quizzes/${cleanQuizId}/${cleanGroupId}/`
+            );
+            return;
         }
 
         window.location.search = params.toString();
