@@ -569,7 +569,7 @@
                  * Change this single value to resize the mobile panel.
                  * Examples: 60dvh, 70dvh, 80dvh.
                  */
-                --smurdy-mobile-panel-size: 70dvh;
+                --smurdy-mobile-panel-size: 85dvh;
 
                 position: fixed !important;
                 left: 50% !important;
