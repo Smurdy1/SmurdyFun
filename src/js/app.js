@@ -1,18 +1,73 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260822-real-navigation-links-1";
+    const ASSET_VERSION = "20260822-canonical-url-system-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
         /^\/quizzes\/([^/]+)\/([^/]+)\/?$/
     );
-    const cleanQuizId = cleanPathMatch
+    const pathQuizId = cleanPathMatch
         ? decodeURIComponent(cleanPathMatch[1])
         : null;
-    const cleanGroupId = cleanPathMatch
+    const pathGroupId = cleanPathMatch
         ? decodeURIComponent(cleanPathMatch[2])
         : null;
+
+    const supportedQuizIds = new Set([
+        "click-country",
+        "type-country",
+        "find-country",
+        "find-point",
+        "click-subdivision",
+        "type-subdivision",
+        "find-subdivision",
+        "find-point-subdivision"
+    ]);
+    const subdivisionAliases = {
+        "click-country": "click-subdivision",
+        "type-country": "type-subdivision",
+        "find-country": "find-subdivision",
+        "find-point": "find-point-subdivision"
+    };
+
+    function safeSlug(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^\\w\\- ]+/g, "")
+            .trim()
+            .replace(/\\s+/g, "-");
+    }
+
+    function getLegacyQuizId() {
+        if (!/^\\/(?:index\\.html)?$/.test(window.location.pathname)) {
+            return null;
+        }
+
+        let quizId = String(urlParams.get("quiz") || "")
+            .replace(/^manifest:/i, "")
+            .trim();
+
+        if (!supportedQuizIds.has(quizId)) return null;
+
+        const subdivisionRequest =
+            quizId.includes("subdivision") ||
+            urlParams.get("groupSet") === "subdivision_groups" ||
+            urlParams.get("mode") === "states";
+
+        if (subdivisionRequest && subdivisionAliases[quizId]) {
+            quizId = subdivisionAliases[quizId];
+        }
+
+        return quizId;
+    }
+
+    const legacyQuizId = pathQuizId ? null : getLegacyQuizId();
+    const cleanQuizId = pathQuizId || legacyQuizId;
+    const cleanGroupId =
+        pathGroupId ||
+        urlParams.get("group") ||
+        "world";
     const cleanUsesSubdivisions = Boolean(
         cleanQuizId && cleanQuizId.includes("subdivision")
     );
@@ -20,12 +75,37 @@
     window.__SmurdyConfig = {
         mode: urlParams.get("mode") || (cleanUsesSubdivisions ? "states" : "countries"),
         showBorders: urlParams.get("borders") === "1",
-        quizGroupId: urlParams.get("group") || cleanGroupId || "world",
+        quizGroupId: cleanGroupId,
         quizGroupSet:
             urlParams.get("groupSet") ||
             (cleanUsesSubdivisions ? "subdivision_groups" : "country_groups"),
         cleanQuizId
     };
+
+    if (legacyQuizId) {
+        const canonicalPath =
+            `/quizzes/${safeSlug(legacyQuizId)}/${safeSlug(cleanGroupId)}/`;
+        const canonicalUrl = new URL(
+            canonicalPath,
+            window.location.origin
+        ).href;
+
+        try {
+            window.history.replaceState({}, "", canonicalPath);
+        } catch (_) {}
+
+        const canonicalLink = document.querySelector(
+            'link[rel="canonical"]'
+        );
+        if (canonicalLink) canonicalLink.href = canonicalUrl;
+
+        const openGraphUrl = document.querySelector(
+            'meta[property="og:url"]'
+        );
+        if (openGraphUrl) {
+            openGraphUrl.setAttribute("content", canonicalUrl);
+        }
+    }
 
     function versioned(src) {
         const separator = src.includes("?") ? "&" : "?";
