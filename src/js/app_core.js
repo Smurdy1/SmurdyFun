@@ -9,6 +9,7 @@ const mode = window.__SmurdyMode;
 const showBorders = (typeof cfg.showBorders === "boolean") ? cfg.showBorders : (urlParams.get("borders") === "1");
 const quizGroupId = cfg.quizGroupId || urlParams.get("group") || "world";
 const quizGroupSet = cfg.quizGroupSet || urlParams.get("groupSet") || "country_groups";
+const hasInitialQuiz = Boolean(urlParams.get("quiz") || cfg.cleanQuizId);
 
 // MODE_CONFIGS + TINY_COUNTRIES are provided by modes.js (bootstrap loads modes.js before this file)
 const appModes = window.AppModes || {};
@@ -1614,7 +1615,7 @@ window.SmurdyQuiz = SmurdyQuiz;
  
 // Start the independent menu map immediately instead of waiting for the quiz
 // map's style, aliases, groups, country GeoJSON, and tiny-country data.
-if (!urlParams.get("quiz")) {
+if (!hasInitialQuiz) {
     requestAnimationFrame(() => {
         try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
     });
@@ -2090,7 +2091,7 @@ SmurdyQuiz.setQuizPanelMode = function(mode) {
 
 // Apply homepage visibility immediately. This removes the empty result div's
 // min-height before the asynchronous map-loading pipeline finishes.
-if (!urlParams.get("quiz")) {
+if (!hasInitialQuiz) {
     try { SmurdyQuiz.setQuizPanelMode("homepage"); } catch (_) {}
 }
 
