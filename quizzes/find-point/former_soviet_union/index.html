@@ -54,8 +54,9 @@
     .included-list summary{cursor:pointer;font-weight:700}
     .included-list p{margin:12px 0 2px}
     .action-row{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap}
-    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent}
+    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent;font:inherit;line-height:inherit;cursor:pointer}
     .qb-btn.primary{background:var(--brand);color:#fff}
+    .qb-btn.primary:disabled{cursor:wait;opacity:.72}
     .qb-btn.secondary{background:#f4f4f4;color:#111}
     .other-quizzes{margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
     .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
@@ -87,11 +88,11 @@
       <span aria-hidden="true">›</span>
       <a href="https://smurdy.fun/quizzes/">All quizzes</a>
       <span aria-hidden="true">›</span>
-      <span>Former Soviet Union · Find the Point</span>
+      <span>Former Soviet Union · Find the Country from a Point</span>
     </nav>
     <header>
       <h1>Former Soviet Union Find the Point Map Quiz | Smurdy</h1>
-      <div class="meta">Find the Point · Former Soviet Union · 15 countries</div>
+      <div class="meta">Find the Country from a Point · Former Soviet Union · 15 countries</div>
     </header>
 
     <p class="lead">Identify the Former Soviet Union country that contains each point placed on the map.</p>
@@ -144,7 +145,7 @@
                   </details>
 
     <div class="action-row">
-      <a class="qb-btn primary" href="/?quiz=manifest%3Afind-point&mode=countries&group=former_soviet_union">Open quiz</a>
+      <button class="qb-btn primary" type="button" data-smurdy-quiz-launch>Open quiz</button>
       <a class="qb-btn secondary" href="https://smurdy.fun/quizzes/">Browse all quizzes</a>
       <a class="qb-btn secondary" href="https://smurdy.fun/">Back to home</a>
     </div>
@@ -157,7 +158,7 @@
         </div>
 <div class="link-block">
           <h3>Related regions in this mode</h3>
-          <div class="chip-list"><a class="chip" href="https://smurdy.fun/quizzes/find-point/eurasia/">Eurasia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/asia/">Asia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/eastern_europe/">Eastern Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/south_and_central_asia/">South and Central Asia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/europe/">Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/northern_and_western_europe/">Northern and Western Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/european_union/">European Union map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/us_states/">US States map quiz</a></div>
+          <div class="chip-list"><a class="chip" href="https://smurdy.fun/quizzes/find-point/eurasia/">Eurasia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/asia/">Asia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/eastern_europe/">Eastern Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/south_and_central_asia/">South and Central Asia map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/europe/">Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/northern_and_western_europe/">Northern and Western Europe map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/european_union/">European Union map quiz</a><a class="chip" href="https://smurdy.fun/quizzes/find-point/americas/">Americas map quiz</a></div>
         </div>
 <div class="link-block">
           <h3>Popular map sets</h3>
@@ -168,5 +169,6 @@
   </main>
 
   <footer>Smurdy geography quizzes. <a href="https://smurdy.fun/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
+  <script src="/src/js/quiz_landing.js" defer></script>
 </body>
 </html>
