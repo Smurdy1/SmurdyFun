@@ -1,7 +1,7 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260822-canonical-url-system-1";
+    const ASSET_VERSION = "20260823-quiz-analytics-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
