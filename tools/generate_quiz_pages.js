@@ -46,6 +46,7 @@ const vm = require("vm");
 
     const modeCopyMap = pageCopy.modes || {};
     const groupCopyMap = pageCopy.groups || {};
+    const pageOverrideMap = pageCopy.pages || {};
 
     validateCopyCoverage(groups, groupCopyMap);
     validateCopyCoverage(subdivisionGroups, groupCopyMap);
@@ -74,6 +75,8 @@ const vm = require("vm");
         for (const groupId of groupKeys) {
             const group = groupId === "__all__" ? {} : (groupsForEntry[groupId] || {});
             const groupCopy = groupCopyMap[groupId] || {};
+            const pageKey = `${manifestId}/${groupId}`;
+            const pageOverride = pageOverrideMap[pageKey] || {};
             const groupLabel = groupId === "__all__"
                 ? "All regions"
                 : (group.label || humanize(groupId));
@@ -112,14 +115,17 @@ const vm = require("vm");
                 quizId: manifestId
             };
 
-            const pageTitle = buildPageTitle({
+            const defaultPageTitle = buildPageTitle({
                 groupLabel,
                 unitPluralTitle,
                 manifestId,
                 modeKey
             });
+            const pageTitle = renderTemplate(pageOverride.title || defaultPageTitle, context);
+            const pageHeading = renderTemplate(pageOverride.h1 || pageTitle, context);
 
             const lead = renderTemplate(
+                pageOverride.lead ||
                 modeCopy.lead ||
                 manifestEntry.shortDescription ||
                 manifestEntry.descriptionTemplate ||
@@ -127,34 +133,64 @@ const vm = require("vm");
                 context
             );
 
+            const overviewHeading = renderTemplate(
+                pageOverride.overviewHeading || `What this ${groupLabel} quiz covers`,
+                context
+            );
+
             const overview = renderTemplate(
+                pageOverride.overview ||
                 groupCopy.overview ||
                 `${groupLabel} is included as a focused geography practice group in Smurdy.`,
                 context
             );
 
+            const challengeHeading = renderTemplate(
+                pageOverride.challengeHeading || "What makes this group challenging",
+                context
+            );
+
             const challenge = renderTemplate(
+                pageOverride.challenge ||
                 groupCopy.challenge ||
                 `This group tests both name recognition and accurate map placement.`,
                 context
             );
 
+            const studyTipHeading = renderTemplate(
+                pageOverride.studyTipHeading || "Study tip",
+                context
+            );
+
             const studyTip = renderTemplate(
+                pageOverride.studyTip ||
                 groupCopy.studyTip ||
                 `Review nearby places together, then return to the full group for mixed practice.`,
                 context
             );
 
             const howToPlay = renderTemplate(
+                pageOverride.howToPlay ||
                 modeCopy.howToPlay ||
                 inferModeInstructions(manifestEntry, context),
                 context
             );
 
             const gameplayTip = renderTemplate(
-                modeCopy.tip || "Use the map context around each answer before making your choice.",
+                pageOverride.gameplayTip ||
+                modeCopy.tip ||
+                "Use the map context around each answer before making your choice.",
                 context
             );
+
+            const pageSpecificHeading = renderTemplate(pageOverride.sectionHeading || "", context);
+            const pageSpecificBody = renderTemplate(pageOverride.sectionBody || "", context);
+            const pageSpecificSectionHtml = pageSpecificHeading && pageSpecificBody
+                ? `<section class="content-section page-specific">
+              <h2>${escapeHtml(pageSpecificHeading)}</h2>
+              <p>${escapeHtml(pageSpecificBody)}</p>
+            </section>`
+                : "";
 
                         // smurdy-indexing-links-v1
             const defaultModeSections = getModeDistinctiveSections(manifestEntry);
@@ -182,10 +218,12 @@ const vm = require("vm");
               <p>${escapeHtml(section.body)}</p>
             </section>`).join("\n");
 
-const metaDescription = buildMetaDescription(
-                `${lead} ${howToPlay} ${modeSections[0] ? modeSections[0].body : overview}`,
-                pageTitle
-            );
+const metaDescription = pageOverride.metaDescription
+                ? renderTemplate(pageOverride.metaDescription, context)
+                : buildMetaDescription(
+                    `${lead} ${howToPlay} ${modeSections[0] ? modeSections[0].body : overview}`,
+                    pageTitle
+                );
 
             const keywords = buildKeywords({
                 manifestEntry,
@@ -394,16 +432,18 @@ ${JSON.stringify({
       <span>${escapeHtml(groupLabel)} · ${escapeHtml(getModeDisplayName(manifestEntry))}</span>
     </nav>
     <header>
-      <h1>${escapeHtml(pageTitle)}</h1>
+      <h1>${escapeHtml(pageHeading)}</h1>
       <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} · ${escapeHtml(groupLabel)} · ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
     </header>
 
     <p class="lead">${escapeHtml(lead)}</p>
 
     <section class="content-section">
-      <h2>What this ${escapeHtml(groupLabel)} quiz covers</h2>
+      <h2>${escapeHtml(overviewHeading)}</h2>
       <p>${escapeHtml(overview)}</p>
     </section>
+
+    ${pageSpecificSectionHtml}
 
     <section class="content-section">
       <h2>${escapeHtml(modeCopy.heading || "How this map quiz works")}</h2>
@@ -414,12 +454,12 @@ ${JSON.stringify({
     ${modeSectionsHtml}
 
     <section class="content-section">
-      <h2>What makes this group challenging</h2>
+      <h2>${escapeHtml(challengeHeading)}</h2>
       <p>${escapeHtml(challenge)}</p>
     </section>
 
     <section class="content-section">
-      <h2>Study tip</h2>
+      <h2>${escapeHtml(studyTipHeading)}</h2>
       <p>${escapeHtml(studyTip)}</p>
     </section>
 

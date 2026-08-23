@@ -20,6 +20,11 @@
             "bestFor": "When this mode is most useful.",
             "mistakesHeading": "Heading for a mode-specific common mistake.",
             "mistakes": "A common mistake and how to avoid it."
+        },
+        "pageOverrides": {
+            "location": "Add entries to the pages object using a manifest-id/group-id key.",
+            "purpose": "Use these only when a high-priority page needs copy that differs from both its mode and group defaults.",
+            "fields": "title, h1, metaDescription, lead, overviewHeading, overview, howToPlay, gameplayTip, challengeHeading, challenge, studyTipHeading, studyTip, sectionHeading, and sectionBody."
         }
     },
     "modes": {
@@ -488,6 +493,136 @@
                 "Pacific island countries quiz",
                 "Micronesia Melanesia Polynesia geography"
             ]
+        }
+    },
+    "pages": {
+        "find-country/asia": {
+            "title": "Asia Without Borders Quiz: Find All 51 Countries | Smurdy",
+            "h1": "Asia Without Borders Quiz: Find All 51 Countries",
+            "metaDescription": "Find all 51 countries of Asia without borders in this interactive blank-map quiz. Practice Asian geography using coastlines, islands, and relative position.",
+            "lead": "Can you find all 51 countries of Asia with every political border removed? Use coastlines, islands, peninsulas, and relative position to complete this blank-map geography quiz.",
+            "overviewHeading": "Countries included in the Asia without-borders quiz",
+            "overview": "This quiz covers 51 Asian countries across the Middle East, Central Asia, South Asia, Southeast Asia, East Asia, and the continent's transcontinental edges. The full set stretches from Turkey and Cyprus to Japan, Indonesia, and Timor-Leste.",
+            "howToPlay": "A country name appears while the usual political outlines stay hidden. Click its approximate location on the blank map, then continue through all 51 countries. Unlike the standard Asia click quiz, this version tests whether you know the continent's underlying layout without matching visible border shapes.",
+            "gameplayTip": "Start with a coastline, island chain, or major peninsula, then estimate how far inland the target sits.",
+            "challengeHeading": "Hardest parts of a borderless Asia map",
+            "challenge": "Central Asia and the Caucasus are difficult because their countries are inland and packed between a few large anchors. Mainland Southeast Asia creates a different problem: narrow countries sit close together along complex coastlines and peninsulas.",
+            "studyTipHeading": "How to study Asia without borders",
+            "studyTip": "Memorize one subregion at a time, but connect each one to a physical anchor: the Arabian Peninsula for the Middle East, the Caspian Sea for Central Asia, India for South Asia, and the Indochina Peninsula for mainland Southeast Asia.",
+            "sectionHeading": "Build an Asian coastline framework",
+            "sectionBody": "Before learning exact inland positions, trace Asia's outer shape from the eastern Mediterranean around Arabia and India, through Southeast Asia, and up the Pacific coast. Add Japan, the Philippines, Indonesia, and Sri Lanka as island anchors. That framework gives every landlocked country a more precise place in your mental map."
+        },
+        "find-country/europe": {
+            "title": "Europe Without Borders Quiz: Find All 44 Countries | Smurdy",
+            "h1": "Europe Without Borders Quiz: Find All 44 Countries",
+            "metaDescription": "Find all 44 countries of Europe on a map without borders. Use coastlines, peninsulas, islands, and regional memory in this difficult Europe map quiz.",
+            "lead": "Find all 44 countries of Europe after the political borders disappear. This no-borders map quiz replaces outline matching with a harder test of coastlines, distance, and your mental map of Europe.",
+            "overviewHeading": "What the Europe no-borders quiz includes",
+            "overview": "The quiz includes 44 European countries, from Iceland and Portugal to Ukraine and Cyprus, plus the continent's microstates. Western Europe, the Nordic countries, the Baltics, Central Europe, the Balkans, and Eastern Europe all appear in one borderless round.",
+            "howToPlay": "The quiz names one European country at a time, but no country outlines are shown. Click where the country belongs using the continent's outer coastline, major peninsulas, islands, and the remembered positions of neighboring countries. Complete all 44 locations to finish.",
+            "gameplayTip": "Place the large peninsulas first in your head, then estimate smaller inland countries relative to them.",
+            "challengeHeading": "Why Europe is difficult without country borders",
+            "challenge": "Europe has many small countries concentrated in Central Europe, the Balkans, and the Benelux region. When their outlines vanish, a click can be only a short distance away yet land in a different country, so regional order matters more than shape recognition.",
+            "studyTipHeading": "A practical way to learn borderless Europe",
+            "studyTip": "Use the Iberian, Italian, Balkan, and Scandinavian peninsulas as the main frame. Then learn compact chains such as Portugal-Spain-France, the Baltic states from north to south, and the western Balkan countries in geographic order.",
+            "sectionHeading": "Use Europe's seas as coordinates",
+            "sectionBody": "The Mediterranean, Baltic, Black, Adriatic, and North seas divide Europe into recognizable zones even when political lines are hidden. Ask which sea is nearest, whether the target lies north or south of it, and how far it sits from a distinctive coastline."
+        },
+        "click-country/eurasia": {
+            "title": "Eurasia Map Quiz: Click All 95 Countries | Smurdy",
+            "h1": "Eurasia Map Quiz: Click All 95 Countries",
+            "metaDescription": "Learn the countries of Europe and Asia together in one 95-country Eurasia map quiz. Click each country using visible borders, shapes, and neighboring regions.",
+            "lead": "Learn all 95 countries of Eurasia in one continuous map quiz. A country name appears, the political borders remain visible, and you click the matching location anywhere from the Atlantic edge of Europe to the Pacific coast of Asia.",
+            "overviewHeading": "What counts as Eurasia in this map quiz",
+            "overview": "This combined quiz joins the complete Europe and Asia sets into a single 95-country landmass. It includes Atlantic Europe, the Mediterranean, the Middle East, the Caucasus, Central and South Asia, Southeast Asia, and East Asia without forcing an arbitrary break between the two continents.",
+            "howToPlay": "Read the country name and click its bordered area on the Eurasia map. Because outlines remain visible, you can use shape, size, coastlines, and neighboring countries as clues while working through all 95 answers.",
+            "gameplayTip": "Identify the target's subregion before comparing individual border shapes; it prevents jumps between similarly shaped countries thousands of miles apart.",
+            "challengeHeading": "What makes the full Eurasia map difficult",
+            "challenge": "The set combines tiny European states, dense border clusters, island countries, and enormous Asian countries in the same round. The main difficulty is switching scale quickly while keeping track of where Europe, the Middle East, Central Asia, and East Asia connect.",
+            "studyTipHeading": "How to learn 95 Eurasian countries efficiently",
+            "studyTip": "Master Europe and Asia separately first, then practice the bridge regions that connect them: Eastern Europe, Turkey, the Caucasus, the Middle East, and Central Asia. Finally, use this combined quiz to train fast movement between regions.",
+            "sectionHeading": "The Europe-Asia transition zone",
+            "sectionBody": "Turkey, Russia, Georgia, Armenia, Azerbaijan, and Kazakhstan sit around the conventional boundary between Europe and Asia. Learning the Black Sea, Caucasus Mountains, Caspian Sea, and Ural region makes the combined Eurasia map feel continuous instead of like two unrelated quizzes."
+        },
+        "type-country/eurasia": {
+            "title": "Name All 95 Countries of Eurasia: Typing Quiz | Smurdy",
+            "h1": "Name All 95 Countries of Eurasia: Typing Quiz",
+            "metaDescription": "Name and type all 95 countries of Europe and Asia in this Eurasia map quiz. Practice country spelling, recognition, and location across one combined map.",
+            "lead": "Can you name all 95 countries of Europe and Asia from their highlighted locations? Type each answer in this Eurasia geography quiz to practice map recognition and country spelling at the same time.",
+            "overviewHeading": "Countries covered by the Eurasia typing quiz",
+            "overview": "The highlighted map ranges across 95 countries from Western Europe to East Asia. It combines Europe, the Middle East, Central Asia, South Asia, Southeast Asia, and East Asia into one long-form country naming challenge.",
+            "howToPlay": "One country is highlighted on the bordered Eurasia map. Type its name to move to the next location, using its outline, size, coastline, and neighbors as clues. The quiz accepts the configured country names and continues until all 95 have been identified.",
+            "gameplayTip": "Say the country name before typing it; separating recognition from spelling makes it easier to notice which skill caused a mistake.",
+            "challengeHeading": "Recognition and spelling challenges in Eurasia",
+            "challenge": "A 95-country typing round tests more than map placement. Similar country names, multiword answers, and alternate English spellings can slow you down even when you recognize the location, while small states demand close visual attention.",
+            "studyTipHeading": "How to prepare for the Eurasia typing quiz",
+            "studyTip": "Create short spelling groups alongside geographic groups. Practice the Balkans, the countries ending in -stan, the Caucasus, and multiword country names separately, then return to the full map once each cluster is automatic.",
+            "sectionHeading": "Separate map knowledge from name recall",
+            "sectionBody": "If you recognize a highlighted shape but cannot produce the name, review that regional list. If you know the name but misspell it, practice typing it a few times. Treating those as separate errors makes this quiz more useful than simply repeating the entire 95-country round."
+        },
+        "find-country/south_america": {
+            "title": "South America Without Borders Quiz: Find 12 Countries | Smurdy",
+            "h1": "South America Without Borders Quiz: Find 12 Countries",
+            "metaDescription": "Find all 12 countries of South America on a blank map without borders. Use coastlines, Brazil, the Andes, and relative position in this geography quiz.",
+            "lead": "Find all 12 sovereign countries of South America with the internal borders removed. Use the continent's coastline, Brazil's central position, the Andes, and your memory of neighboring countries to place every answer.",
+            "overviewHeading": "The 12 countries in this borderless South America quiz",
+            "overview": "The set includes every sovereign country in South America, from Colombia and Venezuela in the north to Chile and Argentina in the south. Brazil dominates the center and east, while Bolivia and Paraguay form the continent's two landlocked answers.",
+            "howToPlay": "A South American country name appears on a map with no internal political lines. Click its approximate location using the outer coastline and your mental map, then continue until all 12 sovereign countries are complete.",
+            "gameplayTip": "Use Brazil as the central reference, then decide whether the target lies along the Pacific, Atlantic, Caribbean, or inland.",
+            "challengeHeading": "Most confusing locations without borders",
+            "challenge": "Uruguay and Paraguay can be confused near southern Brazil, while Colombia and Venezuela divide the northern coast. The three Guianas create another trap because only Guyana and Suriname are sovereign-country answers in this quiz.",
+            "studyTipHeading": "How to memorize the blank South America map",
+            "studyTip": "Learn the five Pacific-side countries from north to south, then the northern Atlantic coast, the Southern Cone, and the two landlocked countries. Finish by checking every answer against Brazil, which borders most of the continent.",
+            "sectionHeading": "Why French Guiana is not an answer",
+            "sectionBody": "French Guiana appears on the northeastern coast between Suriname and Brazil, but it is an overseas department of France rather than a sovereign country. This quiz therefore includes Guyana and Suriname among its 12 answers, but not French Guiana."
+        },
+        "find-subdivision/us_states": {
+            "title": "US States Without Borders Quiz: Find All 50 States | Smurdy",
+            "h1": "US States Without Borders Quiz: Find All 50 States",
+            "metaDescription": "Find all 50 US states on a map without state borders. Practice American geography using coastlines, regions, and relative location in this difficult quiz.",
+            "lead": "Find all 50 US states after the internal state lines disappear. This no-borders states quiz tests whether you know each location from coastlines, regional order, and a mental map of the United States.",
+            "overviewHeading": "What the 50-state no-borders quiz covers",
+            "overview": "The quiz includes all 50 states across the contiguous United States, Alaska, and Hawaii. State outlines are hidden during play, so the challenge focuses on absolute and relative location rather than matching familiar shapes.",
+            "howToPlay": "A state name appears while the internal borders of the United States are hidden. Click where the state belongs using coastlines, the national outline, regional position, and nearby geographic anchors, then continue through all 50 states.",
+            "gameplayTip": "First identify the region, then estimate the state's position within that region instead of aiming from the whole national map.",
+            "challengeHeading": "Hardest US regions without state lines",
+            "challenge": "The Northeast packs many small states into a narrow area, while the Midwest and Great Plains lose the rectangular borders that normally make them recognizable. Inland states require especially strong north-south and east-west ordering.",
+            "studyTipHeading": "How to study the states without borders",
+            "studyTip": "Build four regional chains: the Pacific and Mountain West, the Great Plains, the Mississippi and Great Lakes states, and the Atlantic coast. Practice each chain in geographic order before mixing all 50 states together.",
+            "sectionHeading": "Why Washington, DC is not included",
+            "sectionBody": "Washington, DC is a federal district, not one of the 50 states, and it is not represented as a quiz area on this map. The included-place total therefore stays at exactly 50: the 48 contiguous states plus Alaska and Hawaii."
+        },
+        "click-country/europe": {
+            "title": "Europe Map Quiz: Click All 44 Countries | Smurdy",
+            "h1": "Europe Map Quiz: Click All 44 Countries",
+            "metaDescription": "Learn all 44 countries of Europe with an interactive click map quiz. Use visible borders, shapes, coastlines, and neighbors to practice European geography.",
+            "lead": "Learn all 44 countries of Europe by clicking each one on a map with political borders visible. This mode emphasizes country shapes, neighboring borders, and fast location recall across every European region.",
+            "overviewHeading": "Countries and regions in the Europe map quiz",
+            "overview": "The 44-country set covers the British Isles, Western and Central Europe, Scandinavia, the Baltics, Eastern Europe, the Balkans, the Mediterranean, and Europe's sovereign microstates. It is designed as the main bordered-map route for learning the continent.",
+            "howToPlay": "The quiz gives you a country name and keeps every European border visible. Click the matching shape, learn from any mistake, and continue until you have located all 44 countries.",
+            "gameplayTip": "Compare the target's border shape with its neighbors before clicking, especially in dense regions where several countries meet.",
+            "challengeHeading": "European border clusters to watch",
+            "challenge": "The Balkans, Central Europe, and the Benelux region place many countries close together, while microstates can be difficult to select at normal zoom. Similar-looking Baltic and Balkan locations also reward careful neighbor checking.",
+            "studyTipHeading": "A region-by-region Europe study plan",
+            "studyTip": "Begin with distinctive outer shapes such as Portugal, Italy, Greece, Norway, and the United Kingdom. Add Central Europe, the Baltics, and the Balkans as separate clusters, then combine them in the full 44-country quiz.",
+            "sectionHeading": "Learn Europe through border relationships",
+            "sectionBody": "Visible borders make this quiz ideal for learning which countries touch. Notice Portugal west of Spain, the Baltic states in north-to-south order, the countries surrounding Germany, and the chain running down the western Balkans. Those relationships remain useful in harder modes."
+        },
+        "click-country/south_america": {
+            "title": "South America Map Quiz: Click All 12 Countries | Smurdy",
+            "h1": "South America Map Quiz: Click All 12 Countries",
+            "metaDescription": "Learn all 12 countries of South America with an interactive map quiz. Click each visible country outline and practice borders, neighbors, and locations.",
+            "lead": "Learn the 12 sovereign countries of South America by clicking their visible map outlines. The compact set is ideal for practicing country shapes, shared borders, coastlines, and regional order.",
+            "overviewHeading": "Countries included in the South America click quiz",
+            "overview": "This quiz covers all 12 sovereign South American countries. The map runs from Colombia, Venezuela, Guyana, and Suriname in the north through Brazil and the inland states to Chile, Argentina, and Uruguay in the south.",
+            "howToPlay": "Read the country name, find its bordered shape on the South America map, and click it. Continue through all 12 answers, using coastlines and neighboring countries whenever a shape is unfamiliar.",
+            "gameplayTip": "Locate Brazil first as the continent's largest anchor, then compare the target with the countries around its border.",
+            "challengeHeading": "South American countries commonly mixed up",
+            "challenge": "Guyana and Suriname are small neighbors on the northeastern coast, while Uruguay and Paraguay are sometimes confused because both sit near southern Brazil. Bolivia's inland position can also be mistaken for neighboring Peru or Paraguay.",
+            "studyTipHeading": "The fastest way to learn the South America map",
+            "studyTip": "Memorize the Pacific coast from Colombia to Chile, then learn the northern Atlantic countries and the Southern Cone. Add Bolivia and Paraguay last as the two landlocked countries, always relating them back to Brazil.",
+            "sectionHeading": "Use Brazil to organize the continent",
+            "sectionBody": "Brazil borders every sovereign South American country except Chile and Ecuador. That makes one question especially useful: does the target touch Brazil? Combining that fact with the Pacific and Atlantic coastlines quickly narrows most answers."
         }
     }
 }
