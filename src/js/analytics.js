@@ -11,7 +11,7 @@
      * The analytics API and its debug event log still work while this is empty,
      * but no information is sent over the network.
      */
-    const DEFAULT_MEASUREMENT_ID = "";
+    const DEFAULT_MEASUREMENT_ID = "G-64GJ4C47HL";
 
     const VISITOR_SEEN_KEY = "smurdy-analytics-seen-v1";
     const VISITOR_SESSION_KEY = "smurdy-analytics-visitor-type-v1";
@@ -64,15 +64,19 @@
         if (loadedMeasurementId === measurementId) return true;
         loadedMeasurementId = measurementId;
 
+        const existingGoogleTag = Array.from(
+            document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]')
+        ).some(script => String(script.src || "").includes(measurementId));
+
         window.dataLayer = window.dataLayer || [];
         window.gtag = window.gtag || function() {
             window.dataLayer.push(arguments);
         };
 
-        window.gtag("js", new Date());
-        window.gtag("config", measurementId);
+        if (!existingGoogleTag) {
+            window.gtag("js", new Date());
+            window.gtag("config", measurementId);
 
-        if (!document.querySelector('script[data-smurdy-google-tag]')) {
             const script = document.createElement("script");
             script.async = true;
             script.src =
