@@ -6,6 +6,7 @@ const vm = require("vm");
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
+    const countriesDataPath = path.join(repoRoot, "src", "data", "countries.json");
     const subdivisionGroupsPath = path.join(repoRoot, "src", "data", "subdivision_groups.json");
     const copyPath = path.join(repoRoot, "src", "data", "quiz_page_descriptions.json");
     const outDir = path.join(repoRoot, "quizzes");
@@ -16,6 +17,8 @@ const vm = require("vm");
         : baseUrl.replace(/\/docs$/i, "");
 
     const groups = await readJson(groupsPath, "country_groups.json");
+    const countriesData = await readJson(countriesDataPath, "countries.json");
+    const worldCountryNames = getWorldQuizNames(countriesData.features || []);
     const subdivisionGroups = await readJson(subdivisionGroupsPath, "subdivision_groups.json");
     const groupSets = {
         country_groups: groups,
@@ -78,9 +81,16 @@ const vm = require("vm");
             const unitName = String(group.unitName || "region").trim();
             const unitPlural = pluralizeUnit(unitName);
             const unitPluralTitle = capitalizeWords(unitPlural);
-            const entries = Array.isArray(group.members)
+            let entries = Array.isArray(group.members)
                 ? group.members.slice()
                 : (Array.isArray(group.countries) ? group.countries.slice() : []);
+            if (
+                activeGroupSetId === "country_groups" &&
+                groupId === "world" &&
+                entries.length === 0
+            ) {
+                entries = worldCountryNames.slice();
+            }
             const entryCount = entries.length;
             const notable = Array.isArray(group.notable) && group.notable.length
                 ? group.notable.slice(0, 5)
@@ -220,6 +230,33 @@ const metaDescription = buildMetaDescription(
                 id,
                 label: (groupsForEntry[id] && groupsForEntry[id].label) || humanize(id)
             }));
+
+            // A group set with only one entry still needs useful related links.
+            // Keep the interaction style the same while pointing subdivision
+            // quizzes toward the closest country-map groups.
+            if (
+                relatedGroups.length === 0 &&
+                activeGroupSetId === "subdivision_groups"
+            ) {
+                const countryModeId = {
+                    "click-subdivision": "click-country",
+                    "type-subdivision": "type-country",
+                    "find-subdivision": "find-country",
+                    "find-point-subdivision": "find-point"
+                }[manifestId];
+
+                if (countryModeId) {
+                    for (const relatedId of ["north_america", "world"]) {
+                        const related = groups[relatedId];
+                        if (!related) continue;
+                        relatedGroups.push({
+                            id: relatedId,
+                            label: related.label || humanize(relatedId),
+                            manifestId: countryModeId
+                        });
+                    }
+                }
+            }
 
             const popularGroups = getPopularGroupIds({
                 availableGroupIds,
@@ -474,6 +511,56 @@ async function readJson(filePath, label) {
     }
 }
 
+function getWorldQuizNames(features) {
+    const normalize = value => String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9 ]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const globallyIgnored = new Set(["siachen glacier"]);
+    const namesByKey = new Map();
+
+    for (const feature of Array.isArray(features) ? features : []) {
+        const properties = feature && feature.properties ? feature.properties : {};
+        const candidates = [
+            properties.NAME,
+            properties.name,
+            properties.NAME_LONG,
+            properties.NAME_EN,
+            properties.ADMIN,
+            properties.GEOUNIT,
+            properties.SUBUNIT,
+            properties.SOVEREIGNT,
+            properties.BRK_NAME,
+            properties.FORMAL_EN
+        ];
+
+        if (candidates.some(value => globallyIgnored.has(normalize(value)))) {
+            continue;
+        }
+
+        const name = String(
+            properties.sovereignt ||
+            properties.SOVEREIGNT ||
+            properties.sovereignty ||
+            properties.ADMIN ||
+            properties.admin ||
+            ""
+        ).trim();
+        const key = normalize(name);
+
+        if (key && !namesByKey.has(key)) {
+            namesByKey.set(key, name);
+        }
+    }
+
+    return Array.from(namesByKey.values())
+        .sort((a, b) => a.localeCompare(b));
+}
+
 function validateCopyCoverage(groups, groupCopyMap) {
     const missing = Object.keys(groups).filter(groupId => !groupCopyMap[groupId]);
     if (missing.length) {
@@ -690,7 +777,7 @@ function buildPageNavigationHtml({
         blocks.push(`<div class="link-block">
           <h3>Related regions in this mode</h3>
           <div class="chip-list">${relatedGroups.map(region =>
-              `<a class="chip" href="${publicRoot}/quizzes/${slug(manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)} map quiz</a>`
+              `<a class="chip" href="${publicRoot}/quizzes/${slug(region.manifestId || manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)} map quiz</a>`
           ).join("")}</div>
         </div>`);
     }
