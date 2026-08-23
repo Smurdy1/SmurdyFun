@@ -302,7 +302,7 @@
         abandonQuiz,
 
         isEnabled() {
-            return Boolean(getMeasurementId());
+            return /^G-[A-Z0-9]+$/i.test(getMeasurementId());
         },
 
         isReturningVisitor() {
