@@ -74,7 +74,6 @@ window.runNameQuiz = function runNameQuiz(config) {
 
                 locked = true;
                 attempts++;
-                recordAnalyticsAnswer(false);
                 finishWrong(currentName, true);
             } catch (e) { /* tolerate any errors */ }
         };
@@ -1418,6 +1417,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     function finishCorrect() {
         correctAnswers++;
         completed.add(currentName);
+        recordAnalyticsAnswer(true);
 
         // Remove any temporary target state, then briefly reveal the answered
         // country in green. Find Point clears it before the next question.
@@ -1440,6 +1440,8 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function finishWrong(clickedOrGuess, gaveUp = false) {
+        recordAnalyticsAnswer(false);
+
         // Remove any temporary target state so the red answer state is visible.
         try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
 
@@ -1509,7 +1511,6 @@ window.runNameQuiz = function runNameQuiz(config) {
             attempts++;
 
             const answerCorrect = clickedCanon === currentCanonicalNormalized;
-            recordAnalyticsAnswer(answerCorrect);
 
             if (answerCorrect) {
                 // mark clicked feature correct (show immediate green)
@@ -1536,7 +1537,6 @@ window.runNameQuiz = function runNameQuiz(config) {
         attempts++;
 
         const answerCorrect = SQ.isAcceptedAnswer(currentName, guess);
-        recordAnalyticsAnswer(answerCorrect);
 
         if (answerCorrect) {
             finishCorrect();
