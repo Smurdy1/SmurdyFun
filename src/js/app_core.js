@@ -941,7 +941,7 @@ const SmurdyQuiz = {
         try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260822-real-navigation-links-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260823-quiz-analytics-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -995,7 +995,7 @@ const SmurdyQuiz = {
                     if (def.config && typeof def.config === "object") {
                         // pass manifest-level prefs (like borders) into the runner config so the runner
                         // can honor manifest-specified border visibility.
-                        const runnerConfig = Object.assign({}, def.config, { borders: def.borders });
+                        const runnerConfig = Object.assign({}, def.config, { borders: def.borders, quizId: id });
                         setTimeout(() => {
                             if (typeof window.runNameQuiz === "function") {
                                 window.runNameQuiz(runnerConfig);

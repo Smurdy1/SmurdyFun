@@ -232,6 +232,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     const {
          mode, // "click" or "type"
+         quizId = null,
          titleBuilder,
          inputPlaceholder = "Type answer...",
          successText = "Correct!",
@@ -272,6 +273,84 @@ window.runNameQuiz = function runNameQuiz(config) {
     let timerInterval = null;
     let startTime = null;
     let finalElapsedMs = 0;
+
+    function getAnalyticsContext() {
+        const pathMatch = window.location.pathname.match(
+            /^\/quizzes\/([^/]+)\/([^/]+)\/?$/
+        );
+        const subdivision = isSubdivisionMapMode();
+
+        let resolvedQuizId = String(
+            quizId ||
+            (pathMatch ? decodeURIComponent(pathMatch[1]) : "") ||
+            window.__SmurdyConfig?.cleanQuizId ||
+            ""
+        );
+
+        if (!resolvedQuizId) {
+            if (mode === "click") {
+                resolvedQuizId = borders === false
+                    ? (subdivision ? "find-subdivision" : "find-country")
+                    : (subdivision ? "click-subdivision" : "click-country");
+            } else if (findPoint) {
+                resolvedQuizId = subdivision
+                    ? "find-point-subdivision"
+                    : "find-point";
+            } else {
+                resolvedQuizId = subdivision
+                    ? "type-subdivision"
+                    : "type-country";
+            }
+        }
+
+        return {
+            quiz_mode: resolvedQuizId,
+            quiz_group: String(
+                SQ.currentGroupId ||
+                (pathMatch ? decodeURIComponent(pathMatch[2]) : "") ||
+                window.__SmurdyConfig?.quizGroupId ||
+                ""
+            )
+        };
+    }
+
+    function getAnalyticsSnapshot(correct) {
+        return {
+            ...getAnalyticsContext(),
+            correct,
+            attempts,
+            correctAnswers,
+            completedPlaces: completed.size,
+            placesTotal: getNames().length
+        };
+    }
+
+    function beginAnalyticsRun(startReason) {
+        try {
+            window.SmurdyAnalytics?.beginQuiz({
+                ...getAnalyticsContext(),
+                places_total: getNames().length,
+                start_reason: startReason
+            });
+        } catch (_) {}
+    }
+
+    function recordAnalyticsAnswer(correct) {
+        try {
+            window.SmurdyAnalytics?.recordAnswer(
+                getAnalyticsSnapshot(correct)
+            );
+        } catch (_) {}
+    }
+
+    function completeAnalyticsRun() {
+        try {
+            window.SmurdyAnalytics?.completeQuiz({
+                ...getAnalyticsSnapshot(true),
+                completionTimeSeconds: finalElapsedMs / 1000
+            });
+        } catch (_) {}
+    }
 
     // This object survives between quiz runs, but the canonical pool depends on
     // the active map data and group. Never reuse a previous quiz's cached pool.
@@ -1186,7 +1265,9 @@ window.runNameQuiz = function runNameQuiz(config) {
             SQ.setResultText(doneText(formatElapsed(finalElapsedMs)));
             currentName = null;
             locked = true;
+            if (startTime) finalElapsedMs = Date.now() - startTime;
             stopTimer();
+            completeAnalyticsRun();
             setInputEnabled(false);
 
             // The share section replaces the answer controls after a typing quiz.
@@ -1307,6 +1388,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         updateAccuracy();
         resetTimer();
         startTimer();
+        beginAnalyticsRun("restart");
  
         // ensure panel uses the game UI when restarting
         try { setQuizPanelMode("game"); } catch (e) {}
@@ -1335,6 +1417,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     function finishCorrect() {
         correctAnswers++;
         completed.add(currentName);
+        recordAnalyticsAnswer(true);
 
         // Remove any temporary target state, then briefly reveal the answered
         // country in green. Find Point clears it before the next question.
@@ -1357,6 +1440,8 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function finishWrong(clickedOrGuess, gaveUp = false) {
+        recordAnalyticsAnswer(false);
+
         // Remove any temporary target state so the red answer state is visible.
         try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
 
@@ -1425,7 +1510,9 @@ window.runNameQuiz = function runNameQuiz(config) {
             locked = true;
             attempts++;
 
-            if (clickedCanon === currentCanonicalNormalized) {
+            const answerCorrect = clickedCanon === currentCanonicalNormalized;
+
+            if (answerCorrect) {
                 // mark clicked feature correct (show immediate green)
                 // use finishCorrect flow to update counters and highlight
                 finishCorrect();
@@ -1449,7 +1536,9 @@ window.runNameQuiz = function runNameQuiz(config) {
         locked = true;
         attempts++;
 
-        if (SQ.isAcceptedAnswer(currentName, guess)) {
+        const answerCorrect = SQ.isAcceptedAnswer(currentName, guess);
+
+        if (answerCorrect) {
             finishCorrect();
         } else {
             finishWrong(guess);
@@ -1503,6 +1592,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     updateAccuracy();
     resetTimer();
     startTimer();
+    beginAnalyticsRun("initial");
 
     // Click modes begin framed around the selected map group. Camera movement
     // after this point remains fully controlled by the player.

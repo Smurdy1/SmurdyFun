@@ -4,6 +4,36 @@
     const launchButton = document.querySelector("[data-smurdy-quiz-launch]");
     if (!launchButton) return;
 
+    function ensureAnalytics() {
+        if (window.SmurdyAnalytics) {
+            return Promise.resolve(window.SmurdyAnalytics);
+        }
+
+        return new Promise(resolve => {
+            let script = document.querySelector("script[data-smurdy-analytics]");
+            if (!script) {
+                script = document.createElement("script");
+                script.src = "/src/js/analytics.js?v=20260823-quiz-analytics-1";
+                script.defer = true;
+                script.setAttribute("data-smurdy-analytics", "true");
+                document.head.appendChild(script);
+            }
+
+            const finish = () => resolve(window.SmurdyAnalytics || null);
+            script.addEventListener("load", finish, { once: true });
+            script.addEventListener("error", finish, { once: true });
+
+            if (window.SmurdyAnalytics) finish();
+        });
+    }
+
+    void ensureAnalytics().then(analytics => {
+        if (!analytics) return;
+        analytics.trackLandingPageView({
+            page_type: "quiz_landing"
+        });
+    });
+
     async function launchQuiz() {
         if (launchButton.disabled) return;
 
