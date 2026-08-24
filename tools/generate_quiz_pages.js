@@ -475,7 +475,7 @@ ${JSON.stringify({
     ${navigationHtml}
   </main>
 
-  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
+  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/privacy/">Privacy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
   <script src="/src/js/quiz_landing.js" defer></script>
 </body>
 </html>`;
@@ -996,6 +996,7 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
       <div class="mode-links">${otherModes}</div>
     </nav>
   </main>
+  <footer style="max-width:1000px;margin:24px auto;padding:18px;color:#666;border-top:1px solid #e5e5e5"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
 </body>
 </html>`;
 
@@ -1076,6 +1077,7 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
       </section>`).join("\n")}
     </div>
   </main>
+  <footer style="max-width:1000px;margin:24px auto;padding:18px;color:#666;border-top:1px solid #e5e5e5"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
 </body>
 </html>`;
 
@@ -1090,6 +1092,7 @@ async function writeSitemap({ repoRoot, pages, publicRoot }) {
     const sitemapUrls = Array.from(new Set([
         `${publicRoot}/`,
         `${publicRoot}/quizzes/`,
+        `${publicRoot}/privacy/`,
         ...pages
     ]));
 
@@ -1098,7 +1101,7 @@ async function writeSitemap({ repoRoot, pages, publicRoot }) {
 ${sitemapUrls.map((url, index) => `  <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>${index < 2 ? "weekly" : "monthly"}</changefreq>
+    <changefreq>${index < 3 ? "weekly" : "monthly"}</changefreq>
   </url>`).join("\n")}
 </urlset>`;
 
