@@ -856,21 +856,12 @@ const SmurdyQuiz = {
     setProgressText(text) {
         const el = ensureSinglePanelNode("quiz-progress");
         if (!el) return;
+
+        // The runner already supplies a canonical, group-specific denominator.
+        // Recounting raw GeoJSON features here inflates totals for multipart countries.
         try {
-            let out = String(text == null ? "" : text);
-            const m = out.match(/^(\s*\d+\s*\/\s*)(\d+)([\s\S]*)$/);
-            if (m) {
-                let denom = 0;
-                try {
-                    if (SmurdyQuiz && typeof SmurdyQuiz.getQuizFeatures === "function") denom = (SmurdyQuiz.getQuizFeatures() || []).length;
-                } catch (e) { denom = 0; }
-                if (!denom) denom = (Number(SmurdyQuiz?.playableCount) || Number(m[2]) || 0);
-                out = `${m[1]}${denom}${m[3] || ""}`;
-            }
-            el.textContent = out;
-        } catch (e) {
-            try { el.textContent = String(text); } catch(_) {}
-        }
+            el.textContent = String(text == null ? "" : text);
+        } catch (_) {}
     },
 
     setAccuracyText(text) {
@@ -1103,7 +1094,7 @@ const SmurdyQuiz = {
         try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260824-mobile-touch-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260824-final-counter-fix-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -2234,7 +2225,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.9.1";
 
 function injectVersionBadge() {
     try {
