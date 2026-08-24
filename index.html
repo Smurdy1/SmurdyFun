@@ -29,7 +29,7 @@
         rel="stylesheet"
         href="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.css"
     />
-    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/style.css?v=20260824-final-polish-1" />
     <link rel="canonical" href="https://smurdy.fun/" />
     <!-- Preferred 48x48 favicon (force reload with a simple version query) -->
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/Smurdeye.png?v=2">
@@ -43,21 +43,19 @@
 </head>
 <body>
     <div id="quiz-panel">
-        <a href="https://smurdy.fun" class="panel-brand" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin-bottom:8px;">
-            <img src="/assets/images/SmurdeyeBig.png" alt="Smurdy logo" style="width:48px;height:48px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.12)">
-            <div style="display:flex;flex-direction:column;line-height:1;">
-                <span style="font-weight:700;font-size:16px;color:#000">Smurdy</span>
-            </div>
+        <a href="/" class="panel-brand" aria-label="Smurdy home">
+            <img src="/assets/images/SmurdeyeBig.png" alt="">
+            <span class="panel-brand-name">Smurdy</span>
         </a>
-         <h1 id="quiz-target">Smurdy —  Geography quizzes</h1>
+         <h1 id="quiz-target">Smurdy Geography Quizzes</h1>
          <div id="quiz-desc">
-             <h2 id="about-header">About Smurdy</h2>
+             <h2 class="about-header">About Smurdy</h2>
              <p>
-                 Smurdy is a personal map-quiz project to help learn geography:
-                 countries, subdivisions, and other regions. It's intentionally simple:
-                 play quick rounds, learn names and locations, and have a little fun with maps.
+                 Smurdy is a free, independent map-quiz project for learning geography.
+                  Practice countries and US states with click, typing, no-borders, and
+                  point-finding games.
              </p>
-             <h2 id="about-header">Feedback</h2>
+             <h2 class="about-header">Feedback</h2>
              <p>
                  Found a bug, want a new feature, or have wording suggestions? Please tell me.
                  I read suggestions and will likely make the change if it improves the site.
@@ -78,10 +76,10 @@
      </div>
  
          <div id="quiz-browser" data-smurdy-directory="smurdy-browser-directory-v1" aria-label="Quiz browser">
-        <nav id="qb-directory-fallback" aria-label="Browse geography quizzes" style="font-family:Arial,sans-serif;background:rgba(255,255,255,.96);padding:16px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.18);">
-            <strong style="display:block;font-size:18px;margin-bottom:8px;">Explore geography quizzes</strong>
-            <a href="/quizzes/" style="display:inline-block;background:#0077cc;color:#fff;text-decoration:none;font-weight:800;padding:10px 14px;border-radius:9px;margin:0 6px 8px 0;">Browse All Quizzes</a>
-            <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <nav id="qb-directory-fallback" aria-label="Browse geography quizzes">
+            <strong>Explore geography quizzes</strong>
+            <a href="/quizzes/">Browse All Quizzes</a>
+            <div>
                 <a href="/quizzes/click-country/world/">World</a>
                 <a href="/quizzes/click-country/europe/">Europe</a>
                 <a href="/quizzes/click-country/asia/">Asia</a>
@@ -94,24 +92,9 @@
      <div id="map"></div>
      <script src="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.js"></script>
      <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
-  <script src="/src/js/app.js?v=20260824-mobile-overlay-fix-1" defer></script>
+  <script src="/src/js/app.js?v=20260824-final-polish-1" defer></script>
      <script src="/src/js/manifest.js?v=20260722-independent-menu-control-1" defer></script>
-     <script src="/src/js/browse.js?v=20260824-mobile-overlay-fix-1" defer></script>
- 
-     <script>
-
-     // keep a no-op listener so older JS expecting an element id doesn't error
-     document.addEventListener('DOMContentLoaded', () => {
-         const suggestEl = document.getElementById('quiz-suggest');
-         if (!suggestEl) return;
-         // ensure link opens in new tab when activated by keyboard / script
-         suggestEl.addEventListener('click', (e) => {
-             // normal navigation handled by the anchor; nothing else required
-         });
-     });
-     </script>
-    
- 
+     <script src="/src/js/browse.js?v=20260824-final-polish-1" defer></script>
 <!-- smurdy-global-map-control-visibility-v1 -->
 <script>
 (() => {

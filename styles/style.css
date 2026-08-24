@@ -1,10 +1,37 @@
+:root {
+    --smurdy-blue: #0077cc;
+    --smurdy-blue-dark: #005fa3;
+    --smurdy-text: #161616;
+    --smurdy-muted: #555;
+    --smurdy-line: rgba(0, 0, 0, 0.12);
+    --smurdy-surface: rgba(255, 255, 255, 0.96);
+    --smurdy-radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: sans-serif;
+    color: var(--smurdy-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+button, input { font: inherit; }
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid rgba(0, 119, 204, 0.35);
+    outline-offset: 3px;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
 #map {
@@ -17,38 +44,66 @@ html, body {
     top: 16px;
     left: 16px;
     z-index: 1000;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    /* size to content but don't exceed viewport or a sane maximum */
     display: inline-block;
     width: auto;
-    max-width: min(420px, 92vw);
     min-width: 240px;
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    box-sizing: border-box;
+    max-width: min(420px, 92vw);
+    padding: 12px 16px;
+    background: var(--smurdy-surface);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--smurdy-radius);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.panel-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 9px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.panel-brand img {
+    width: 48px;
+    height: 48px;
+    border-radius: 7px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.panel-brand-name {
+    color: #000;
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1;
 }
 
 #quiz-target {
+    margin: 0 0 8px;
     font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 8px;
+    font-weight: 750;
+    line-height: 1.25;
 }
 
-#about-header {
-    color:#555;
+.about-header {
+    margin: 16px 0 4px;
+    color: var(--smurdy-muted);
     font-size: 18px;
-    margin-top: 16px;
-    margin-bottom: 0px;
+    line-height: 1.3;
 }
 
-#quiz-result {
-    font-size: 16px;
-    min-height: 20px;
+#quiz-desc {
     margin-top: 8px;
+    color: #333;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#quiz-desc p { margin: 5px 0; }
+
+#quiz-desc a {
+    color: #075f9e;
+    text-underline-offset: 3px;
 }
 
 #quiz-progress,
@@ -58,46 +113,7 @@ html, body {
     font-size: 15px;
 }
 
-#quiz-buttons {
-    margin-top: 12px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-#quiz-buttons .qb-btn,
-#quiz-buttons button {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(0,0,0,0.08);
-    background: #f5f5f5;
-    color: #111;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-}
-#quiz-buttons .qb-btn:hover,
-#quiz-buttons button:hover { filter: brightness(0.95); }
-
-/* primary style (used for Give Suggestions) */
-#quiz-buttons .qb-btn.primary {
-    background: #0077cc;
-    color: #fff;
-    border-color: rgba(0,0,0,0.06);
-}
-#quiz-buttons .qb-btn.primary:hover { background: #005fa3; }
-
-/* hide the old restart/back controls on the homepage */
-#quiz-restart[style*="display:none"],
-#quiz-back[style*="display:none"] { display: none !important; }
-
-/* keep existing quiz-panel layout rules for when a quiz loads */
-#quiz-target { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
-#quiz-result { font-size: 15px; min-height: 20px; margin-top: 8px; }
+#quiz-result { min-height: 20px; }
 
 #quiz-timer {
     margin-top: 6px;
@@ -106,153 +122,199 @@ html, body {
     line-height: 1;
 }
 
-/* homepage description */
-#quiz-desc { margin-top: 8px; color: #333; font-size: 15px; line-height: 1.45; }
-#quiz-desc p { margin: 4px 0; }
+#quiz-stats { display: none; }
 
-#quiz-stats { display: none; } /* desktop default: hidden */
-
-/* Mobile compact stats */
-@media (max-width: 700px) {
-    #quiz-stats {
-        display: flex !important;
-        gap: 16px;
-        justify-content: center;
-        align-items: center;
-        margin-top: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        color: rgba(0,0,0,0.85);
-    }
-    #quiz-stats span { display: inline-block; min-width: 48px; text-align: center; }
-    /* hide the verbose desktop labels on mobile */
-    #quiz-progress, #quiz-accuracy, #quiz-timer { display: none !important; }
+#quiz-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
 }
 
+#quiz-buttons .qb-btn,
+#quiz-buttons button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid var(--smurdy-line);
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: #111;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+#quiz-buttons .qb-btn:hover,
+#quiz-buttons button:hover { background: #eaeaea; }
+
+#quiz-buttons .qb-btn.primary {
+    border-color: var(--smurdy-blue);
+    background: var(--smurdy-blue);
+    color: #fff;
+}
+
+#quiz-buttons .qb-btn.primary:hover { background: var(--smurdy-blue-dark); }
+
+#quiz-restart[style*="display:none"],
+#quiz-back[style*="display:none"] { display: none !important; }
+
+#qb-directory-fallback {
+    padding: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px !important;
+    background: var(--smurdy-surface) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16) !important;
+    font-family: inherit !important;
+}
+
+#qb-directory-fallback strong {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 18px;
+}
+
+#qb-directory-fallback > a {
+    display: inline-flex;
+    min-height: 42px;
+    margin: 0 6px 9px 0;
+    padding: 10px 14px;
+    align-items: center;
+    border-radius: 8px;
+    background: var(--smurdy-blue);
+    color: #fff;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+#qb-directory-fallback > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#qb-directory-fallback > div a {
+    color: #075f9e;
+    text-underline-offset: 3px;
+}
+
+#mobile-map-attrib { display: none; }
+
 @media (max-width: 700px) {
-    /* Top compact instruction panel */
-    /* keep a single mobile panel sizing rule so top and bottom match exactly */
-    :root { --mobile-panel-h-gap: 24px; --mobile-panel-max: min(860px, 92vw); }
+    :root {
+        --mobile-panel-h-gap: 24px;
+        --mobile-panel-max: min(860px, 92vw);
+    }
+
     #quiz-panel {
         position: fixed;
+        top: max(12px, env(safe-area-inset-top));
         left: 50%;
-        transform: translateX(-50%);
-        top: 12px;
+        z-index: 2200;
+        display: flex;
         width: calc(100% - var(--mobile-panel-h-gap));
         max-width: var(--mobile-panel-max);
         padding: 10px 12px;
-        border-radius: 10px;
-        background: rgba(255,255,255,0.96);
-        z-index: 2200;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-shadow: 0 8px 26px rgba(0,0,0,0.14);
-    }
-
-    /* big instruction line */
-    #quiz-target {
-        font-size: 18px;
-        font-weight: 700;
-        text-align: center;
-        margin: 0;
-        padding: 4px 0;
-    }
-
-    /* compact status row under the instruction */
-    #quiz-timer, #quiz-progress, #quiz-accuracy {
-        display: inline-block;
-        font-size: 16px;
-        font-weight: 600;
-        color: rgba(0,0,0,0.8);
-        margin: 6px 8px 0 8px;
-        text-align: center;
-    }
-    /* make sure progress/accuracy exist even if runner creates them elsewhere */
-    #quiz-progress, #quiz-accuracy { min-height: 18px; }
-
-    /* Bottom separate control panel (same width as top) */
-    #quiz-bottom {
-        position: fixed;
-        left: 50%;
         transform: translateX(-50%);
-        bottom: 12px;
-        width: calc(100% - var(--mobile-panel-h-gap));
-        max-width: var(--mobile-panel-max);
-        padding: 14px 12px; /* larger vertical padding for breathing room */
-        border-radius: 10px;
-        background: rgba(255,255,255,0.96);
-        z-index: 2200;
-        display: flex;
         flex-direction: column;
-        gap: 10px;
-        box-shadow: 0 8px 26px rgba(0,0,0,0.14);
-        justify-content: center; /* centers when typing UI absent so spacing above/below buttons is equal */
-        align-items: stretch;
-        min-height: 80px;
-    }
-
-    /* typing controls row: single-line input + guess button */
-    #type-quiz-controls {
-        display: flex !important;
-        gap: 8px !important;
-        width: 100%;
-    }
-    #type-quiz-controls input {
-        flex: 1;
-        min-width: 0;
-        padding: 12px 14px;
-        font-size: 18px;
-        border-radius: 10px;
-    }
-    #type-quiz-controls button {
-        white-space: nowrap;
-        padding: 12px 14px;
-        font-size: 18px;
-        border-radius: 10px;
-    }
-
-    /* bottom buttons row: make buttons as big as possible and larger font */
-    #quiz-buttons {
-        display: flex;
-        gap: 10px;
-        width: 100%;
         align-items: center;
+        background: var(--smurdy-surface);
+        border-radius: var(--smurdy-radius);
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.14);
     }
-    #quiz-buttons .qb-btn, #quiz-buttons button {
-        flex: 1 1 0;
-        padding: 14px 16px;
-        font-size: 18px;
-        border-radius: 10px;
-        min-width: 0;
-    }
-    /* suggestion primary should remain visually strong */
-    #quiz-buttons .qb-btn.primary { flex: 1 1 0; margin-right: 8px; font-size: 18px; padding: 14px 16px; }
 
-    /* ensure compact single-line stats row for mobile: count / timer / accuracy */
+    #quiz-target {
+        margin: 0;
+        padding: 4px 42px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    #quiz-progress,
+    #quiz-accuracy,
+    #quiz-timer { display: none !important; }
+
     #quiz-stats {
         display: flex !important;
-        gap: 16px;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
+        gap: 16px;
         margin-top: 6px;
+        color: rgba(0, 0, 0, 0.85);
         font-size: 16px;
-        font-weight: 600;
-        color: rgba(0,0,0,0.85);
+        font-weight: 650;
+        line-height: 1;
     }
-    #quiz-stats span { display: inline-block; min-width: 48px; text-align: center; }
 
-    /* hide the verbose desktop labels on mobile */
-    #quiz-progress, #quiz-accuracy, #quiz-timer { display: none !important; }
+    #quiz-stats span {
+        display: inline-block;
+        min-width: 48px;
+        text-align: center;
+    }
 
-    /* ensure the compact stats take same visual weight as requested */
-    #quiz-stats { line-height: 1; }
-}
+    #quiz-bottom {
+        position: fixed;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        left: 50%;
+        z-index: 2200;
+        display: flex;
+        width: calc(100% - var(--mobile-panel-h-gap));
+        max-width: var(--mobile-panel-max);
+        min-height: 80px;
+        padding: 14px 12px;
+        transform: translateX(-50%);
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 10px;
+        background: var(--smurdy-surface);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: var(--smurdy-radius);
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.14);
+    }
 
-/* mobile-only attribution control placed inside #quiz-panel (collapsed by default) */
-#mobile-map-attrib { display: none; } /* default hidden; shown via media query */
+    #type-quiz-controls {
+        display: flex !important;
+        width: 100%;
+        gap: 8px !important;
+    }
 
-@media (max-width: 700px) {
+    #type-quiz-controls input {
+        min-width: 0;
+        padding: 12px 14px;
+        flex: 1;
+        border-radius: 9px;
+        font-size: 18px;
+    }
+
+    #type-quiz-controls button {
+        min-height: 46px;
+        padding: 12px 14px;
+        border-radius: 9px;
+        font-size: 18px;
+        white-space: nowrap;
+    }
+
+    #quiz-buttons {
+        width: 100%;
+        gap: 10px;
+    }
+
+    #quiz-buttons .qb-btn,
+    #quiz-buttons button,
+    #quiz-buttons .qb-btn.primary {
+        min-width: 0;
+        min-height: 50px;
+        margin-right: 0;
+        padding: 13px 14px;
+        flex: 1 1 0;
+        border-radius: 9px;
+        font-size: 17px;
+    }
+
     #mobile-map-attrib.mobile-attrib {
         position: absolute;
         top: 8px;
@@ -260,41 +322,57 @@ html, body {
         z-index: 2600;
         display: block;
     }
+
     #mobile-map-attrib .mobile-attrib-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        border: 0;
-        background: rgba(0,0,0,0.06);
-        color: #111;
-        font-weight: 700;
-        font-size: 16px;
-        line-height: 1;
         display: inline-flex;
+        width: 38px;
+        height: 38px;
+        padding: 0;
         align-items: center;
         justify-content: center;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.06);
+        color: #111;
         cursor: pointer;
-        padding: 0;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1;
     }
+
     #mobile-map-attrib .mobile-attrib-content {
-        display: none;
         position: absolute;
-        right: 0;
         top: 44px;
-        background: rgba(255,255,255,0.98);
+        right: 0;
+        display: none;
+        width: min(260px, 78vw);
+        padding: 9px 11px;
+        border: 1px solid var(--smurdy-line);
         border-radius: 8px;
-        padding: 8px 10px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        color: rgba(0, 0, 0, 0.85);
         font-size: 12px;
-        color: rgba(0,0,0,0.85);
-        max-width: 260px;
-        line-height: 1.3;
+        line-height: 1.35;
     }
+
     #mobile-map-attrib.open .mobile-attrib-content { display: block; }
-    #mobile-map-attrib .mobile-attrib-content a { color: rgba(0,0,0,0.85); text-decoration: underline; }
+
+    #mobile-map-attrib .mobile-attrib-content a {
+        color: inherit;
+        text-decoration: underline;
+    }
 }
 
-/* desktop: ensure custom node is hidden (map's built-in attribution or custom map badge may be used) */
 @media (min-width: 701px) {
     #mobile-map-attrib { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
