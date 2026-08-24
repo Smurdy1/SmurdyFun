@@ -1,4 +1,8 @@
 User-agent: *
-Disallow:
+Disallow: /Old/
+Disallow: /.backups/
+Disallow: /.vscode/
+Disallow: /src/js/node_modules/
+Disallow: /tools/
 
 Sitemap: https://smurdy.fun/sitemap.txt

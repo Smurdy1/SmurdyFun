@@ -375,46 +375,50 @@ ${JSON.stringify({
 }, null, 2)}
   </script>
   <style>
-    :root{--brand:#0077cc;--muted:#666;--line:#e8e8e8;--soft:#f6f6f6}
+    :root{--brand:#0077cc;--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#111;margin:0;background:#fff}
-    .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background:rgba(180,180,180,.12);padding:18px}
-    .panel-brand img{width:56px;height:56px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
-    .panel-brand .brand-text{font-weight:700;font-size:18px}
-    main{max-width:980px;margin:24px auto;padding:10px 18px}
-    header h1{font-size:clamp(24px,3vw,34px);line-height:1.2;margin:0 0 8px}
-    .meta{color:var(--muted);font-size:14px;margin-bottom:18px}
-    .lead{font-size:18px;margin:0 0 22px;color:#222}
-    .content-section{margin:22px 0}
-    .content-section h2,.examples h2{font-size:20px;margin:0 0 8px}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6;color:var(--text);margin:0;background:#fff}
+    a{color:var(--brand-dark)}
+    a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid rgba(0,119,204,.28);outline-offset:3px}
+    .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background:var(--soft);border-bottom:1px solid var(--line);padding:16px max(18px,calc((100vw - 980px)/2 + 18px))}
+    .panel-brand img{width:52px;height:52px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .panel-brand .brand-text{font-weight:750;font-size:19px;letter-spacing:-.01em}
+    main{max-width:980px;margin:0 auto;padding:28px 22px 10px}
+    header h1{font-size:clamp(28px,4vw,40px);letter-spacing:-.025em;line-height:1.15;margin:0 0 8px}
+    .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+    .lead{font-size:18px;max-width:74ch;margin:0 0 28px;color:#292929}
+    .content-section,.examples{max-width:78ch;margin:26px 0}
+    .content-section h2,.examples h2{font-size:21px;line-height:1.3;margin:0 0 8px}
     .content-section p{margin:0}
-    .tip{background:var(--soft);border-left:4px solid var(--brand);padding:12px 14px;border-radius:4px;margin-top:12px}
-    .examples{margin:22px 0}
+    .content-section+.content-section{padding-top:2px}
+    .tip{background:var(--soft);border:1px solid var(--line);padding:13px 15px;border-radius:8px;margin-top:14px}
+    .examples{margin:26px 0}
     .examples ul{padding-left:22px;margin:8px 0}
-    .included-list{margin:22px 0;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+    .included-list{margin:28px 0;border:1px solid var(--line);border-radius:8px;padding:13px 15px;background:#fff}
     .included-list summary{cursor:pointer;font-weight:700}
     .included-list p{margin:12px 0 2px}
-    .action-row{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap}
-    .qb-btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid transparent;font:inherit;line-height:inherit;cursor:pointer}
-    .qb-btn.primary{background:var(--brand);color:#fff}
+    .action-row{display:flex;gap:10px;align-items:center;margin-top:26px;flex-wrap:wrap}
+    .qb-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border-radius:8px;text-decoration:none;border:1px solid var(--line);background:#fff;color:var(--text);font:inherit;font-weight:650;line-height:1.2;cursor:pointer}
+    .qb-btn:hover{text-decoration:underline;text-underline-offset:3px}
+    .qb-btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .qb-btn.primary:hover{background:#0068b3}
     .qb-btn.primary:disabled{cursor:wait;opacity:.72}
-    .qb-btn.secondary{background:#f4f4f4;color:#111}
-    .other-quizzes{margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
+    .other-quizzes{margin-top:30px;border-top:1px solid var(--line);padding-top:18px}
     .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
-    .chip{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;background:#f4f4f4;color:#111;text-decoration:none;border:1px solid rgba(0,0,0,.06);font-size:14px;transition:all .12s ease}
-    .chip:hover{background:var(--brand);color:#fff;transform:translateY(-1px)}
-    .chip:focus{outline:2px solid rgba(0,119,204,.22);outline-offset:2px}
-    .breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:0 0 18px}
-    .breadcrumbs a{color:#315f86;text-decoration:none}
+    .chip{display:inline-flex;align-items:center;min-height:40px;padding:8px 12px;border-radius:7px;background:var(--soft);color:var(--text);text-decoration:none;border:1px solid var(--line);font-size:14px}
+    .chip:hover{border-color:#a8a8a8;text-decoration:underline;text-underline-offset:3px}
+    .breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:0 0 22px}
+    .breadcrumbs a{text-decoration:none}
     .breadcrumbs a:hover{text-decoration:underline}
-    .mode-specific{padding:15px 16px;border:1px solid var(--line);border-radius:10px;background:#fbfbfb}
-    .link-section{margin-top:30px;border-top:2px solid var(--line);padding-top:20px}
-    .link-section>h2{font-size:22px;margin:0 0 14px}
-    .link-block{margin:18px 0}
-    .link-block h3{font-size:16px;margin:0 0 8px}
-    .browse-all-line{margin:20px 0 0;font-weight:700}
-    .browse-all-line a{color:#075f9e}
-    footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 28px 30px}
+    .mode-specific{padding:0;background:transparent}
+    .link-section{margin-top:36px;border-top:2px solid var(--line);padding-top:22px}
+    .link-section>h2{font-size:23px;margin:0 0 16px}
+    .link-block{margin:20px 0}
+    .link-block h3{font-size:17px;margin:0 0 8px}
+    .browse-all-line{margin:22px 0 0;font-weight:700}
+    footer{max-width:980px;margin:22px auto;color:var(--muted);font-size:14px;padding:20px 22px 34px;border-top:1px solid var(--line)}
+    @media(max-width:600px){.panel-brand{padding:13px 18px}.panel-brand img{width:46px;height:46px}main{padding:22px 18px 8px}.lead{font-size:17px}.action-row{align-items:stretch}.qb-btn{flex:1 1 150px}footer{padding-left:18px;padding-right:18px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
   </style>
 </head>
 <body>
@@ -954,23 +958,27 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${hubUrl}"/>
   <style>
-    :root{--brand:#0077cc;--muted:#666;--line:#e8e8e0}
+    :root{--brand:#0077cc;--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f7f7f2;color:#111;line-height:1.5}
-    main{max-width:900px;margin:24px auto;padding:18px}
-    a{color:#075f9e}
-    .breadcrumbs{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:18px}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#fff;color:var(--text);line-height:1.55}
+    a{color:var(--brand-dark)}
+    a:focus-visible{outline:3px solid rgba(0,119,204,.28);outline-offset:3px}
+    main{max-width:960px;margin:0 auto;padding:34px 22px 20px}
+    .breadcrumbs{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:22px}
     .breadcrumbs a{text-decoration:none}
     .breadcrumbs a:hover{text-decoration:underline}
-    h1{margin:0 0 8px;line-height:1.2}
-    .lead{font-size:17px;margin:0 0 22px;color:#333}
+    h1{font-size:clamp(30px,5vw,42px);letter-spacing:-.025em;line-height:1.15;margin:0 0 10px}
+    .lead{font-size:18px;max-width:72ch;margin:0 0 28px;color:#333}
     .quiz-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;list-style:none;margin:0;padding:0}
-    .quiz-list a{display:block;height:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,.04)}
-    .quiz-list a:hover,.quiz-list a:focus{border-color:var(--brand);color:#075f9e}
-    .other-modes{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
-    .other-modes h2{font-size:19px;margin:0 0 10px}
+    .quiz-list a{display:flex;align-items:center;min-height:54px;height:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--text);font-weight:600;text-decoration:none}
+    .quiz-list a:hover{border-color:#aaa;text-decoration:underline;text-underline-offset:3px}
+    .other-modes{margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+    .other-modes h2{font-size:20px;margin:0 0 10px}
     .mode-links{display:flex;gap:8px;flex-wrap:wrap}
-    .mode-links a{padding:8px 11px;border-radius:8px;background:#fff;border:1px solid var(--line);text-decoration:none}
+    .mode-links a{display:inline-flex;align-items:center;min-height:42px;padding:8px 12px;border-radius:7px;background:#fff;border:1px solid var(--line);text-decoration:none}
+    .mode-links a:hover{text-decoration:underline;text-underline-offset:3px}
+    .site-footer{max-width:960px;margin:18px auto;padding:22px;color:var(--muted);border-top:1px solid var(--line);font-size:14px}
+    @media(max-width:600px){main{padding:26px 18px 16px}.quiz-list{grid-template-columns:1fr}.site-footer{padding-left:18px;padding-right:18px}}
   </style>
 </head>
 <body>
@@ -996,7 +1004,7 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
       <div class="mode-links">${otherModes}</div>
     </nav>
   </main>
-  <footer style="max-width:1000px;margin:24px auto;padding:18px;color:#666;border-top:1px solid #e5e5e5"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
 </body>
 </html>`;
 
@@ -1043,17 +1051,26 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
   <meta name="description" content="Browse Smurdy map quizzes by region and game mode, including country clicking, typing, no-borders challenges, and point identification."/>
   <link rel="canonical" href="${publicRoot}/quizzes/"/>
   <style>
+    :root{--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
+    *{box-sizing:border-box}
     html,body{min-height:100%}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f7f7f2;color:#111}
-    main{max-width:1100px;margin:24px auto;padding:18px}
-    a{color:#111}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:20px}
-    section{background:#fff;border:1px solid #e8e8e0;border-radius:14px;padding:16px;box-shadow:0 6px 22px rgba(0,0,0,.06)}
-    h1{margin:0 0 8px}
-    h2{font-size:18px;margin:0 0 10px}
-    ul{margin:0;padding-left:18px}
-    li{margin:6px 0}
-    .home{display:inline-block;margin-top:14px}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#fff;color:var(--text);line-height:1.55}
+    a{color:var(--brand-dark)}
+    a:focus-visible{outline:3px solid rgba(0,119,204,.28);outline-offset:3px}
+    main{max-width:1100px;margin:0 auto;padding:34px 22px 20px}
+    h1{font-size:clamp(30px,5vw,42px);letter-spacing:-.025em;line-height:1.15;margin:0 0 10px}
+    header p{font-size:18px;max-width:72ch;margin:0}
+    .home{display:inline-block;margin-top:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));column-gap:28px;row-gap:32px;margin-top:38px}
+    section{border-top:3px solid #cfcfcf;padding-top:14px}
+    h2{font-size:20px;margin:0 0 12px}
+    h2 a{text-decoration:none}
+    h2 a:hover{text-decoration:underline;text-underline-offset:3px}
+    ul{margin:0;padding-left:20px}
+    li{margin:7px 0}
+    li a{text-underline-offset:3px}
+    .site-footer{max-width:1100px;margin:20px auto;padding:22px;color:var(--muted);border-top:1px solid var(--line);font-size:14px}
+    @media(max-width:600px){main{padding:26px 18px 16px}.grid{grid-template-columns:1fr;row-gap:28px}.site-footer{padding-left:18px;padding-right:18px}}
   </style>
 </head>
 <body>
@@ -1077,7 +1094,7 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
       </section>`).join("\n")}
     </div>
   </main>
-  <footer style="max-width:1000px;margin:24px auto;padding:18px;color:#666;border-top:1px solid #e5e5e5"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
 </body>
 </html>`;
 
