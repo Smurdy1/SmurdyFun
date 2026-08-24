@@ -73,3 +73,25 @@
 
     launchButton.addEventListener("click", launchQuiz);
 })();
+
+
+// smurdy-privacy-footer-link-v1
+(() => {
+    function addPrivacyLink() {
+        const footer = document.querySelector("footer");
+        if (!footer || footer.querySelector('a[href="/privacy/"], a[href$="/privacy/"]')) return;
+
+        const separator = document.createTextNode(" · ");
+        const link = document.createElement("a");
+        link.href = "/privacy/";
+        link.textContent = "Privacy";
+
+        footer.append(separator, link);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", addPrivacyLink, { once: true });
+    } else {
+        addPrivacyLink();
+    }
+})();
