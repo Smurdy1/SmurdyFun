@@ -245,6 +245,17 @@ window.runNameQuiz = function runNameQuiz(config) {
          findPoint = false
         , borders = null
     } = config;
+
+    // Exact opt-in shortcut for regression testing. It is never enabled during
+    // normal play and its quiz events are excluded from analytics.
+    const lastAnswerTestMode = (() => {
+        try {
+            return new URLSearchParams(window.location.search)
+                .get("smurdyTest") === "last-answer";
+        } catch (_) {
+            return false;
+        }
+    })();
     
     // Honor manifest/runner preference for borders when provided; otherwise fall back to app default.
     try {
@@ -326,6 +337,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function beginAnalyticsRun(startReason) {
+        if (lastAnswerTestMode) return;
         try {
             window.SmurdyAnalytics?.beginQuiz({
                 ...getAnalyticsContext(),
@@ -336,6 +348,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function recordAnalyticsAnswer(correct) {
+        if (lastAnswerTestMode) return;
         try {
             window.SmurdyAnalytics?.recordAnswer(
                 getAnalyticsSnapshot(correct)
@@ -344,6 +357,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function completeAnalyticsRun() {
+        if (lastAnswerTestMode) return;
         try {
             window.SmurdyAnalytics?.completeQuiz({
                 ...getAnalyticsSnapshot(true),
@@ -1261,7 +1275,9 @@ window.runNameQuiz = function runNameQuiz(config) {
             SQ.setTargetText("Done!");
             // Ensure we clear any lingering target highlight (yellow) after the final correct answer.
             try { SQ.setTargetByName(null); } catch (e) {}
-            SQ.setProgressText(`${total} / ${total} completed`);
+            // Use this run's snapshotted canonical pool for both desktop and
+            // compact mobile counters. The shared UI setter must not recalculate it.
+            updateCounter();
             SQ.setResultText(doneText(formatElapsed(finalElapsedMs)));
             currentName = null;
             locked = true;
@@ -1375,6 +1391,28 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     }
 
+    function startQuestionSequence() {
+        const questionPromise = nextQuestion();
+        if (!lastAnswerTestMode) return questionPromise;
+
+        return Promise.resolve(questionPromise).then(() => {
+            if (!currentName || completed.size > 0) return;
+
+            const currentKey = normalizeName(currentName);
+            completed = new Set(
+                getNames().filter(name => normalizeName(name) !== currentKey)
+            );
+            attempts = 0;
+            correctAnswers = 0;
+            repaintCompleted();
+            updateCounter();
+            updateAccuracy();
+            SQ.setResultText("Test mode: answer this final place.");
+        }).catch(error => {
+            console.error("Could not prepare last-answer test mode", error);
+        });
+    }
+
     function restartQuiz() {
         currentName = null;
         locked = false;
@@ -1411,7 +1449,7 @@ window.runNameQuiz = function runNameQuiz(config) {
              if (panel) panel.style.display = "none";
          } catch (e) {}
  
-         nextQuestion();
+         startQuestionSequence();
      }
 
     function finishCorrect() {
@@ -1598,7 +1636,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     // after this point remains fully controlled by the player.
     if (mode === "click") zoomToCurrentGroup();
 
-    nextQuestion();
+    startQuestionSequence();
 
     // Replace or add a single robust implementation of SmurdyQuiz.getFeatureByName
     // that prefers local/admin feature matches over sovereignt (territories) and
