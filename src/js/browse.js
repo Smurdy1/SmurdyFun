@@ -84,33 +84,51 @@
     }
 
     // Mobile run-state helpers
-    // Deterministically show/hide the two panels on narrow viewports based on URL (no body-class juggling).
+    function setBrowserPanelVisible(panel, visible) {
+        if (!panel) return;
+
+        panel.hidden = !visible;
+        panel.setAttribute("aria-hidden", String(!visible));
+
+        if (visible) {
+            panel.style.removeProperty("pointer-events");
+            panel.style.removeProperty("opacity");
+            panel.style.removeProperty("transform");
+            panel.style.setProperty("display", "flex", "important");
+        } else {
+            panel.style.setProperty("display", "none", "important");
+            panel.style.setProperty(
+                "pointer-events",
+                "none",
+                "important"
+            );
+        }
+    }
+
+    // Deterministically show/hide the two panels based on whether a quiz is running.
     function updateMobileRunState() {
         const isMobile = (window.innerWidth || 0) <= 700 || /Mobi|Android/i.test(navigator.userAgent || "");
         const quizPanel = document.getElementById("quiz-panel");
         const browserPanel = document.getElementById("quiz-browser");
 
-        // Reset to default (desktop) when not mobile
-        if (!isMobile) {
-            if (quizPanel) quizPanel.style.display = "";
-            if (browserPanel) browserPanel.style.display = "";
-            return;
-        }
-
-        // On mobile: show quiz panel only when URL indicates a running quiz (path OR query)
         const params = new URLSearchParams(location.search);
         const hasQuizParam = !!params.get("quiz");
         const isQuizPath = /^\/quizzes\/[^\/]+\/[^\/]+\/?$/.test(location.pathname);
-        if (isQuizPath || hasQuizParam) {
+        const quizIsRunning = isQuizPath || hasQuizParam;
+
+        if (!isMobile) {
+            if (quizPanel) quizPanel.style.display = "";
+            setBrowserPanelVisible(browserPanel, !quizIsRunning);
+            return;
+        }
+
+        if (quizIsRunning) {
             if (quizPanel) quizPanel.style.display = "flex";
-            if (browserPanel) browserPanel.style.display = "none";
+            setBrowserPanelVisible(browserPanel, false);
         } else {
-            // homepage state on mobile: hide left quiz panel, show browser
+            // Homepage state on mobile: hide the left panel and show the browser.
             if (quizPanel) quizPanel.style.display = "none";
-            if (browserPanel) {
-                browserPanel.style.display = "flex";
-                // keep browser panel constrained by its CSS
-            }
+            setBrowserPanelVisible(browserPanel, true);
         }
     }
 
@@ -317,6 +335,17 @@
         /* Unified quiz browser v2: three distinct selector rows and compact cards. */
         html body #quiz-browser {
             overflow: hidden !important;
+        }
+
+        /*
+         * The mobile layout normally forces this panel to display:flex.
+         * A running quiz must override that rule so the transparent menu
+         * cannot sit above the map and capture every touch.
+         */
+        html body #quiz-browser[hidden],
+        html body #quiz-browser[aria-hidden="true"] {
+            display: none !important;
+            pointer-events: none !important;
         }
 
         #qb-header,
@@ -1982,14 +2011,13 @@
                      quizLandingPath(manifestItem, groupId)
                  );
              }
-             // hide panel
-             const panel = document.getElementById("quiz-browser");
-             if (panel) {
-                 panel.style.transition = "opacity 180ms ease, transform 180ms ease";
-                 panel.style.opacity = "0";
-                 panel.style.transform = "translateY(-8px)";
-                 setTimeout(() => { panel.style.display = "none"; }, 200);
-             }
+             // Remove the browser panel from both layout and hit-testing.
+             // Mobile CSS uses display:flex !important, so a normal inline
+             // display:none is not strong enough.
+             setBrowserPanelVisible(
+                 document.getElementById("quiz-browser"),
+                 false
+             );
              return;
          }
  
