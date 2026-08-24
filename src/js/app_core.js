@@ -340,6 +340,172 @@ function installReliableTouchGestures(targetMap) {
 }
 
 installReliableTouchGestures(map);
+
+function installTouchDebugOverlay(targetMap) {
+    if (urlParams.get("touchdebug") !== "1") return;
+
+    const mapElement = document.getElementById("map");
+    const container = targetMap.getCanvasContainer();
+    const canvas = targetMap.getCanvas();
+    if (!mapElement || !container || !canvas) return;
+
+    const panel = document.createElement("pre");
+    panel.id = "smurdy-touch-debug";
+    panel.setAttribute("aria-live", "polite");
+    Object.assign(panel.style, {
+        position: "fixed",
+        left: "6px",
+        top: "42%",
+        width: "calc(100vw - 12px)",
+        maxWidth: "520px",
+        maxHeight: "48vh",
+        overflow: "auto",
+        zIndex: "10000",
+        margin: "0",
+        padding: "8px",
+        borderRadius: "7px",
+        background: "rgba(0, 0, 0, .82)",
+        color: "#8dff9b",
+        font: "11px/1.35 monospace",
+        whiteSpace: "pre-wrap",
+        pointerEvents: "none"
+    });
+    document.body.appendChild(panel);
+
+    const counts = {
+        window: {},
+        map: {},
+        container: {},
+        canvas: {},
+        mapEvents: {}
+    };
+    let lastTarget = "(touch the map)";
+    let lastEvent = "(none)";
+    let renderQueued = false;
+
+    function increment(scope, type) {
+        counts[scope][type] = (counts[scope][type] || 0) + 1;
+    }
+
+    function compact(scope) {
+        const values = counts[scope];
+        return [
+            "pd:" + (values.pointerdown || 0),
+            "pm:" + (values.pointermove || 0),
+            "pu:" + (values.pointerup || 0),
+            "ts:" + (values.touchstart || 0),
+            "tm:" + (values.touchmove || 0),
+            "te:" + (values.touchend || 0)
+        ].join(" ");
+    }
+
+    function queueRender() {
+        if (renderQueued) return;
+        renderQueued = true;
+        requestAnimationFrame(() => {
+            renderQueued = false;
+            const center = targetMap.getCenter();
+            const mapStyle = getComputedStyle(mapElement);
+            const containerStyle = getComputedStyle(container);
+            const canvasStyle = getComputedStyle(canvas);
+
+            panel.textContent = [
+                "SMURDY TOUCH DEBUG",
+                "PointerEvent: " + ("PointerEvent" in window) +
+                    " | maxTouchPoints: " +
+                    (navigator.maxTouchPoints || 0),
+                "last: " + lastEvent,
+                "target: " + lastTarget,
+                "",
+                "window    " + compact("window"),
+                "#map      " + compact("map"),
+                "container " + compact("container"),
+                "canvas    " + compact("canvas"),
+                "",
+                "MapLibre move:" +
+                    (counts.mapEvents.move || 0) +
+                    " zoom:" +
+                    (counts.mapEvents.zoom || 0) +
+                    " drag:" +
+                    (counts.mapEvents.drag || 0),
+                "camera " +
+                    center.lng.toFixed(4) + "," +
+                    center.lat.toFixed(4) +
+                    " z" + targetMap.getZoom().toFixed(3),
+                "handlers dragPan:" +
+                    targetMap.dragPan.isEnabled() +
+                    " touchZoom:" +
+                    targetMap.touchZoomRotate.isEnabled(),
+                "fallback pointers:" +
+                    smurdyTouchGestureState.activePointers +
+                    " moved:" +
+                    smurdyTouchGestureState.moved,
+                "touch-action map:" + mapStyle.touchAction +
+                    " container:" + containerStyle.touchAction +
+                    " canvas:" + canvasStyle.touchAction
+            ].join("\n");
+        });
+    }
+
+    function observe(scope, element) {
+        for (const type of [
+            "pointerdown",
+            "pointermove",
+            "pointerup",
+            "touchstart",
+            "touchmove",
+            "touchend"
+        ]) {
+            element.addEventListener(type, event => {
+                increment(scope, type);
+                lastEvent =
+                    type +
+                    (event.pointerType
+                        ? " pointerType:" + event.pointerType
+                        : " touches:" + (event.touches?.length || 0));
+
+                if (type === "pointerdown" || type === "touchstart") {
+                    const touch = event.touches?.[0];
+                    const x = touch ? touch.clientX : event.clientX;
+                    const y = touch ? touch.clientY : event.clientY;
+                    const hit = document.elementFromPoint(x, y);
+                    lastTarget = hit
+                        ? hit.tagName.toLowerCase() +
+                            (hit.id ? "#" + hit.id : "") +
+                            (hit.className &&
+                             typeof hit.className === "string"
+                                ? "." +
+                                  hit.className
+                                      .trim()
+                                      .replace(/\s+/g, ".")
+                                : "")
+                        : "(none)";
+                }
+
+                queueRender();
+            }, {
+                capture: true,
+                passive: true
+            });
+        }
+    }
+
+    observe("window", window);
+    observe("map", mapElement);
+    observe("container", container);
+    observe("canvas", canvas);
+
+    for (const type of ["move", "zoom", "drag"]) {
+        targetMap.on(type, () => {
+            increment("mapEvents", type);
+            queueRender();
+        });
+    }
+
+    queueRender();
+}
+
+installTouchDebugOverlay(map);
  
 
  
