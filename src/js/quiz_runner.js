@@ -1567,6 +1567,15 @@ window.runNameQuiz = function runNameQuiz(config) {
             }
             const handler = (e) => {
                 try {
+                    // A drag or pinch can end with a synthetic click on some
+                    // mobile browsers. Never count that gesture as an answer.
+                    if (
+                        typeof SQ.wasRecentTouchGesture === "function" &&
+                        SQ.wasRecentTouchGesture()
+                    ) {
+                        return;
+                    }
+
                     // try common event shapes: Mapbox passes e.point; some libs pass the event itself
                     const pt = (e && (e.point || e)) || e;
                     let feature = null;
