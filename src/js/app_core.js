@@ -57,6 +57,289 @@ const map = new maplibregl.Map({
 // Their horizontal appearance is defined by browse.js.
 const navControl = new maplibregl.NavigationControl();
 map.addControl(navControl, "bottom-left");
+
+// Reliable mobile gesture fallback. MapLibre remains in charge when its native
+// touch handlers move the map. If they do not react after a real finger drag,
+// this pointer-based fallback takes over for the rest of that gesture.
+const smurdyTouchGestureState = {
+    activePointers: 0,
+    moved: false,
+    suppressClickUntil: 0
+};
+
+function installReliableTouchGestures(targetMap) {
+    const container = targetMap.getCanvasContainer();
+    const canvas = targetMap.getCanvas();
+
+    if (
+        !container ||
+        !canvas ||
+        container.dataset.smurdyTouchGestures === "true"
+    ) {
+        return;
+    }
+
+    container.dataset.smurdyTouchGestures = "true";
+
+    // Keep the browser from treating a map gesture as page scrolling or
+    // browser zooming. A stationary touch still produces the normal quiz tap.
+    container.style.setProperty("touch-action", "none", "important");
+    canvas.style.setProperty("touch-action", "none", "important");
+    container.style.overscrollBehavior = "none";
+
+    const pointers = new Map();
+    let previousGesture = null;
+    let fallbackActive = false;
+    let moveSamples = 0;
+    let initialCamera = null;
+    let suspendedHandlers = null;
+
+    function gestureSnapshot() {
+        const points = Array.from(pointers.values());
+        if (!points.length) return null;
+
+        const first = points[0];
+        if (points.length === 1) {
+            return {
+                x: first.x,
+                y: first.y,
+                distance: null
+            };
+        }
+
+        const second = points[1];
+        return {
+            x: (first.x + second.x) / 2,
+            y: (first.y + second.y) / 2,
+            distance: Math.hypot(
+                second.x - first.x,
+                second.y - first.y
+            )
+        };
+    }
+
+    function nativeCameraMoved() {
+        if (!initialCamera) return false;
+
+        const center = targetMap.getCenter();
+        return (
+            Math.abs(center.lng - initialCamera.lng) > 0.000001 ||
+            Math.abs(center.lat - initialCamera.lat) > 0.000001 ||
+            Math.abs(targetMap.getZoom() - initialCamera.zoom) > 0.000001
+        );
+    }
+
+    function suspendNativeTouchHandlers() {
+        if (suspendedHandlers) return;
+
+        suspendedHandlers = {
+            dragPan: Boolean(
+                targetMap.dragPan &&
+                targetMap.dragPan.isEnabled()
+            ),
+            touchZoomRotate: Boolean(
+                targetMap.touchZoomRotate &&
+                targetMap.touchZoomRotate.isEnabled()
+            ),
+            touchPitch: Boolean(
+                targetMap.touchPitch &&
+                targetMap.touchPitch.isEnabled()
+            )
+        };
+
+        if (suspendedHandlers.dragPan) {
+            targetMap.dragPan.disable();
+        }
+        if (suspendedHandlers.touchZoomRotate) {
+            targetMap.touchZoomRotate.disable();
+        }
+        if (suspendedHandlers.touchPitch) {
+            targetMap.touchPitch.disable();
+        }
+    }
+
+    function restoreNativeTouchHandlers() {
+        if (!suspendedHandlers) return;
+
+        if (suspendedHandlers.dragPan) {
+            targetMap.dragPan.enable();
+        }
+        if (suspendedHandlers.touchZoomRotate) {
+            targetMap.touchZoomRotate.enable();
+        }
+        if (suspendedHandlers.touchPitch) {
+            targetMap.touchPitch.enable();
+        }
+
+        suspendedHandlers = null;
+    }
+
+    function markGestureMoved() {
+        smurdyTouchGestureState.moved = true;
+        smurdyTouchGestureState.suppressClickUntil =
+            performance.now() + 500;
+    }
+
+    function onPointerDown(event) {
+        if (event.pointerType !== "touch") return;
+
+        if (!pointers.size) {
+            fallbackActive = false;
+            moveSamples = 0;
+            smurdyTouchGestureState.moved = false;
+        }
+
+        pointers.set(event.pointerId, {
+            x: event.clientX,
+            y: event.clientY,
+            startX: event.clientX,
+            startY: event.clientY
+        });
+
+        /*
+         * Starting a second finger begins a new native gesture. Measure from
+         * that moment so working one-finger panning cannot hide a broken pinch.
+         */
+        if (!fallbackActive) {
+            moveSamples = 0;
+            const center = targetMap.getCenter();
+            initialCamera = {
+                lng: center.lng,
+                lat: center.lat,
+                zoom: targetMap.getZoom()
+            };
+        }
+
+        smurdyTouchGestureState.activePointers = pointers.size;
+        previousGesture = gestureSnapshot();
+
+        try {
+            container.setPointerCapture(event.pointerId);
+        } catch (_) {}
+    }
+
+    function onPointerMove(event) {
+        const point = pointers.get(event.pointerId);
+        if (!point) return;
+
+        point.x = event.clientX;
+        point.y = event.clientY;
+        moveSamples += 1;
+
+        const currentGesture = gestureSnapshot();
+        if (!currentGesture || !previousGesture) {
+            previousGesture = currentGesture;
+            return;
+        }
+
+        const travelled = Math.hypot(
+            point.x - point.startX,
+            point.y - point.startY
+        );
+
+        if (travelled >= 7) {
+            markGestureMoved();
+        }
+
+        /*
+         * Let MapLibre prove that its native handler works first. Two move
+         * samples avoid racing a native handler that begins on the next frame.
+         */
+        if (
+            !fallbackActive &&
+            smurdyTouchGestureState.moved &&
+            moveSamples >= 2 &&
+            !nativeCameraMoved()
+        ) {
+            fallbackActive = true;
+            suspendNativeTouchHandlers();
+        }
+
+        if (fallbackActive) {
+            event.preventDefault();
+
+            targetMap.panBy(
+                [
+                    previousGesture.x - currentGesture.x,
+                    previousGesture.y - currentGesture.y
+                ],
+                {
+                    duration: 0,
+                    animate: false
+                }
+            );
+
+            if (
+                previousGesture.distance &&
+                currentGesture.distance &&
+                previousGesture.distance > 0 &&
+                currentGesture.distance > 0
+            ) {
+                const zoomDelta = Math.log2(
+                    currentGesture.distance /
+                    previousGesture.distance
+                );
+
+                if (Number.isFinite(zoomDelta)) {
+                    const rect = container.getBoundingClientRect();
+                    const zoom = Math.max(
+                        targetMap.getMinZoom(),
+                        Math.min(
+                            targetMap.getMaxZoom(),
+                            targetMap.getZoom() + zoomDelta
+                        )
+                    );
+
+                    targetMap.zoomTo(zoom, {
+                        duration: 0,
+                        animate: false,
+                        around: targetMap.unproject([
+                            currentGesture.x - rect.left,
+                            currentGesture.y - rect.top
+                        ])
+                    });
+                }
+            }
+        }
+
+        previousGesture = currentGesture;
+    }
+
+    function finishPointer(event) {
+        if (!pointers.has(event.pointerId)) return;
+
+        pointers.delete(event.pointerId);
+        smurdyTouchGestureState.activePointers = pointers.size;
+        previousGesture = gestureSnapshot();
+
+        if (smurdyTouchGestureState.moved) {
+            smurdyTouchGestureState.suppressClickUntil =
+                performance.now() + 500;
+        }
+
+        if (!pointers.size) {
+            fallbackActive = false;
+            moveSamples = 0;
+            initialCamera = null;
+            restoreNativeTouchHandlers();
+        }
+    }
+
+    container.addEventListener("pointerdown", onPointerDown, {
+        passive: true
+    });
+    container.addEventListener("pointermove", onPointerMove, {
+        passive: false
+    });
+    container.addEventListener("pointerup", finishPointer, {
+        passive: true
+    });
+    container.addEventListener("pointercancel", finishPointer, {
+        passive: true
+    });
+}
+
+installReliableTouchGestures(map);
  
 
  
@@ -187,6 +470,12 @@ function smurdyFilterGloballyIgnoredFeatures(features) {
 const SmurdyQuiz = {
     map,
     mode,
+    wasRecentTouchGesture() {
+        return (
+            smurdyTouchGestureState.activePointers > 0 &&
+            smurdyTouchGestureState.moved
+        ) || performance.now() < smurdyTouchGestureState.suppressClickUntil;
+    },
     mainData: null,
     tinyData: null,
     mainFillLayerId: MODE.fillLayerId,
@@ -2072,7 +2361,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.8.2";
+const APP_VERSION = "1.8.3";
 
 function injectVersionBadge() {
     try {
