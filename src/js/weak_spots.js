@@ -32,7 +32,7 @@ function render(dialog){
  if(!entries.length)list.innerHTML='<li class="weak-spots-empty"><strong>No weak spots yet.</strong><span>Places you miss during quizzes will appear here.</span></li>';
  else list.innerHTML=entries.slice(0,MAX_VISIBLE).map(entry=>{
   const modes=Object.entries(entry.modes||{}).sort((a,b)=>Number(b[1])-Number(a[1])).map(([mode,count])=>escapeHtml(modeLabel(mode))+" "+Number(count)).join(" · ");
-  return '<li class="weak-spot-item"><div class="weak-spot-name">'+escapeHtml(entry.name)+'</div><div class="weak-spot-meta">'+Number(entry.misses||0)+" recent "+(Number(entry.misses)===1?"miss":"misses")+(modes?" · "+modes:"")+"</div></li>";
+  return '<li class="weak-spot-item"><div class="weak-spot-name">'+escapeHtml(entry.name)+'</div><div class="weak-spot-meta">Review priority '+Number(entry.score||0)+" · "+Number(entry.misses||0)+" recent "+(Number(entry.misses)===1?"miss":"misses")+(modes?" · "+modes:"")+"</div></li>";
  }).join("");
  if(clear)clear.disabled=entries.length===0; updateCount();
 }
