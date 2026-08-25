@@ -1,15 +1,16 @@
 (() => {
 "use strict";
-const KEY="smurdy-weak-spots-v1", VERSION=1, MAX_STORED=100, MAX_VISIBLE=15;
+const KEY="smurdy-weak-spots-v1", VERSION=1, MAX_STORED=100, MAX_VISIBLE=15, MAX_AGE_MS=90*24*60*60*1000;
 const normalize=value=>String(value||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/&/g,"and").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
 const empty=()=>({version:VERSION,entries:{}});
 function read(){try{const value=JSON.parse(localStorage.getItem(KEY)||"null");if(value&&value.version===VERSION&&value.entries&&typeof value.entries==="object")return value;}catch(_){}return empty();}
-function sorted(store=read()){return Object.values(store.entries||{}).filter(e=>e&&e.name&&Number(e.score)>0).sort((a,b)=>Number(b.score||0)-Number(a.score||0)||Number(b.updatedAt||0)-Number(a.updatedAt||0)||String(a.name).localeCompare(String(b.name)));}
+function sorted(store=read()){return Object.values(store.entries||{}).filter(e=>e&&e.name&&Number(e.score)>0&&Date.now()-Number(e.updatedAt||0)<=MAX_AGE_MS).sort((a,b)=>Number(b.score||0)-Number(a.score||0)||Number(b.updatedAt||0)-Number(a.updatedAt||0)||String(a.name).localeCompare(String(b.name)));}
 function write(store){try{const keep=sorted(store).slice(0,MAX_STORED);store.entries=Object.fromEntries(keep.map(e=>[e.key||normalize(e.name),e]));localStorage.setItem(KEY,JSON.stringify(store));window.dispatchEvent(new CustomEvent("smurdy:weakspotschange"));return true;}catch(_){return false;}}
 function recordMiss(details={}){
  const name=String(details.name||"").trim(), key=normalize(name); if(!key)return null;
  const store=read(), mode=String(details.mode||"unknown").trim()||"unknown", group=String(details.group||"").trim(), now=Date.now();
- const entry=store.entries[key]||{key,name,score:0,misses:0,retrySuccesses:0,modes:{},groups:{},createdAt:now,updatedAt:now};
+ const saved=store.entries[key];
+ const entry=saved&&now-Number(saved.updatedAt||0)<=MAX_AGE_MS?saved:{key,name,score:0,misses:0,retrySuccesses:0,modes:{},groups:{},createdAt:now,updatedAt:now};
  entry.name=name; entry.score=Math.min(999,Number(entry.score||0)+2); entry.misses=Number(entry.misses||0)+1; entry.updatedAt=now;
  entry.modes[mode]=Number(entry.modes[mode]||0)+1; if(group)entry.groups[group]=Number(entry.groups[group]||0)+1;
  store.entries[key]=entry; write(store); return {...entry};
@@ -28,7 +29,7 @@ function updateCount(){const badge=document.getElementById("weak-spots-count");i
 function close(dialog){if(typeof dialog.close==="function"&&dialog.open)dialog.close();else dialog.removeAttribute("open");document.body.classList.remove("weak-spots-dialog-open");}
 function render(dialog){
  const list=dialog.querySelector("#weak-spots-list"), clear=dialog.querySelector("#weak-spots-clear"), entries=getAll(); if(!list)return;
- if(!entries.length)list.innerHTML='<li class="weak-spots-empty"><strong>No weak spots yet.</strong><span>Countries you miss during quizzes will appear here.</span></li>';
+ if(!entries.length)list.innerHTML='<li class="weak-spots-empty"><strong>No weak spots yet.</strong><span>Places you miss during quizzes will appear here.</span></li>';
  else list.innerHTML=entries.slice(0,MAX_VISIBLE).map(entry=>{
   const modes=Object.entries(entry.modes||{}).sort((a,b)=>Number(b[1])-Number(a[1])).map(([mode,count])=>escapeHtml(modeLabel(mode))+" "+Number(count)).join(" · ");
   return '<li class="weak-spot-item"><div class="weak-spot-name">'+escapeHtml(entry.name)+'</div><div class="weak-spot-meta">'+Number(entry.misses||0)+" recent "+(Number(entry.misses)===1?"miss":"misses")+(modes?" · "+modes:"")+"</div></li>";
