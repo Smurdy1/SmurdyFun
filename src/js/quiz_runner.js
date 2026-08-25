@@ -775,7 +775,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
         missedTargets.set(key, existing);
 
-        if (!anyTestMode) {
+        if (!reviewTestMode) {
             try {
                 const context = getAnalyticsContext();
                 window.SmurdyWeakSpots?.recordMiss({
