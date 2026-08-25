@@ -230,7 +230,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         if (panel) panel.style.display = "none";
     } catch (e) {}
 
-    const {
+    let {
          mode, // "click" or "type"
          quizId = null,
          titleBuilder,
@@ -247,6 +247,26 @@ window.runNameQuiz = function runNameQuiz(config) {
          includeNames = null,
          retryWeakSpots = false
     } = config;
+
+    const weakSpotsPracticeStage = (() => {
+        try {
+            const requested = new URLSearchParams(window.location.search)
+                .get("weakSpotsPractice") === "1";
+            if (!requested) return null;
+            return window.SmurdyWeakSpots?.getActivePracticeStage?.() || null;
+        } catch (_) {
+            return null;
+        }
+    })();
+
+    if (
+        weakSpotsPracticeStage &&
+        Array.isArray(weakSpotsPracticeStage.names) &&
+        weakSpotsPracticeStage.names.length
+    ) {
+        includeNames = weakSpotsPracticeStage.names.slice();
+        retryWeakSpots = true;
+    }
 
     // Exact opt-in shortcut for regression testing. It is never enabled during
     // normal play and its quiz events are excluded from analytics.
@@ -802,6 +822,35 @@ window.runNameQuiz = function runNameQuiz(config) {
     function hidePostQuizReview() {
         const review = document.getElementById("quiz-review");
         if (review) review.hidden = true;
+        const continuation = document.getElementById("weak-spots-practice-next");
+        if (continuation) continuation.hidden = true;
+    }
+
+    function showPracticeContinuation(stage) {
+        if (!stage) return;
+
+        const panel = document.getElementById("quiz-panel");
+        if (!panel) return;
+
+        let section = document.getElementById("weak-spots-practice-next");
+        if (!section) {
+            section = document.createElement("section");
+            section.id = "weak-spots-practice-next";
+            const share = document.getElementById("quiz-share-section");
+            if (share && share.parentNode === panel) panel.insertBefore(section, share);
+            else panel.appendChild(section);
+        }
+
+        const count = Array.isArray(stage.names) ? stage.names.length : 0;
+        section.innerHTML =
+            '<strong>Next Weak Spots round</strong>' +
+            '<span>' + stage.label + ' · ' + count + ' ' +
+                (count === 1 ? 'place' : 'places') + '</span>' +
+            '<button type="button">Continue</button>';
+        section.querySelector("button").addEventListener("click", () => {
+            window.SmurdyWeakSpots?.openPracticeStage?.(stage);
+        });
+        section.hidden = false;
     }
 
     function describeReviewMiss(item) {
@@ -1470,6 +1519,14 @@ window.runNameQuiz = function runNameQuiz(config) {
             // Keep the quiz panel in game-mode showing "Done!" until the user clicks Back.
             try { setQuizPanelMode("game"); } catch (e) {}
             showPostQuizReview();
+
+            if (weakSpotsPracticeStage) {
+                let nextStage = null;
+                try {
+                    nextStage = window.SmurdyWeakSpots?.advancePracticeStage?.() || null;
+                } catch (_) {}
+                showPracticeContinuation(nextStage);
+            }
             return;
         }
  
