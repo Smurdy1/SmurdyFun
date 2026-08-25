@@ -2035,11 +2035,11 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     async function loadExistingSmurdyLogo() {
-        const existing = document.querySelector('img[src*="Smurdeye"]');
+        const existing = document.querySelector('img[src*="smurdeye" i]');
         const sources = [
             existing && (existing.currentSrc || existing.src),
-            "/assets/images/SmurdeyeBig.png",
-            "/assets/images/Smurdeye.png"
+            "/assets/images/smurdeye-transparent.png?v=20260825-logo-1",
+            "/assets/images/apple-touch-icon.png?v=20260825-logo-1"
         ].filter(Boolean);
 
         for (const source of [...new Set(sources)]) {
