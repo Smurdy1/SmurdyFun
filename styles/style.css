@@ -375,3 +375,42 @@ button:disabled {
         animation-iteration-count: 1 !important;
     }
 }
+
+/* Weak Spots and post-quiz review */
+.weak-spots-menu-button{display:inline-flex;min-height:42px;margin-top:12px;padding:9px 13px;align-items:center;gap:8px;border:1px solid var(--smurdy-line);border-radius:8px;background:#f5f5f5;color:#111;cursor:pointer;font-size:14px;font-weight:700}
+.weak-spots-menu-button:hover{background:#eaeaea}
+#weak-spots-count{min-width:22px;padding:2px 6px;border-radius:999px;background:var(--smurdy-blue);color:#fff;font-size:12px;line-height:18px;text-align:center}
+#weak-spots-dialog{width:min(560px,calc(100vw - 28px));max-height:min(680px,calc(100dvh - 28px));padding:0;overflow:hidden;border:1px solid rgba(0,0,0,.14);border-radius:12px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.26);color:var(--smurdy-text)}
+#weak-spots-dialog::backdrop{background:rgba(0,0,0,.42)}
+.weak-spots-dialog-card{display:flex;max-height:min(680px,calc(100dvh - 28px));flex-direction:column}
+.weak-spots-dialog-header{display:flex;padding:20px 20px 14px;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid var(--smurdy-line)}
+.weak-spots-dialog-header h2{margin:0 0 4px;font-size:22px;line-height:1.2}
+.weak-spots-dialog-header p{margin:0;color:var(--smurdy-muted);font-size:14px;line-height:1.4}
+#weak-spots-close{width:38px;height:38px;flex:0 0 auto;border:0;border-radius:50%;background:#f1f1f1;color:#222;cursor:pointer;font-size:26px;line-height:1}
+.weak-spots-list{margin:0;padding:8px 20px;overflow:auto;list-style:none}
+.weak-spot-item{padding:12px 0;border-bottom:1px solid var(--smurdy-line)}
+.weak-spot-item:last-child{border-bottom:0}
+.weak-spot-name{font-weight:750;line-height:1.3}
+.weak-spot-meta{margin-top:3px;color:var(--smurdy-muted);font-size:13px;line-height:1.4}
+.weak-spots-empty{display:flex;min-height:150px;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:var(--smurdy-muted);text-align:center}
+.weak-spots-empty strong{color:var(--smurdy-text)}
+.weak-spots-dialog-footer{display:flex;padding:13px 20px;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--smurdy-line);color:var(--smurdy-muted);font-size:12px}
+#weak-spots-clear{min-height:36px;padding:7px 10px;border:1px solid var(--smurdy-line);border-radius:7px;background:#fff;color:#8a1e1e;cursor:pointer;font-size:12px;font-weight:700}
+#quiz-review{margin-top:12px;padding-top:12px;border-top:1px solid var(--smurdy-line)}
+.quiz-review-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.quiz-review-heading{display:block;font-size:15px;font-weight:800;line-height:1.3}
+.quiz-review-summary{display:block;margin-top:2px;color:var(--smurdy-muted);font-size:12px;line-height:1.35}
+#quiz-review-retry{min-height:38px;padding:8px 11px;flex:0 0 auto;border:1px solid var(--smurdy-blue);border-radius:8px;background:var(--smurdy-blue);color:#fff;cursor:pointer;font-size:13px;font-weight:750}
+#quiz-review-retry:hover{background:var(--smurdy-blue-dark)}
+.quiz-review-list{display:grid;max-height:170px;margin:10px 0 0;padding:0;overflow:auto;gap:6px;list-style:none}
+.quiz-review-country{display:block;width:100%;padding:8px 10px;border:1px solid var(--smurdy-line);border-radius:7px;background:#fafafa;color:#111;cursor:pointer;text-align:left}
+.quiz-review-country:hover{background:#f0f0f0}
+.quiz-review-country-name{display:block;font-size:13px;font-weight:750;line-height:1.3}
+.quiz-review-country-detail{display:block;margin-top:2px;color:var(--smurdy-muted);font-size:11px;line-height:1.35}
+@media(max-width:700px){
+ #quiz-panel:has(#quiz-review:not([hidden])){max-height:min(48dvh,430px);overflow:auto;align-items:stretch}
+ #quiz-panel:has(#quiz-review:not([hidden])) .panel-brand,#quiz-panel:has(#quiz-review:not([hidden])) #quiz-target,#quiz-panel:has(#quiz-review:not([hidden])) #quiz-stats{align-self:center}
+ .quiz-review-list{max-height:120px}
+ .weak-spots-dialog-header,.weak-spots-dialog-footer{padding-left:16px;padding-right:16px}
+ .weak-spots-list{padding-left:16px;padding-right:16px}
+}
