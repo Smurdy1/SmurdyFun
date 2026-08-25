@@ -1852,9 +1852,9 @@
                     style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin-bottom:8px;"
                 >
                     <img
-                        src="/assets/images/SmurdeyeBig.png"
+                        src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1"
                         alt="Smurdy logo"
-                        style="width:48px;height:48px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.12)"
+                        style="width:48px;height:48px;object-fit:contain"
                     >
                     <div style="display:flex;flex-direction:column;line-height:1;">
                         <span style="font-weight:700;font-size:16px;color:#000">Smurdy</span>

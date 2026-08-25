@@ -349,12 +349,16 @@ const entryListHtml = entries.length
   <meta name="keywords" content="${escapeHtml(keywords.join(", "))}"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${escapeHtml(pageUrlRaw)}"/>
-  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/Smurdeye.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/favicon-48.png?v=20260825-logo-1"/>
+  <link rel="shortcut icon" href="${publicRoot}/favicon.ico?v=20260825-logo-1"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
   <meta property="og:type" content="website"/>
   <meta property="og:title" content="${escapeHtml(pageTitle)}"/>
   <meta property="og:description" content="${escapeHtml(metaDescription)}"/>
   <meta property="og:url" content="${escapeHtml(pageUrlRaw)}"/>
-  <meta property="og:image" content="${publicRoot}/assets/images/SmurdeyeBig.png"/>
+  <meta property="og:image" content="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
   <script type="application/ld+json">
 ${JSON.stringify({
     "@context": "https://schema.org",
@@ -381,7 +385,7 @@ ${JSON.stringify({
     a{color:var(--brand-dark)}
     a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid rgba(0,119,204,.28);outline-offset:3px}
     .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background:var(--soft);border-bottom:1px solid var(--line);padding:16px max(18px,calc((100vw - 980px)/2 + 18px))}
-    .panel-brand img{width:52px;height:52px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .panel-brand img{width:52px;height:52px;object-fit:contain}
     .panel-brand .brand-text{font-weight:750;font-size:19px;letter-spacing:-.01em}
     main{max-width:980px;margin:0 auto;padding:28px 22px 10px}
     header h1{font-size:clamp(28px,4vw,40px);letter-spacing:-.025em;line-height:1.15;margin:0 0 8px}
@@ -423,7 +427,7 @@ ${JSON.stringify({
 </head>
 <body>
   <a class="panel-brand" href="${publicRoot}/" title="Smurdy">
-    <img src="/assets/images/SmurdeyeBig.png" alt="Smurdy logo"/>
+    <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt="Smurdy logo"/>
     <div class="brand-text">Smurdy</div>
   </a>
 
@@ -552,6 +556,11 @@ async function writeLegacySubdivisionPages({ outDir, publicRoot }) {
   <title>US States Quiz Moved | Smurdy</title>
   <meta name="robots" content="noindex, follow"/>
   <link rel="canonical" href="${destination}"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/favicon-48.png?v=20260825-logo-1"/>
+  <link rel="shortcut icon" href="${publicRoot}/favicon.ico?v=20260825-logo-1"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
   <meta http-equiv="refresh" content="0;url=${destination}"/>
   <script>location.replace(${JSON.stringify(destination)});</script>
 </head>
@@ -957,6 +966,11 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
   <meta name="description" content="${escapeHtml(mode.description)}"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${hubUrl}"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/favicon-48.png?v=20260825-logo-1"/>
+  <link rel="shortcut icon" href="${publicRoot}/favicon.ico?v=20260825-logo-1"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
   <style>
     :root{--brand:#0077cc;--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
     *{box-sizing:border-box}
@@ -1050,6 +1064,11 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
   <title>All Smurdy Geography Quizzes</title>
   <meta name="description" content="Browse Smurdy map quizzes by region and game mode, including country clicking, typing, no-borders challenges, and point identification."/>
   <link rel="canonical" href="${publicRoot}/quizzes/"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/favicon-48.png?v=20260825-logo-1"/>
+  <link rel="shortcut icon" href="${publicRoot}/favicon.ico?v=20260825-logo-1"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
   <style>
     :root{--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
     *{box-sizing:border-box}
