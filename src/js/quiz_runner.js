@@ -881,7 +881,10 @@ window.runNameQuiz = function runNameQuiz(config) {
             else panel.appendChild(review);
         }
 
-        const countText = items.length + " " + (items.length === 1 ? "country" : "countries");
+        const placeNoun = isSubdivisionMapMode()
+            ? (items.length === 1 ? "state" : "states")
+            : (items.length === 1 ? "country" : "countries");
+        const countText = items.length + " " + placeNoun;
         review.innerHTML =
             '<div class="quiz-review-header">' +
                 '<div><strong id="quiz-review-heading" class="quiz-review-heading">Review your misses</strong>' +
