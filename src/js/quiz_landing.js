@@ -72,6 +72,14 @@
     }
 
     launchButton.addEventListener("click", launchQuiz);
+
+    try {
+        const autoPractice =
+            new URLSearchParams(window.location.search)
+                .get("weakSpotsPractice") === "1" &&
+            Boolean(sessionStorage.getItem("smurdy-weak-spots-practice-v1"));
+        if (autoPractice) requestAnimationFrame(launchQuiz);
+    } catch (_) {}
 })();
 
 
