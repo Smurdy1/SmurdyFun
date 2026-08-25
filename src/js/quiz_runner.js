@@ -242,20 +242,24 @@ window.runNameQuiz = function runNameQuiz(config) {
          showTargetOnWrong = true,
          clickableLayerId = null,
          // custom for "find the point"
-         findPoint = false
-        , borders = null
+         findPoint = false,
+         borders = null,
+         includeNames = null,
+         retryWeakSpots = false
     } = config;
 
     // Exact opt-in shortcut for regression testing. It is never enabled during
     // normal play and its quiz events are excluded from analytics.
-    const lastAnswerTestMode = (() => {
+    const smurdyTestMode = (() => {
         try {
-            return new URLSearchParams(window.location.search)
-                .get("smurdyTest") === "last-answer";
+            return new URLSearchParams(window.location.search).get("smurdyTest") || "";
         } catch (_) {
-            return false;
+            return "";
         }
     })();
+    const lastAnswerTestMode = smurdyTestMode === "last-answer";
+    const reviewTestMode = smurdyTestMode === "review";
+    const anyTestMode = Boolean(smurdyTestMode);
     
     // Honor manifest/runner preference for borders when provided; otherwise fall back to app default.
     try {
@@ -280,6 +284,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     let attempts = 0;
     let correctAnswers = 0;
+    let missedTargets = new Map();
 
     let timerInterval = null;
     let startTime = null;
@@ -337,7 +342,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function beginAnalyticsRun(startReason) {
-        if (lastAnswerTestMode) return;
+        if (anyTestMode) return;
         try {
             window.SmurdyAnalytics?.beginQuiz({
                 ...getAnalyticsContext(),
@@ -348,7 +353,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function recordAnalyticsAnswer(correct) {
-        if (lastAnswerTestMode) return;
+        if (anyTestMode) return;
         try {
             window.SmurdyAnalytics?.recordAnswer(
                 getAnalyticsSnapshot(correct)
@@ -357,7 +362,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function completeAnalyticsRun() {
-        if (lastAnswerTestMode) return;
+        if (anyTestMode) return;
         try {
             window.SmurdyAnalytics?.completeQuiz({
                 ...getAnalyticsSnapshot(true),
@@ -601,20 +606,28 @@ window.runNameQuiz = function runNameQuiz(config) {
     let quizNames = null;
 
     // Override getNames used by this runner to return canonical list (one entry per sovereign).
+    function filterIncludedNames(names) {
+        const sourceNames = Array.isArray(names) ? names.slice() : [];
+        if (!Array.isArray(includeNames) || !includeNames.length) return sourceNames;
+
+        const includedKeys = new Set(includeNames.map(normalizeName));
+        return sourceNames.filter(name => includedKeys.has(normalizeName(name)));
+    }
+
     function getNames() {
         if (Array.isArray(quizNames)) return quizNames.slice();
 
         try {
             buildCanonicalIndex();
             if (Array.isArray(RUN._canonList) && RUN._canonList.length) {
-                quizNames = RUN._canonList.slice();
+                quizNames = filterIncludedNames(RUN._canonList);
                 return quizNames.slice();
             }
         } catch (_) {}
 
         const fallbackNames = SQ.getAllNames ? SQ.getAllNames() : [];
         if (Array.isArray(fallbackNames) && fallbackNames.length) {
-            quizNames = fallbackNames.slice();
+            quizNames = filterIncludedNames(fallbackNames);
             return quizNames.slice();
         }
         return [];
@@ -736,6 +749,168 @@ window.runNameQuiz = function runNameQuiz(config) {
         for (const name of completed) {
             setState(name, "correct");
         }
+    }
+
+    function recordMissedTarget(clickedOrGuess, gaveUp) {
+        if (!currentName) return;
+
+        const displayName = getCanonicalDisplayName(currentName);
+        const key = normalizeName(displayName);
+        const existing = missedTargets.get(key) || {
+            key,
+            name: displayName,
+            count: 0,
+            guesses: [],
+            gaveUp: 0
+        };
+
+        existing.count++;
+        if (gaveUp) {
+            existing.gaveUp++;
+        } else {
+            const guess = String(clickedOrGuess || "").trim();
+            if (guess && !existing.guesses.includes(guess) && existing.guesses.length < 4) {
+                existing.guesses.push(guess);
+            }
+        }
+        missedTargets.set(key, existing);
+
+        if (!reviewTestMode) {
+            try {
+                const context = getAnalyticsContext();
+                window.SmurdyWeakSpots?.recordMiss({
+                    name: displayName,
+                    mode: context.quiz_mode,
+                    group: context.quiz_group
+                });
+            } catch (_) {}
+        }
+    }
+
+    function reduceWeakSpotAfterRetry() {
+        if (!retryWeakSpots || anyTestMode || !currentName) return;
+        try {
+            const context = getAnalyticsContext();
+            window.SmurdyWeakSpots?.recordRetrySuccess({
+                name: getCanonicalDisplayName(currentName),
+                mode: context.quiz_mode,
+                group: context.quiz_group
+            });
+        } catch (_) {}
+    }
+
+    function hidePostQuizReview() {
+        const review = document.getElementById("quiz-review");
+        if (review) review.hidden = true;
+    }
+
+    function describeReviewMiss(item) {
+        const pieces = [];
+        pieces.push(item.count + " " + (item.count === 1 ? "miss" : "misses"));
+        if (item.gaveUp) {
+            pieces.push(item.gaveUp === 1 ? "gave up" : "gave up " + item.gaveUp + " times");
+        }
+        if (item.guesses.length) pieces.push("guessed " + item.guesses.join(", "));
+        return pieces.join(" · ");
+    }
+
+    function focusReviewCountry(name) {
+        try {
+            if (typeof SQ.zoomToFeatureByName === "function") SQ.zoomToFeatureByName(name);
+        } catch (_) {}
+    }
+
+    function startMissedRetry(items) {
+        const names = items.map(item => item.name).filter(Boolean);
+        if (!names.length || typeof window.runNameQuiz !== "function") return;
+
+        const subdivision = isSubdivisionMapMode();
+        const retryQuizId = subdivision ? "click-subdivision" : "click-country";
+        const context = getAnalyticsContext();
+        const groupId = context.quiz_group || SQ.currentGroupId || "world";
+        const path = "/quizzes/" + retryQuizId + "/" + encodeURIComponent(groupId) + "/";
+
+        try { history.pushState({}, "", path); } catch (_) {}
+        if (window.__SmurdyConfig) {
+            window.__SmurdyConfig.cleanQuizId = retryQuizId;
+            window.__SmurdyConfig.quizGroupId = groupId;
+        }
+        SQ.currentShowBorders = true;
+        try { SQ.setShowBorders(true); } catch (_) {}
+
+        hidePostQuizReview();
+        window.dispatchEvent(new CustomEvent("smurdy:quizretry"));
+
+        window.runNameQuiz({
+            mode: "click",
+            quizId: retryQuizId,
+            borders: true,
+            includeNames: names,
+            retryWeakSpots: true,
+            titleBuilder: name => "Click: " + name,
+            successText: "Correct!",
+            persistCompletedHighlights: true,
+            showTargetOnWrong: true
+        });
+    }
+
+    function showPostQuizReview() {
+        const items = Array.from(missedTargets.values())
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (!items.length) {
+            hidePostQuizReview();
+            return;
+        }
+
+        clearStates();
+        for (const item of items) {
+            try { setState(item.name, "wrong"); } catch (_) {}
+        }
+
+        const panel = document.getElementById("quiz-panel");
+        if (!panel) return;
+
+        let review = document.getElementById("quiz-review");
+        if (!review) {
+            review = document.createElement("section");
+            review.id = "quiz-review";
+            review.setAttribute("aria-labelledby", "quiz-review-heading");
+            const share = document.getElementById("quiz-share-section");
+            if (share && share.parentNode === panel) panel.insertBefore(review, share);
+            else panel.appendChild(review);
+        }
+
+        const placeNoun = isSubdivisionMapMode()
+            ? (items.length === 1 ? "state" : "states")
+            : (items.length === 1 ? "country" : "countries");
+        const countText = items.length + " " + placeNoun;
+        review.innerHTML =
+            '<div class="quiz-review-header">' +
+                '<div><strong id="quiz-review-heading" class="quiz-review-heading">Review your misses</strong>' +
+                '<span class="quiz-review-summary">' + countText + ' highlighted on the map</span></div>' +
+                '<button id="quiz-review-retry" type="button">Retry Missed</button>' +
+            '</div>' +
+            '<ol class="quiz-review-list">' +
+                items.map((item, index) =>
+                    '<li><button class="quiz-review-country" type="button" data-review-index="' + index + '">' +
+                        '<span class="quiz-review-country-name"></span>' +
+                        '<span class="quiz-review-country-detail"></span>' +
+                    '</button></li>'
+                ).join("") +
+            '</ol>';
+
+        Array.from(review.querySelectorAll(".quiz-review-country")).forEach((button, index) => {
+            const item = items[index];
+            button.querySelector(".quiz-review-country-name").textContent = item.name;
+            button.querySelector(".quiz-review-country-detail").textContent = describeReviewMiss(item);
+            button.addEventListener("click", () => focusReviewCountry(item.name));
+        });
+
+        review.querySelector("#quiz-review-retry").addEventListener("click", () => {
+            startMissedRetry(items);
+        });
+        review.hidden = false;
     }
 
     function normalizeName(text) {
@@ -1278,10 +1453,10 @@ window.runNameQuiz = function runNameQuiz(config) {
             // Use this run's snapshotted canonical pool for both desktop and
             // compact mobile counters. The shared UI setter must not recalculate it.
             updateCounter();
+            if (startTime) finalElapsedMs = Date.now() - startTime;
             SQ.setResultText(doneText(formatElapsed(finalElapsedMs)));
             currentName = null;
             locked = true;
-            if (startTime) finalElapsedMs = Date.now() - startTime;
             stopTimer();
             completeAnalyticsRun();
             setInputEnabled(false);
@@ -1294,6 +1469,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
             // Keep the quiz panel in game-mode showing "Done!" until the user clicks Back.
             try { setQuizPanelMode("game"); } catch (e) {}
+            showPostQuizReview();
             return;
         }
  
@@ -1393,10 +1569,33 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function startQuestionSequence() {
         const questionPromise = nextQuestion();
-        if (!lastAnswerTestMode) return questionPromise;
+        if (!lastAnswerTestMode && !reviewTestMode) return questionPromise;
 
         return Promise.resolve(questionPromise).then(() => {
             if (!currentName || completed.size > 0) return;
+
+            if (reviewTestMode) {
+                const names = getNames();
+                completed = new Set(names);
+                missedTargets = new Map(
+                    names.slice(0, Math.min(3, names.length)).map((name, index) => {
+                        const displayName = getCanonicalDisplayName(name);
+                        const key = normalizeName(displayName);
+                        return [key, {
+                            key,
+                            name: displayName,
+                            count: index + 1,
+                            guesses: [],
+                            gaveUp: index === 2 ? 1 : 0
+                        }];
+                    })
+                );
+                attempts = names.length + 3;
+                correctAnswers = names.length;
+                updateCounter();
+                updateAccuracy();
+                return nextQuestion();
+            }
 
             const currentKey = normalizeName(currentName);
             completed = new Set(
@@ -1409,7 +1608,7 @@ window.runNameQuiz = function runNameQuiz(config) {
             updateAccuracy();
             SQ.setResultText("Test mode: answer this final place.");
         }).catch(error => {
-            console.error("Could not prepare last-answer test mode", error);
+            console.error("Could not prepare quiz test mode", error);
         });
     }
 
@@ -1419,6 +1618,8 @@ window.runNameQuiz = function runNameQuiz(config) {
         completed = new Set();
         attempts = 0;
         correctAnswers = 0;
+        missedTargets = new Map();
+        hidePostQuizReview();
  
         clearStates();
         SQ.setResultText("");
@@ -1454,6 +1655,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function finishCorrect() {
         correctAnswers++;
+        reduceWeakSpotAfterRetry();
         completed.add(currentName);
         recordAnalyticsAnswer(true);
 
@@ -1478,6 +1680,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function finishWrong(clickedOrGuess, gaveUp = false) {
+        recordMissedTarget(clickedOrGuess, gaveUp);
         recordAnalyticsAnswer(false);
 
         // Remove any temporary target state so the red answer state is visible.
@@ -1626,6 +1829,7 @@ window.runNameQuiz = function runNameQuiz(config) {
          } catch (e) { /* tolerate map readiness errors */ }
      }
  
+    hidePostQuizReview();
     updateCounter();
     updateAccuracy();
     resetTimer();
@@ -2337,6 +2541,10 @@ window.runNameQuiz = function runNameQuiz(config) {
         window.addEventListener("popstate", () => updateVisibility(true));
         window.addEventListener("hashchange", () => updateVisibility(true));
         window.addEventListener("smurdy:mainmenu", () => {
+            lastCompleted = false;
+            hideShareSection();
+        });
+        window.addEventListener("smurdy:quizretry", () => {
             lastCompleted = false;
             hideShareSection();
         });
