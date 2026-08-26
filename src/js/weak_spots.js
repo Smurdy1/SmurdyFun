@@ -106,7 +106,7 @@
                 Date.now() - Number(entry.updatedAt || 0) <= MAX_AGE_MS
             )
             .sort((a, b) =>
-                Number(b.score || 0) - Number(a.score || 0) ||
+                Number(b.misses || 0) - Number(a.misses || 0) ||
                 Number(b.updatedAt || 0) - Number(a.updatedAt || 0) ||
                 String(a.name).localeCompare(String(b.name))
             );
