@@ -315,11 +315,11 @@
     }
 
     function updateMenuCount() {
-        const badge = document.getElementById("weak-spots-count");
-        if (!badge) return;
         const count = getAll().length;
-        badge.textContent = count ? String(count) : "";
-        badge.hidden = count === 0;
+        document.querySelectorAll("[data-weak-spots-count]").forEach(badge => {
+            badge.textContent = count ? String(count) : "";
+            badge.hidden = count === 0;
+        });
     }
 
     function closeDialog(dialog) {
@@ -436,10 +436,14 @@
     }
 
     function install() {
-        const button = document.getElementById("weak-spots-open");
-        if (button && !button.dataset.weakSpotsBound) {
-            button.dataset.weakSpotsBound = "true";
-            button.addEventListener("click", openDialog);
+        if (!document.documentElement.dataset.weakSpotsDelegated) {
+            document.documentElement.dataset.weakSpotsDelegated = "true";
+            document.addEventListener("click", event => {
+                const button = event.target.closest?.("[data-weak-spots-open]");
+                if (!button) return;
+                event.preventDefault();
+                openDialog();
+            });
         }
         updateMenuCount();
     }
@@ -455,6 +459,7 @@
         getActivePracticeStage,
         advancePracticeStage,
         openPracticeStage,
+        refreshMenuCount: updateMenuCount,
         open: openDialog
     });
 
