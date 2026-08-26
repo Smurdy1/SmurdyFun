@@ -720,6 +720,10 @@
             border-left: 1px solid #ddd !important;
         }
 
+        #qb-mobile-weak-spots {
+            display: none;
+        }
+
         #qb-mobile-collapse {
             display: none;
         }
@@ -741,6 +745,34 @@
                     translate(-50%, calc(-100% + 40px))
                     !important;
                 box-shadow: 0 5px 18px rgba(0,0,0,.16) !important;
+            }
+
+            #qb-mobile-weak-spots {
+                appearance: none;
+                display: flex;
+                flex: 0 0 auto;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                min-height: 44px;
+                margin: 8px 0 0;
+                padding: 10px 12px;
+                border: 1px solid #d9d9d9;
+                border-radius: 9px;
+                background: #f5f5f5;
+                color: #111;
+                cursor: pointer;
+                font: inherit;
+                font-size: 14px;
+                font-weight: 750;
+                text-align: left;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #qb-mobile-weak-spots:hover,
+            #qb-mobile-weak-spots:focus-visible {
+                background: #eaeaea;
             }
 
             #qb-mobile-collapse {
@@ -1866,6 +1898,19 @@
             ${renderModeTabs()}
             ${renderFamilyTabs()}
 
+            <button
+                id="qb-mobile-weak-spots"
+                type="button"
+                data-weak-spots-open
+            >
+                <span>Weak Spots</span>
+                <span
+                    class="weak-spots-count"
+                    data-weak-spots-count
+                    hidden
+                ></span>
+            </button>
+
             <div id="qb-search">
                 <input
                     id="qb-filter"
@@ -1886,6 +1931,7 @@
 
         attachChromeEvents(panel);
         applyBrowserCollapsedState(panel);
+        window.SmurdyWeakSpots?.refreshMenuCount?.();
 
         const cards = filterCards(
             await loadCardsForSelection(),
