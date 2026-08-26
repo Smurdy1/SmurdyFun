@@ -29,7 +29,7 @@
         rel="stylesheet"
         href="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.css"
     />
-    <link rel="stylesheet" href="/styles/style.css?v=20260826-mobile-weak-spots-1" />
+    <link rel="stylesheet" href="/styles/style.css?v=20260826-ui-polish-1" />
     <link rel="canonical" href="https://smurdy.fun/" />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8056486411795353"
      crossorigin="anonymous"></script>
@@ -48,17 +48,24 @@
          <h1 id="quiz-target">Smurdy Geography Quizzes</h1>
          <div id="quiz-desc">
              <h2 class="about-header">About Smurdy</h2>
-             <p>
-                 Smurdy is a free, independent map-quiz project for learning geography.
-                  Practice countries and US states with click, typing, no-borders, and
-                  point-finding games.
+             <p class="home-summary">
+                 Free map quizzes for learning countries and US states through
+                 clicking, typing, no-borders, and point-finding modes.
              </p>
-             <h2 class="about-header">Feedback</h2>
-             <p>
-                 Found a bug, want a new feature, or have wording suggestions? Please tell me.
-                 I read suggestions and will likely make the change if it improves the site.
-             </p>
-             <p><a href="/privacy/">Privacy Policy</a></p>
+             <details class="home-about-details">
+                 <summary>More about Smurdy and feedback</summary>
+                 <div class="home-about-details-body">
+                     <p>
+                         Smurdy is an independent geography project built to make
+                         repeated map practice quick and easy to start.
+                     </p>
+                     <p>
+                         Found a bug or have a suggestion?
+                         <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Send feedback</a>.
+                     </p>
+                     <p><a href="/privacy/">Privacy Policy</a></p>
+                 </div>
+             </details>
              <button class="weak-spots-menu-button" type="button" data-weak-spots-open>Weak Spots <span class="weak-spots-count" data-weak-spots-count hidden></span></button>
 </div>
  
@@ -91,10 +98,10 @@
      <div id="map"></div>
      <script src="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.js"></script>
      <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
-     <script src="/src/js/weak_spots.js?v=20260826-mobile-weak-spots-1" defer></script>
-  <script src="/src/js/app.js?v=20260826-mobile-weak-spots-1" defer></script>
+     <script src="/src/js/weak_spots.js?v=20260826-ui-polish-1" defer></script>
+  <script src="/src/js/app.js?v=20260826-ui-polish-1" defer></script>
      <script src="/src/js/manifest.js?v=20260722-independent-menu-control-1" defer></script>
-     <script src="/src/js/browse.js?v=20260826-mobile-weak-spots-1" defer></script>
+     <script src="/src/js/browse.js?v=20260826-ui-polish-1" defer></script>
 <!-- smurdy-global-map-control-visibility-v1 -->
 <script>
 (() => {
