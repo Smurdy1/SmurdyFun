@@ -279,7 +279,9 @@
         .qb-sub { color:#666; font-size:13px; margin:0; }
         .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
         .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
-        .qb-play { margin-left:8px; padding:8px 10px; background:#0077cc; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+        .qb-play { margin-left:8px; padding:8px 10px; background:#005fa3; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+        .qb-play:hover,
+        .qb-play:focus-visible { background:#004b82; }
         .qb-empty { padding:18px; text-align:center; color:#777; }
         .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
 
@@ -300,7 +302,7 @@
             width: 100%;
             padding: 11px 12px;
             border-radius: 9px;
-            background: #0077cc;
+            background: #005fa3;
             color: #fff;
             text-decoration: none;
             text-align: center;
@@ -309,7 +311,7 @@
         }
         .qb-directory-primary:hover,
         .qb-directory-primary:focus {
-            background: #005fa3;
+            background: #004b82;
         }
         .qb-directory-popular {
             display: flex;

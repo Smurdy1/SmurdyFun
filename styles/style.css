@@ -1,6 +1,8 @@
 :root {
     --smurdy-blue: #0077cc;
     --smurdy-blue-dark: #005fa3;
+    --smurdy-action-blue: #005fa3;
+    --smurdy-action-blue-hover: #004b82;
     --smurdy-text: #161616;
     --smurdy-muted: #555;
     --smurdy-line: rgba(0, 0, 0, 0.12);
@@ -193,10 +195,15 @@ button:disabled {
     padding: 10px 14px;
     align-items: center;
     border-radius: 8px;
-    background: var(--smurdy-blue);
+    background: var(--smurdy-action-blue);
     color: #fff;
     font-weight: 750;
     text-decoration: none;
+}
+
+#qb-directory-fallback > a:hover,
+#qb-directory-fallback > a:focus-visible {
+    background: var(--smurdy-action-blue-hover);
 }
 
 #qb-directory-fallback > div {
