@@ -1094,7 +1094,7 @@ const SmurdyQuiz = {
         try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260825-weak-spots-fixes-2";
+        runner.src = "/src/js/quiz_runner.js?v=20260825-weak-spots-fixes-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
