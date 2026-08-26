@@ -5,7 +5,17 @@
     --smurdy-muted: #555;
     --smurdy-line: rgba(0, 0, 0, 0.12);
     --smurdy-surface: rgba(255, 255, 255, 0.96);
-    --smurdy-radius: 10px;
+    --smurdy-surface-soft: #f5f7f8;
+    --smurdy-radius-sm: 8px;
+    --smurdy-radius-md: 10px;
+    --smurdy-radius-lg: 12px;
+    --smurdy-radius: var(--smurdy-radius-md);
+    --smurdy-panel-border: 1px solid rgba(0, 0, 0, 0.09);
+    --smurdy-shadow-panel: 0 8px 26px rgba(0, 0, 0, 0.14);
+    --smurdy-space-1: 4px;
+    --smurdy-space-2: 8px;
+    --smurdy-space-3: 12px;
+    --smurdy-space-4: 16px;
 }
 
 * { box-sizing: border-box; }
@@ -449,4 +459,98 @@ button:disabled {
 @media(max-width:700px){
     #weak-spots-practice-next{align-items:stretch;flex-direction:column}
     #weak-spots-practice-next span{margin-right:0}
+}
+
+
+/* smurdy-ui-coherence-v1 */
+#quiz-panel,
+#quiz-bottom,
+#qb-directory-fallback {
+    border: var(--smurdy-panel-border);
+    border-radius: var(--smurdy-radius-lg);
+    box-shadow: var(--smurdy-shadow-panel);
+}
+
+.home-summary {
+    max-width: 34ch;
+}
+
+.home-about-details {
+    margin-top: var(--smurdy-space-3);
+    border-top: 1px solid var(--smurdy-line);
+    padding-top: 10px;
+}
+
+.home-about-details summary {
+    color: #333;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.home-about-details-body {
+    padding: 5px 0 1px;
+    color: var(--smurdy-muted);
+    font-size: 13px;
+}
+
+#quiz-giveup {
+    border-color: rgba(138, 48, 48, 0.28);
+    background: #fff7f7;
+    color: #833030;
+}
+
+#quiz-giveup:hover {
+    background: #fbecec;
+}
+
+.weak-spot-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--smurdy-space-3);
+}
+
+.weak-spot-name {
+    min-width: 0;
+}
+
+.weak-spot-meta {
+    min-width: 62px;
+    margin-top: 0;
+    padding: 3px 8px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #edf6fc;
+    color: #075f9e;
+    font-size: 12px;
+    font-weight: 750;
+    text-align: center;
+}
+
+@media (min-width: 701px) {
+    #quiz-target {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+    }
+
+    #quiz-timer {
+        color: #444;
+        font-size: 22px;
+        font-weight: 650;
+    }
+}
+
+@media (max-width: 700px) {
+    #type-quiz-controls {
+        margin-top: 0 !important;
+        padding-bottom: 10px;
+    }
+
+    #type-quiz-controls ~ #quiz-buttons {
+        margin-top: 0;
+        padding-top: 10px;
+        border-top: 1px solid var(--smurdy-line);
+    }
 }
