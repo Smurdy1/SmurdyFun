@@ -1094,7 +1094,7 @@ const SmurdyQuiz = {
         try { this.hideMainMenuMap(); } catch (_) {}
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260826-ui-polish-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260826-target-hierarchy-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -2225,7 +2225,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.10.4";
+const APP_VERSION = "1.10.5";
 
 function injectVersionBadge() {
     try {

@@ -248,6 +248,17 @@ window.runNameQuiz = function runNameQuiz(config) {
          retryWeakSpots = false
     } = config;
 
+    // Place names are the actual task in click/find modes. Typing and
+    // find-point modes show a reusable instruction, so give them a quieter
+    // visual treatment without changing the prompt text itself.
+    try {
+        const panel = document.getElementById("quiz-panel");
+        if (panel) {
+            panel.dataset.quizTargetKind =
+                mode === "click" ? "place" : "instruction";
+        }
+    } catch (_) {}
+
     const weakSpotsPracticeStage = (() => {
         try {
             const requested = new URLSearchParams(window.location.search)
