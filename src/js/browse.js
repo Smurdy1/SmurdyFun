@@ -253,8 +253,9 @@
             overflow: hidden;
             z-index: 2000;
             background: rgba(255,255,255,0.96);
-            border-radius:12px;
-            box-shadow:0 10px 28px rgba(0,0,0,0.18);
+            border: var(--smurdy-panel-border, 1px solid rgba(0,0,0,.09));
+            border-radius: var(--smurdy-radius-lg, 12px);
+            box-shadow: var(--smurdy-shadow-panel, 0 8px 26px rgba(0,0,0,.14));
             display:flex;
             flex-direction:column;
             font-family: Arial, sans-serif;
@@ -278,7 +279,7 @@
         .qb-sub { color:#666; font-size:13px; margin:0; }
         .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
         .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
-        .qb-play { margin-left:8px; padding:8px 10px; background:#222; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
+        .qb-play { margin-left:8px; padding:8px 10px; background:#0077cc; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
         .qb-empty { padding:18px; text-align:center; color:#777; }
         .qb-back { margin-right:8px; padding:6px 10px; border-radius:8px; background:#f3f3f3; border:1px solid #e0e0e0; cursor:pointer; font-weight:600; }
 
@@ -372,7 +373,7 @@
             gap: 8px;
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid rgba(0,0,0,.07);
             overscroll-behavior-x: contain;
             -webkit-overflow-scrolling: touch;
@@ -411,18 +412,19 @@
 
         .qb-category-tab:disabled {
             cursor: not-allowed;
-            border-color: #e3e3e3;
-            background: #f3f3f3;
-            color: #999;
-            opacity: 1;
+            border-color: #ededed;
+            background: #fafafa;
+            color: #b7b7b7;
+            font-weight: 650;
+            opacity: .72;
         }
 
         .qb-coming-soon {
             display: block;
             margin-top: 4px;
-            color: #aaa;
+            color: #bcbcbc;
             font-size: 9px;
-            font-weight: 750;
+            font-weight: 650;
             line-height: 1;
         }
 
@@ -432,8 +434,8 @@
             gap: 2px;
             overflow-x: auto;
             overflow-y: hidden;
-            margin: 10px 0 4px;
-            padding: 3px;
+            margin: 12px 0 7px;
+            padding: 4px;
             border-radius: 11px;
             background: #eef0f2;
             overscroll-behavior-x: contain;
@@ -466,9 +468,9 @@
         }
 
         .qb-mode-tab[aria-selected="true"] {
-            background: #222;
+            background: #0077cc;
             color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,.16);
+            box-shadow: 0 1px 3px rgba(0,0,0,.14);
         }
 
         /* Row 3: simple underlined content-family tabs. */
@@ -477,7 +479,7 @@
             gap: 24px;
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 2px 2px 0;
+            padding: 5px 2px 3px;
             border-bottom: 1px solid rgba(0,0,0,.10);
             overscroll-behavior-x: contain;
             -webkit-overflow-scrolling: touch;
