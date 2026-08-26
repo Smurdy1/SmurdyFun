@@ -1216,7 +1216,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         submitButton.style.padding = "8px 12px";
         submitButton.style.border = "none";
         submitButton.style.borderRadius = "8px";
-        submitButton.style.background = "#222";
+        submitButton.style.background = "var(--smurdy-blue, #0077cc)";
         submitButton.style.color = "white";
         submitButton.style.cursor = "pointer";
  
