@@ -378,6 +378,7 @@ ${JSON.stringify({
     }
 }, null, 2)}
   </script>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260826-ui-polish-1"/>
   <style>
     :root{--brand:#0077cc;--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
     *{box-sizing:border-box}
@@ -484,7 +485,7 @@ ${JSON.stringify({
   </main>
 
   <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/privacy/">Privacy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
-  <script src="/src/js/quiz_landing.js" defer></script>
+  <script src="/src/js/quiz_landing.js?v=20260826-ui-polish-1" defer></script>
 </body>
 </html>`;
 
