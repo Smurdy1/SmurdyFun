@@ -33,8 +33,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by typing their names.",
         config: {
             mode: "type",
-            titleBuilder: () => "Type the highlighted region",
-            inputPlaceholder: "Type region name...",
+            titleBuilder: () => "Name the highlighted country",
+            inputPlaceholder: "Enter the country name...",
             persistCompletedHighlights: true,
             showTargetOnWrong: false,
             clickableLayerId: null
@@ -74,8 +74,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} map quiz tests your ability to identify {adjective} {borderset} by finding the {unitName} that contains a hidden point.",
         config: {
             mode: "type",
-            titleBuilder: () => "Type the region",
-            inputPlaceholder: "Type region name...",
+            titleBuilder: () => "Name the country containing the point",
+            inputPlaceholder: "Enter the country name...",
             persistCompletedHighlights: false,
             showTargetOnWrong: false,
             clickableLayerId: null,
@@ -121,8 +121,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} subdivision quiz tests your ability to identify {adjective} {unitPlural} by typing their names.",
         config: {
             mode: "type",
-            titleBuilder: () => "Type the highlighted subdivision",
-            inputPlaceholder: "Type subdivision name...",
+            titleBuilder: () => "Name the highlighted state or subdivision",
+            inputPlaceholder: "Enter the state or subdivision...",
             persistCompletedHighlights: true,
             showTargetOnWrong: false,
             clickableLayerId: null
@@ -164,8 +164,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} subdivision quiz tests your ability to identify the {unitName} containing a point.",
         config: {
             mode: "type",
-            titleBuilder: () => "Type the subdivision",
-            inputPlaceholder: "Type subdivision name...",
+            titleBuilder: () => "Name the state or subdivision containing the point",
+            inputPlaceholder: "Enter the state or subdivision...",
             persistCompletedHighlights: false,
             showTargetOnWrong: false,
             clickableLayerId: null,
