@@ -809,6 +809,12 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function reduceWeakSpotAfterRetry() {
         if (!retryWeakSpots || anyTestMode || !currentName) return;
+
+        // A Weak Spot is cleared only by a clean replay. If this target was
+        // missed again during the retry, keep it for the next practice round.
+        const key = normalizeName(getCanonicalDisplayName(currentName));
+        if (missedTargets.has(key)) return;
+
         try {
             const context = getAnalyticsContext();
             window.SmurdyWeakSpots?.recordRetrySuccess({
@@ -1690,7 +1696,11 @@ window.runNameQuiz = function runNameQuiz(config) {
         try { setQuizPanelMode("game"); } catch (e) {}
  
          if (mode === "click") {
-             zoomToCurrentGroup();
+             if (retryWeakSpots && typeof SQ.resetView === "function") {
+                 SQ.resetView();
+             } else {
+                 zoomToCurrentGroup();
+             }
          } else if (typeof SQ.resetView === "function") {
              SQ.resetView();
          }
@@ -1781,6 +1791,24 @@ window.runNameQuiz = function runNameQuiz(config) {
         }, 900);
     }
 
+    function completedCountryClicksCountAsWrong() {
+        if (mode !== "click") return false;
+
+        try {
+            const modeKey = String(getAnalyticsContext().quiz_mode || "");
+            if (modeKey === "find-country" || modeKey === "find-subdivision") {
+                return true;
+            }
+        } catch (_) {}
+
+        return (
+            borders === false ||
+            borders === 0 ||
+            borders === "0" ||
+            SQ.currentShowBorders === false
+        );
+    }
+
     function handleClick(featureOrName) {
         try {
             // click handler should only act in click mode and use local state
@@ -1800,9 +1828,15 @@ window.runNameQuiz = function runNameQuiz(config) {
             // compute canonical normalized key for clicked feature
             const clickedCanon = normalizeName(canonicalNameForFeature(clickedFeature) || SQ.getFeatureName(clickedFeature) || "");
 
-            // ignore clicks on already completed canonical keys
+            // Bordered click quizzes ignore already-completed places. In No
+            // Borders, clicking one is a real wrong answer and must be counted.
             for (const c of completed) {
-                if (normalizeName(c) === clickedCanon && borders !== false) return;
+                if (
+                    normalizeName(c) === clickedCanon &&
+                    !completedCountryClicksCountAsWrong()
+                ) {
+                    return;
+                }
             }
 
             locked = true;
@@ -1893,9 +1927,12 @@ window.runNameQuiz = function runNameQuiz(config) {
     startTimer();
     beginAnalyticsRun("initial");
 
-    // Click modes begin framed around the selected map group. Camera movement
-    // after this point remains fully controlled by the player.
-    if (mode === "click") zoomToCurrentGroup();
+    // Normal click quizzes frame their selected group. Review rounds deliberately
+    // use the default unzoomed map so the target pool cannot reveal locations.
+    if (mode === "click") {
+        if (retryWeakSpots && typeof SQ.resetView === "function") SQ.resetView();
+        else zoomToCurrentGroup();
+    }
 
     startQuestionSequence();
 

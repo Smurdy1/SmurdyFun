@@ -1,10 +1,13 @@
 (() => {
     "use strict";
 
-    const STORAGE_KEY = "smurdy-weak-spots-v2";
-    const LEGACY_STORAGE_KEY = "smurdy-weak-spots-v1";
+    const STORAGE_KEY = "smurdy-weak-spots-v3";
+    const LEGACY_STORAGE_KEYS = [
+        "smurdy-weak-spots-v2",
+        "smurdy-weak-spots-v1"
+    ];
     const PLAN_KEY = "smurdy-weak-spots-practice-v1";
-    const FORMAT_VERSION = 2;
+    const FORMAT_VERSION = 3;
     const MAX_STORED = 100;
     const MAX_VISIBLE = 15;
     const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
@@ -50,24 +53,46 @@
             }
         } catch (_) {}
 
-        try {
-            const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null");
-            if (legacy && legacy.entries && typeof legacy.entries === "object") {
+        for (const legacyKey of LEGACY_STORAGE_KEYS) {
+            try {
+                const legacy = JSON.parse(localStorage.getItem(legacyKey) || "null");
+                if (!legacy || !legacy.entries || typeof legacy.entries !== "object") {
+                    continue;
+                }
+
                 const migrated = emptyStore();
                 for (const oldEntry of Object.values(legacy.entries)) {
                     if (!oldEntry || !oldEntry.name) continue;
+
+                    const remaining = Math.max(
+                        0,
+                        Number(oldEntry.misses || 1) -
+                        Number(oldEntry.retrySuccesses || 0)
+                    );
+                    if (remaining === 0) continue;
+
                     const modes = Object.keys(oldEntry.modes || {});
-                    const kind = modes.length && modes.every(mode => mode.includes("subdivision"))
-                        ? "subdivision"
-                        : "country";
+                    const kind = oldEntry.kind || (
+                        modes.length && modes.every(mode => mode.includes("subdivision"))
+                            ? "subdivision"
+                            : "country"
+                    );
                     const key = entryKey(oldEntry.name, kind);
-                    migrated.entries[key] = { ...oldEntry, key, kind };
+                    migrated.entries[key] = {
+                        ...oldEntry,
+                        key,
+                        kind,
+                        score: 1
+                    };
                 }
+
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-                localStorage.removeItem(LEGACY_STORAGE_KEY);
+                for (const oldKey of LEGACY_STORAGE_KEYS) {
+                    localStorage.removeItem(oldKey);
+                }
                 return migrated;
-            }
-        } catch (_) {}
+            } catch (_) {}
+        }
 
         return emptyStore();
     }
@@ -127,7 +152,7 @@
 
         entry.name = name;
         entry.kind = kind;
-        entry.score = Math.min(999, Number(entry.score || 0) + 2);
+        entry.score = 1;
         entry.misses = Number(entry.misses || 0) + 1;
         entry.updatedAt = now;
         entry.modes[mode] = Number(entry.modes[mode] || 0) + 1;
@@ -145,15 +170,10 @@
         const entry = store.entries[key];
         if (!entry) return null;
 
-        entry.score = Math.max(0, Number(entry.score || 0) - 1);
-        entry.retrySuccesses = Number(entry.retrySuccesses || 0) + 1;
-        entry.updatedAt = Date.now();
-
-        if (entry.score <= 0) delete store.entries[key];
-        else store.entries[key] = entry;
-
+        // One clean correct replay fully resolves this Weak Spot.
+        delete store.entries[key];
         writeStore(store);
-        return entry.score > 0 ? { ...entry } : null;
+        return null;
     }
 
     function getAll() {
@@ -167,7 +187,9 @@
     function clearAll() {
         try {
             localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            for (const legacyKey of LEGACY_STORAGE_KEYS) {
+                localStorage.removeItem(legacyKey);
+            }
             sessionStorage.removeItem(PLAN_KEY);
             window.dispatchEvent(new CustomEvent("smurdy:weakspotschange"));
             return true;
@@ -330,12 +352,6 @@
             );
 
             list.innerHTML = entries.slice(0, MAX_VISIBLE).map(entry => {
-                const modes = Object.entries(entry.modes || {})
-                    .sort((a, b) => Number(b[1]) - Number(a[1]))
-                    .map(([mode, count]) =>
-                        escapeHtml(modeLabel(mode)) + " " + Number(count)
-                    )
-                    .join(" · ");
                 const suffix = duplicateNames.has(normalizeName(entry.name))
                     ? (entry.kind === "subdivision" ? " (state)" : " (country)")
                     : "";
@@ -345,9 +361,8 @@
                             escapeHtml(entry.name + suffix) +
                         "</div>" +
                         '<div class="weak-spot-meta">' +
-                            Number(entry.misses || 0) + " recent " +
+                            Number(entry.misses || 0) + " " +
                             (Number(entry.misses) === 1 ? "miss" : "misses") +
-                            (modes ? " · " + modes : "") +
                         "</div>" +
                     "</li>"
                 );
@@ -375,7 +390,7 @@
             '<div class="weak-spots-dialog-card">' +
                 '<header class="weak-spots-dialog-header">' +
                     '<div><h2 id="weak-spots-title">Weak Spots</h2>' +
-                    "<p>Recent mistakes stay on this device. Correct answers in Retry Missed gradually remove them.</p></div>" +
+                    "<p>Mistakes stay on this device. A clean correct answer in Retry Missed removes the place.</p></div>" +
                     '<button id="weak-spots-close" type="button" aria-label="Close Weak Spots">×</button>' +
                 "</header>" +
                 '<ol id="weak-spots-list" class="weak-spots-list"></ol>' +
