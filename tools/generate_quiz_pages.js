@@ -452,7 +452,7 @@ ${JSON.stringify({
       <p>${escapeHtml(overview)}</p>
     </section>
 
-    ${pageSpecificSectionHtml}
+${pageSpecificSectionHtml}
 
     <section class="content-section">
       <h2>${escapeHtml(modeCopy.heading || "How this map quiz works")}</h2>
@@ -484,7 +484,7 @@ ${JSON.stringify({
     ${navigationHtml}
   </main>
 
-  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/privacy/">Privacy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a></footer>
+  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy</a></footer>
   <script src="/src/js/quiz_landing.js?v=20260827-landing-width-1" defer></script>
 </body>
 </html>`;
@@ -1019,7 +1019,7 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
       <div class="mode-links">${otherModes}</div>
     </nav>
   </main>
-  <footer class="site-footer"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 
@@ -1114,7 +1114,7 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
       </section>`).join("\n")}
     </div>
   </main>
-  <footer class="site-footer"><a href="${publicRoot}/privacy/">Privacy Policy</a> · <a href="https://forms.gle/XjJoHBNKSrHLWg1h9">Feedback</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 
@@ -1129,6 +1129,8 @@ async function writeSitemap({ repoRoot, pages, publicRoot }) {
     const sitemapUrls = Array.from(new Set([
         `${publicRoot}/`,
         `${publicRoot}/quizzes/`,
+        `${publicRoot}/about/`,
+        `${publicRoot}/contact/`,
         `${publicRoot}/privacy/`,
         ...pages
     ]));
@@ -1138,7 +1140,7 @@ async function writeSitemap({ repoRoot, pages, publicRoot }) {
 ${sitemapUrls.map((url, index) => `  <url>
     <loc>${url}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>${index < 3 ? "weekly" : "monthly"}</changefreq>
+    <changefreq>${index < 5 ? "weekly" : "monthly"}</changefreq>
   </url>`).join("\n")}
 </urlset>`;
 
