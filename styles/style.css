@@ -249,6 +249,18 @@ button:disabled {
         text-align: center;
     }
 
+    #quiz-panel[data-quiz-target-kind="instruction"] #quiz-target {
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: 0;
+    }
+
+    #quiz-panel[data-quiz-target-kind="place"] #quiz-target {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.005em;
+    }
+
     #quiz-progress,
     #quiz-accuracy,
     #quiz-timer { display: none !important; }
@@ -540,6 +552,18 @@ button:disabled {
         font-size: 24px;
         font-weight: 800;
         letter-spacing: -0.015em;
+    }
+
+    #quiz-panel[data-quiz-target-kind="instruction"] #quiz-target {
+        font-size: 20px;
+        font-weight: 650;
+        letter-spacing: 0;
+    }
+
+    #quiz-panel[data-quiz-target-kind="place"] #quiz-target {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
     }
 
     #quiz-timer {
