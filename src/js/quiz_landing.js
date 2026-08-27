@@ -6,7 +6,7 @@
     if (!document.querySelector("link[data-smurdy-landing-polish]")) {
         const stylesheet = document.createElement("link");
         stylesheet.rel = "stylesheet";
-        stylesheet.href = "/styles/quiz_landing.css?v=20260826-ui-polish-1";
+        stylesheet.href = "/styles/quiz_landing.css?v=20260827-landing-width-1";
         stylesheet.setAttribute("data-smurdy-landing-polish", "true");
         document.head.appendChild(stylesheet);
     }

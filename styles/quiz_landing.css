@@ -29,6 +29,12 @@ body.smurdy-quiz-landing main {
     box-shadow: var(--smurdy-shadow-panel);
 }
 
+body.smurdy-quiz-landing .lead,
+body.smurdy-quiz-landing .content-section,
+body.smurdy-quiz-landing .examples {
+    max-width: none;
+}
+
 body.smurdy-quiz-landing .tip,
 body.smurdy-quiz-landing .included-list,
 body.smurdy-quiz-landing .chip,
