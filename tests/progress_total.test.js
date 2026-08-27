@@ -50,7 +50,11 @@ test("completion refreshes counters through the canonical runner snapshot", () =
 });
 
 test("last-answer test mode is analytics-free and opt-in", () => {
-    assert.match(runner, /get\("smurdyTest"\) === "last-answer"/);
-    assert.match(runner, /if \(lastAnswerTestMode\) return;/);
+    assert.match(runner, /get\("smurdyTest"\)/);
+    assert.match(runner, /smurdyTestMode === "last-answer"/);
+    assert.match(runner, /const anyTestMode = Boolean\(smurdyTestMode\)/);
+    assert.match(runner, /function beginAnalyticsRun[\s\S]*?if \(anyTestMode\) return;/);
+    assert.match(runner, /function recordAnalyticsAnswer[\s\S]*?if \(anyTestMode\) return;/);
+    assert.match(runner, /function completeAnalyticsRun[\s\S]*?if \(anyTestMode\) return;/);
     assert.match(runner, /Test mode: answer this final place\./);
 });
