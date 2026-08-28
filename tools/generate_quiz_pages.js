@@ -709,44 +709,44 @@ function getModeDistinctiveSections(entry) {
     const mode = normalizeModeKey(entry);
     const defaults = {
         click: {
-            skillsHeading: "Skills this click quiz develops",
-            skills: "This mode builds border recognition, relative-position memory, and fast matching between names and map outlines.",
-            strategyHeading: "A reliable click-answering process",
-            strategy: "Identify the broad region, find familiar anchors, and compare the target with the borders around those anchors before clicking.",
-            bestForHeading: "Who should use the click mode",
-            bestFor: "This version works best for first learning a map or rebuilding familiarity after time away.",
-            mistakesHeading: "Common mistake in click mode",
-            mistakes: "Do not click the first familiar neighbor you see; compare the target's actual borders first."
+            skillsHeading: "What you'll practice",
+            skills: "After a few rounds, outlines should become easier to recognize and match with their names.",
+            strategyHeading: "A good way to start",
+            strategy: "Don't scan the whole map at random. Find the right area, pick out one or two places you know, and work from their borders.",
+            bestForHeading: "When this mode helps",
+            bestFor: "Start here when a map is new to you or you want to rebuild familiarity after time away.",
+            mistakesHeading: "One mistake to watch for",
+            mistakes: "Don't click the first familiar neighbor you see. Check the target's borders first."
         },
         type: {
-            skillsHeading: "Skills this typing quiz develops",
-            skills: "This mode trains active name recall, spelling, and the connection between a highlighted shape and its written name.",
-            strategyHeading: "A reliable typing-answer process",
-            strategy: "Identify the subregion, recall nearby anchors, say the answer silently, and then type the complete name.",
-            bestForHeading: "Who should use the typing mode",
-            bestFor: "This version is useful when locations look familiar but their names do not come quickly.",
-            mistakesHeading: "Common mistake in typing mode",
-            mistakes: "Do not guess only from an initial letter; confirm the highlighted area's position and neighbors."
+            skillsHeading: "What you'll practice",
+            skills: "Here you have to recall the full name and spell it, not only recognize the location.",
+            strategyHeading: "A good way to start",
+            strategy: "Work out the subregion, think of nearby places, say the answer in your head, and then type it.",
+            bestForHeading: "When this mode helps",
+            bestFor: "Try this when locations look familiar but their names do not come quickly.",
+            mistakesHeading: "One mistake to watch for",
+            mistakes: "Don't guess only from an initial letter. Check the highlighted area's position and neighbors."
         },
         find: {
-            skillsHeading: "Skills this no-borders quiz develops",
-            skills: "This mode trains coastline recognition, proportional distance, and a mental map that does not depend on political outlines.",
-            strategyHeading: "A reliable no-borders process",
-            strategy: "Locate the subregion, choose a coastline or large anchor, and estimate the target relative to that anchor.",
-            bestForHeading: "Who should use the no-borders mode",
-            bestFor: "This version is intended for players who already feel comfortable with the normal bordered map.",
-            mistakesHeading: "Common mistake without borders",
-            mistakes: "A blank political map still has geographic structure; use coastlines, peninsulas, and familiar large countries."
+            skillsHeading: "What you'll practice",
+            skills: "With the lines gone, coastlines, distances, and the order of nearby places matter much more.",
+            strategyHeading: "A good way to start",
+            strategy: "Start from a coastline or large place you know, then estimate the target relative to it.",
+            bestForHeading: "When this mode helps",
+            bestFor: "Move to this mode once you feel comfortable with the normal bordered map.",
+            mistakesHeading: "One mistake to watch for",
+            mistakes: "The map may look blank, but it still has clues. Use coastlines, peninsulas, and familiar large countries."
         },
         "find-point": {
-            skillsHeading: "Skills this point quiz develops",
-            skills: "This mode tests territorial extent, interior geography, and precise awareness of which place contains a location.",
-            strategyHeading: "A reliable point-answering process",
-            strategy: "Decide whether the point is coastal, inland, or insular, and then compare it with nearby boundaries and shapes.",
-            bestForHeading: "Who should use the point mode",
-            bestFor: "This version is useful after you recognize the main outlines and want a more spatial challenge.",
-            mistakesHeading: "Common mistake in point mode",
-            mistakes: "Name the territory containing the point, not merely the closest familiar place."
+            skillsHeading: "What you'll practice",
+            skills: "This checks whether you know how far a place extends, especially near its borders.",
+            strategyHeading: "A good way to start",
+            strategy: "Decide whether the point is near a coast, inland, or on an island. Then compare it with nearby borders.",
+            bestForHeading: "When this mode helps",
+            bestFor: "Try this after you recognize the main outlines and want a more exact location test.",
+            mistakesHeading: "One mistake to watch for",
+            mistakes: "Don't pick the closest name you recognize. Answer with the place that contains the point."
         }
     };
     return defaults[mode] || defaults.click;

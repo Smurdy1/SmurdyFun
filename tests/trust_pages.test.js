@@ -15,11 +15,20 @@ test("About and Contact pages have unique canonical metadata", () => {
 
     assert.match(about, /<title>About Smurdy \| Geography Quiz Project<\/title>/);
     assert.match(about, /rel="canonical" href="https:\/\/smurdy\.fun\/about\/"/);
-    assert.match(about, /flag quizzes, capital quizzes, and Smurdy Daily/);
+    assert.match(about, /Flags and capitals are next on my list/);
+    assert.match(about, /Smurdy Daily/);
 
     assert.match(contact, /<title>Contact and Feedback \| Smurdy<\/title>/);
     assert.match(contact, /rel="canonical" href="https:\/\/smurdy\.fun\/contact\/"/);
     assert.match(contact, /https:\/\/forms\.gle\/XjJoHBNKSrHLWg1h9/);
+});
+
+test("trust-page copy keeps the creator's direct voice", () => {
+    const copy = `${read("about/index.html")}\n${read("contact/index.html")}`;
+
+    assert.match(copy, /I go by Smurdy online/);
+    assert.match(copy, /the easiest way to tell me/);
+    assert.doesNotMatch(copy, /not just|—/i);
 });
 
 test("trust-page navigation is available from core site pages", () => {
