@@ -353,8 +353,6 @@
 
         #qb-header,
         #qb-library-tabs,
-        #qb-browser-filters,
-        .qb-filter-heading,
         #qb-category-tabs,
         #qb-mode-tabs,
         #qb-family-tabs,
@@ -417,77 +415,6 @@
         .qb-library-tab[aria-selected="true"] .qb-library-count {
             background: #dceefb;
             color: #075f9e;
-        }
-
-        #qb-browser-filters {
-            min-width: 0;
-        }
-
-        #qb-browser-filters > summary {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            min-height: 36px;
-            margin-top: 7px;
-            padding: 7px 2px;
-            color: #333;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            list-style: none;
-        }
-
-        #qb-browser-filters > summary::-webkit-details-marker {
-            display: none;
-        }
-
-        #qb-browser-filters > summary::after {
-            content: "▾";
-            color: #666;
-            font-size: 13px;
-            transition: transform .15s ease;
-        }
-
-        #qb-browser-filters:not([open]) > summary::after {
-            transform: rotate(-90deg);
-        }
-
-        .qb-filter-summary {
-            flex: 1;
-            min-width: 0;
-            color: #777;
-            font-size: 10px;
-            font-weight: 700;
-            overflow: hidden;
-            text-align: right;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .qb-filter-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 10px;
-            color: #666;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-        }
-
-        #qb-clear-filters {
-            appearance: none;
-            border: 0;
-            background: transparent;
-            color: #075f9e;
-            padding: 3px 0 3px 8px;
-            font: inherit;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: none;
-            cursor: pointer;
         }
 
         #qb-search {
@@ -1122,9 +1049,6 @@
     let browserCollapsed = false;
     let pageDescriptionsPromise = null;
     let allCardsPromise = null;
-    let browserFiltersExpanded =
-        (window.innerWidth || 0) > 700;
-
     const CATEGORY_PRESENTATION = {
         maps: { title: "Maps" },
         flags: { title: "Flags" },
@@ -1709,39 +1633,10 @@
     function renderBrowseFilters() {
         if (activeLibraryView !== "browse") return "";
 
-        const modeTitle =
-            MODE_PRESENTATION[activeInteraction]?.title ||
-            getFriendlyTypeLabel(activeInteraction);
-        const familyTitle =
-            FAMILY_PRESENTATION[activeFamily]?.title ||
-            getFriendlyTypeLabel(activeFamily);
-        const sizeTitle = activeSizeFilter === "small"
-            ? "Small"
-            : activeSizeFilter === "large"
-                ? "Large"
-                : "Any size";
-
         return `
-            <details
-                id="qb-browser-filters"
-                ${browserFiltersExpanded ? "open" : ""}
-            >
-                <summary>
-                    <span>Filters</span>
-                    <span class="qb-filter-summary">
-                        ${escapeHtml(modeTitle)} · ${escapeHtml(familyTitle)} · ${sizeTitle}
-                    </span>
-                </summary>
-                <div class="qb-filter-heading">
-                    <span>Refine quizzes</span>
-                    <button id="qb-clear-filters" type="button">
-                        Reset
-                    </button>
-                </div>
-                ${renderCategoryTabs()}
-                ${renderModeTabs()}
-                ${renderFamilyTabs()}
-            </details>
+            ${renderCategoryTabs()}
+            ${renderModeTabs()}
+            ${renderFamilyTabs()}
         `;
     }
 
@@ -2032,12 +1927,6 @@
 
     function attachChromeEvents(panel) {
         panel.querySelector(
-            "#qb-browser-filters"
-        )?.addEventListener("toggle", event => {
-            browserFiltersExpanded = event.target.open;
-        });
-
-        panel.querySelector(
             "#qb-mobile-collapse"
         )?.addEventListener("click", () => {
             browserCollapsed = !browserCollapsed;
@@ -2106,16 +1995,6 @@
             void renderUnifiedBrowser();
         });
 
-        panel.querySelector(
-            "#qb-clear-filters"
-        )?.addEventListener("click", () => {
-            activeCategory = "maps";
-            activeInteraction = "click";
-            activeFamily = "countries";
-            activeSizeFilter = "all";
-            browserFilter = "";
-            void renderUnifiedBrowser();
-        });
     }
 
 
