@@ -352,12 +352,170 @@
         }
 
         #qb-header,
+        #qb-library-tabs,
+        #qb-browser-filters,
+        .qb-filter-heading,
         #qb-category-tabs,
         #qb-mode-tabs,
         #qb-family-tabs,
         #qb-search,
         #qb-directory-links {
             flex: 0 0 auto;
+        }
+
+        #qb-library-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 4px;
+            margin: 10px 0 2px;
+            padding: 4px;
+            border-radius: 11px;
+            background: #eef0f2;
+        }
+
+        .qb-library-tab {
+            appearance: none;
+            min-width: 0;
+            min-height: 38px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #4b4b4b;
+            padding: 7px 6px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .qb-library-tab:hover,
+        .qb-library-tab:focus-visible {
+            background: rgba(255,255,255,.72);
+        }
+
+        .qb-library-tab[aria-selected="true"] {
+            background: #fff;
+            color: #075f9e;
+            box-shadow: 0 1px 3px rgba(0,0,0,.14);
+        }
+
+        .qb-library-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            min-height: 18px;
+            margin-left: 3px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #dfe4e8;
+            color: #555;
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        .qb-library-tab[aria-selected="true"] .qb-library-count {
+            background: #dceefb;
+            color: #075f9e;
+        }
+
+        #qb-browser-filters {
+            min-width: 0;
+        }
+
+        #qb-browser-filters > summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 36px;
+            margin-top: 7px;
+            padding: 7px 2px;
+            color: #333;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        #qb-browser-filters > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        #qb-browser-filters > summary::after {
+            content: "▾";
+            color: #666;
+            font-size: 13px;
+            transition: transform .15s ease;
+        }
+
+        #qb-browser-filters:not([open]) > summary::after {
+            transform: rotate(-90deg);
+        }
+
+        .qb-filter-summary {
+            flex: 1;
+            min-width: 0;
+            color: #777;
+            font-size: 10px;
+            font-weight: 700;
+            overflow: hidden;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .qb-filter-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #666;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        #qb-clear-filters {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: #075f9e;
+            padding: 3px 0 3px 8px;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: none;
+            cursor: pointer;
+        }
+
+        #qb-search {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: end;
+            gap: 8px;
+        }
+
+        .qb-size-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            color: #666;
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        #qb-size-filter {
+            min-height: 38px;
+            border: 1px solid #e0e0e0;
+            border-radius: 9px;
+            background: #fff;
+            color: #333;
+            padding: 7px 25px 7px 9px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         #qb-header,
@@ -560,6 +718,57 @@
             margin: 0;
             padding: 8px 13px;
             text-align: center;
+        }
+
+        .qb-card-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 7px;
+            min-width: 76px;
+        }
+
+        .qb-card-actions > .qb-play {
+            min-width: 76px;
+            margin: 0;
+            padding: 8px 13px;
+            text-align: center;
+        }
+
+        .qb-favorite {
+            appearance: none;
+            align-self: flex-end;
+            width: 36px;
+            height: 34px;
+            border: 1px solid #d8d8d8;
+            border-radius: 8px;
+            background: #fff;
+            color: #626262;
+            padding: 0;
+            font: inherit;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .qb-favorite:hover,
+        .qb-favorite:focus-visible {
+            border-color: #e2a900;
+            color: #ad7900;
+            background: #fffaf0;
+        }
+
+        .qb-favorite[aria-pressed="true"] {
+            border-color: #e0ad25;
+            background: #fff7d6;
+            color: #a66f00;
+        }
+
+        .qb-card-context {
+            margin-top: 4px;
+            color: #075f9e;
+            font-size: 11px;
+            font-weight: 750;
         }
 
         .qb-card-copy .qb-sub {
@@ -906,10 +1115,15 @@
     let activeCategory = "maps";
     let activeInteraction = "click";
     let activeFamily = "countries";
+    let activeLibraryView = "browse";
     let browserFilter = "";
+    let activeSizeFilter = "all";
     let renderVersion = 0;
     let browserCollapsed = false;
     let pageDescriptionsPromise = null;
+    let allCardsPromise = null;
+    let browserFiltersExpanded =
+        (window.innerWidth || 0) > 700;
 
     const CATEGORY_PRESENTATION = {
         maps: { title: "Maps" },
@@ -928,6 +1142,7 @@
     ];
 
     const MODE_PRESENTATION = {
+        all: { title: "All Modes" },
         click: { title: "Click" },
         type: { title: "Type" },
         find: { title: "No Borders" },
@@ -944,6 +1159,7 @@
     ];
 
     const FAMILY_PRESENTATION = {
+        all: { title: "All Types" },
         countries: { title: "Countries" },
         subdivisions: { title: "Subdivisions" }
     };
@@ -1042,6 +1258,10 @@
     }
 
     function manifestsForMode(category, interaction) {
+        if (interaction === "all") {
+            return manifestsForCategory(category);
+        }
+
         return manifestsForCategory(category).filter(
             item => interactionKeyForManifest(item) === interaction
         );
@@ -1052,7 +1272,11 @@
         interaction,
         family
     ) {
-        return manifestsForMode(category, interaction).filter(
+        const manifests = manifestsForMode(category, interaction);
+
+        if (family === "all") return manifests;
+
+        return manifests.filter(
             item => familyKeyForManifest(item) === family
         );
     }
@@ -1081,7 +1305,7 @@
             )
         );
 
-        return [
+        const ordered = [
             ...MODE_ORDER.filter(
                 key => discovered.includes(key)
             ),
@@ -1089,6 +1313,10 @@
                 key => !MODE_ORDER.includes(key)
             )
         ];
+
+        return ordered.length > 1
+            ? ["all", ...ordered]
+            : ordered;
     }
 
     function availableFamilyKeys(category, interaction) {
@@ -1100,7 +1328,7 @@
             )
         );
 
-        return [
+        const ordered = [
             ...FAMILY_ORDER.filter(
                 key => discovered.includes(key)
             ),
@@ -1108,6 +1336,10 @@
                 key => !FAMILY_ORDER.includes(key)
             )
         ];
+
+        return ordered.length > 1
+            ? ["all", ...ordered]
+            : ordered;
     }
 
     function ensureValidSelection() {
@@ -1277,6 +1509,14 @@
                 continue;
             }
 
+            const members = Array.isArray(group?.members)
+                ? group.members
+                : (
+                    Array.isArray(group?.countries)
+                        ? group.countries
+                        : []
+                );
+
             out.push({
                 id,
                 label: group.label || getFriendlyTypeLabel(id),
@@ -1289,6 +1529,7 @@
                 tags: tagsForGroup(id, group),
                 meta: group,
                 manifest: manifestItem,
+                memberCount: members.length,
                 featured:
                     family === "countries" &&
                     id === "world"
@@ -1303,6 +1544,60 @@
         });
 
         return out;
+    }
+
+    function quizLibrarySnapshot() {
+        return window.SmurdyQuizLibrary?.getSnapshot?.() || {
+            favorites: [],
+            recent: []
+        };
+    }
+
+    function quizLibraryKey(manifestId, groupId) {
+        return window.SmurdyQuizLibrary?.quizKey?.(
+            manifestId,
+            groupId
+        ) || `${manifestId}:${groupId}`;
+    }
+
+    function renderLibraryTabs() {
+        const snapshot = quizLibrarySnapshot();
+        const views = [
+            { key: "browse", title: "Browse" },
+            {
+                key: "favorites",
+                title: "Favorites",
+                count: snapshot.favorites.length
+            },
+            {
+                key: "recent",
+                title: "Recent",
+                count: snapshot.recent.length
+            }
+        ];
+
+        return `
+            <div
+                id="qb-library-tabs"
+                role="tablist"
+                aria-label="Quiz browser views"
+            >
+                ${views.map(view => `
+                    <button
+                        class="qb-library-tab"
+                        type="button"
+                        role="tab"
+                        data-library-view="${view.key}"
+                        aria-selected="${view.key === activeLibraryView ? "true" : "false"}"
+                    >
+                        ${view.title}
+                        ${typeof view.count === "number"
+                            ? `<span class="qb-library-count">${view.count}</span>`
+                            : ""}
+                    </button>
+                `).join("")}
+            </div>
+        `;
     }
 
     function renderCategoryTabs() {
@@ -1411,6 +1706,75 @@
         `;
     }
 
+    function renderBrowseFilters() {
+        if (activeLibraryView !== "browse") return "";
+
+        const modeTitle =
+            MODE_PRESENTATION[activeInteraction]?.title ||
+            getFriendlyTypeLabel(activeInteraction);
+        const familyTitle =
+            FAMILY_PRESENTATION[activeFamily]?.title ||
+            getFriendlyTypeLabel(activeFamily);
+        const sizeTitle = activeSizeFilter === "small"
+            ? "Small"
+            : activeSizeFilter === "large"
+                ? "Large"
+                : "Any size";
+
+        return `
+            <details
+                id="qb-browser-filters"
+                ${browserFiltersExpanded ? "open" : ""}
+            >
+                <summary>
+                    <span>Filters</span>
+                    <span class="qb-filter-summary">
+                        ${escapeHtml(modeTitle)} · ${escapeHtml(familyTitle)} · ${sizeTitle}
+                    </span>
+                </summary>
+                <div class="qb-filter-heading">
+                    <span>Refine quizzes</span>
+                    <button id="qb-clear-filters" type="button">
+                        Reset
+                    </button>
+                </div>
+                ${renderCategoryTabs()}
+                ${renderModeTabs()}
+                ${renderFamilyTabs()}
+            </details>
+        `;
+    }
+
+    function renderSearchControls() {
+        const placeholder = activeLibraryView === "favorites"
+            ? "Search favorites"
+            : activeLibraryView === "recent"
+                ? "Search recent quizzes"
+                : "Search quiz sets";
+
+        return `
+            <div id="qb-search">
+                <input
+                    id="qb-filter"
+                    type="search"
+                    aria-label="Search quizzes"
+                    placeholder="${placeholder}"
+                    value="${escapeHtml(browserFilter)}"
+                />
+                ${activeLibraryView === "browse"
+                    ? `<label class="qb-size-filter">
+                        <span>Set size</span>
+                        <select id="qb-size-filter">
+                            <option value="all"${activeSizeFilter === "all" ? " selected" : ""}>Any</option>
+                            <option value="small"${activeSizeFilter === "small" ? " selected" : ""}>Small</option>
+                            <option value="large"${activeSizeFilter === "large" ? " selected" : ""}>Large</option>
+                        </select>
+                       </label>`
+                    : ""}
+            </div>
+        `;
+    }
+
     async function loadCardsForSelection() {
         const manifests = manifestsForSelection(
             activeCategory,
@@ -1449,17 +1813,96 @@
         return cards;
     }
 
-    function filterCards(cards, filter) {
+    function loadAllCards() {
+        if (allCardsPromise) return allCardsPromise;
+
+        allCardsPromise = (async () => {
+            const pageDescriptions =
+                await loadPageDescriptions();
+            const cards = [];
+
+            for (const manifestItem of baseManifest || []) {
+                const groupSetId =
+                    manifestItem.groupSet ||
+                    "country_groups";
+
+                try {
+                    const groupCollection =
+                        await loadGroupSet(groupSetId);
+                    cards.push(
+                        ...buildCardsForManifest(
+                            manifestItem,
+                            groupCollection,
+                            pageDescriptions
+                        )
+                    );
+                } catch (error) {
+                    console.error(
+                        `Could not load ${groupSetId}`,
+                        error
+                    );
+                }
+            }
+
+            return cards;
+        })();
+
+        return allCardsPromise;
+    }
+
+    async function loadCardsForCurrentView() {
+        if (activeLibraryView === "browse") {
+            return loadCardsForSelection();
+        }
+
+        const allCards = await loadAllCards();
+        const cardsByKey = new Map(
+            allCards.map(card => [
+                quizLibraryKey(card.manifest.id, card.id),
+                card
+            ])
+        );
+        const snapshot = quizLibrarySnapshot();
+        const entries = activeLibraryView === "favorites"
+            ? snapshot.favorites
+            : snapshot.recent;
+
+        return entries
+            .map(entry => cardsByKey.get(entry.key))
+            .filter(Boolean);
+    }
+
+    function filterCards(cards, filter, sizeFilter = "all") {
         const tokens = tokenize(filter);
 
-        if (!tokens.length) return cards;
-
         return cards.filter(card => {
+            if (
+                sizeFilter === "small" &&
+                !(card.memberCount > 0 && card.memberCount < 30)
+            ) {
+                return false;
+            }
+            if (
+                sizeFilter === "large" &&
+                card.memberCount < 30
+            ) {
+                return false;
+            }
+
+            if (!tokens.length) return true;
+
             const hay = [
                 card.label,
                 card.id,
                 card.description,
                 card.meta?.parent || "",
+                card.manifest?.title || "",
+                MODE_PRESENTATION[
+                    interactionKeyForManifest(card.manifest)
+                ]?.title || "",
+                FAMILY_PRESENTATION[
+                    familyKeyForManifest(card.manifest)
+                ]?.title || "",
                 ...(card.tags || [])
             ].join(" ").toLowerCase();
 
@@ -1469,10 +1912,24 @@
         });
     }
 
-    function renderCard(card) {
+    function renderCard(card, favoriteKeys, showContext) {
+        const key = quizLibraryKey(
+            card.manifest.id,
+            card.id
+        );
+        const favorite = favoriteKeys.has(key);
+        const interaction =
+            MODE_PRESENTATION[
+                interactionKeyForManifest(card.manifest)
+            ]?.title || card.manifest.title;
+        const family =
+            FAMILY_PRESENTATION[
+                familyKeyForManifest(card.manifest)
+            ]?.title || "Quiz";
+
         return `
             <div
-                class="qb-card${card.featured ? " qb-card-featured" : ""}"
+                class="qb-card${card.featured ? " qb-card-featured" : ""}${favorite ? " qb-card-favorite" : ""}"
                 data-group="${escapeHtml(card.id)}"
             >
                 <div class="qb-card-layout">
@@ -1483,6 +1940,10 @@
                                 ? `<span class="qb-main-badge">Suggested</span>`
                                 : ""}
                         </div>
+
+                        ${showContext
+                            ? `<div class="qb-card-context">${escapeHtml(interaction)} · ${escapeHtml(family)}</div>`
+                            : ""}
 
                         <div class="qb-sub">
                             ${escapeHtml(card.description)}
@@ -1497,19 +1958,30 @@
                             : ""}
                     </div>
 
-                    <a
-                        class="qb-play"
-                        href="${escapeHtml(
-                            quizLandingPath(
-                                card.manifest,
-                                card.id
-                            )
-                        )}"
-                        data-group="${escapeHtml(card.id)}"
-                        data-manifest-id="${escapeHtml(
-                            card.manifest.id
-                        )}"
-                    >Play</a>
+                    <div class="qb-card-actions">
+                        <button
+                            class="qb-favorite"
+                            type="button"
+                            data-favorite-group="${escapeHtml(card.id)}"
+                            data-favorite-manifest="${escapeHtml(card.manifest.id)}"
+                            aria-pressed="${favorite ? "true" : "false"}"
+                            aria-label="${favorite ? "Remove" : "Add"} ${escapeHtml(card.label)} ${favorite ? "from" : "to"} favorites"
+                            title="${favorite ? "Remove from favorites" : "Add to favorites"}"
+                        >${favorite ? "★" : "☆"}</button>
+                        <a
+                            class="qb-play"
+                            href="${escapeHtml(
+                                quizLandingPath(
+                                    card.manifest,
+                                    card.id
+                                )
+                            )}"
+                            data-group="${escapeHtml(card.id)}"
+                            data-manifest-id="${escapeHtml(
+                                card.manifest.id
+                            )}"
+                        >Play</a>
+                    </div>
                 </div>
             </div>
         `;
@@ -1560,10 +2032,27 @@
 
     function attachChromeEvents(panel) {
         panel.querySelector(
+            "#qb-browser-filters"
+        )?.addEventListener("toggle", event => {
+            browserFiltersExpanded = event.target.open;
+        });
+
+        panel.querySelector(
             "#qb-mobile-collapse"
         )?.addEventListener("click", () => {
             browserCollapsed = !browserCollapsed;
             applyBrowserCollapsedState(panel);
+        });
+
+        panel.querySelectorAll(
+            "[data-library-view]"
+        ).forEach(button => {
+            button.addEventListener("click", () => {
+                activeLibraryView =
+                    button.dataset.libraryView;
+                browserFilter = "";
+                void renderUnifiedBrowser();
+            });
         });
 
         panel.querySelectorAll(
@@ -1574,7 +2063,6 @@
 
                 activeCategory =
                     button.dataset.category;
-                browserFilter = "";
                 ensureValidSelection();
                 void renderUnifiedBrowser();
             });
@@ -1586,7 +2074,6 @@
             button.addEventListener("click", () => {
                 activeInteraction =
                     button.dataset.interaction;
-                browserFilter = "";
                 ensureValidSelection();
                 void renderUnifiedBrowser();
             });
@@ -1610,6 +2097,24 @@
             void renderUnifiedBrowser({
                 preserveFocus: true
             });
+        });
+
+        panel.querySelector(
+            "#qb-size-filter"
+        )?.addEventListener("change", event => {
+            activeSizeFilter = event.target.value;
+            void renderUnifiedBrowser();
+        });
+
+        panel.querySelector(
+            "#qb-clear-filters"
+        )?.addEventListener("click", () => {
+            activeCategory = "maps";
+            activeInteraction = "click";
+            activeFamily = "countries";
+            activeSizeFilter = "all";
+            browserFilter = "";
+            void renderUnifiedBrowser();
         });
     }
 
@@ -1806,6 +2311,20 @@
 
     function attachCardEvents(panel) {
 
+        panel.querySelectorAll(
+            ".qb-favorite[data-favorite-group][data-favorite-manifest]"
+        ).forEach(button => {
+            button.addEventListener("click", () => {
+                window.SmurdyQuizLibrary?.toggleFavorite?.(
+                    button.dataset.favoriteManifest,
+                    button.dataset.favoriteGroup
+                );
+                void renderUnifiedBrowser({
+                    preserveScroll: true
+                });
+            });
+        });
+
         void synchronizeQuizLaunchAvailability(panel);
 
         panel.querySelectorAll(
@@ -1847,7 +2366,10 @@
     }
 
     async function renderUnifiedBrowser(
-        { preserveFocus = false } = {}
+        {
+            preserveFocus = false,
+            preserveScroll = false
+        } = {}
     ) {
         ensureValidSelection();
 
@@ -1863,16 +2385,11 @@
             typeof oldInput.selectionStart === "number"
                 ? oldInput.selectionStart
                 : null;
-
-        const categoryTitle =
-            CATEGORY_PRESENTATION[activeCategory]?.title ||
-            getFriendlyTypeLabel(activeCategory);
-        const modeTitle =
-            MODE_PRESENTATION[activeInteraction]?.title ||
-            getFriendlyTypeLabel(activeInteraction);
-        const familyTitle =
-            FAMILY_PRESENTATION[activeFamily]?.title ||
-            getFriendlyTypeLabel(activeFamily);
+        const oldList = preserveScroll &&
+            panel.querySelector?.("#qb-list");
+        const oldScrollTop = oldList
+            ? oldList.scrollTop
+            : null;
 
         panel.innerHTML = `
             <div id="qb-header">
@@ -1898,9 +2415,8 @@
                 </a>
             </div>
 
-            ${renderCategoryTabs()}
-            ${renderModeTabs()}
-            ${renderFamilyTabs()}
+            ${renderLibraryTabs()}
+            ${renderBrowseFilters()}
 
             <button
                 id="qb-mobile-weak-spots"
@@ -1915,13 +2431,7 @@
                 ></span>
             </button>
 
-            <div id="qb-search">
-                <input
-                    id="qb-filter"
-                    placeholder="Search available quiz sets"
-                    value="${escapeHtml(browserFilter)}"
-                />
-            </div>
+            ${renderSearchControls()}
 
             <div id="qb-list">
                 <div class="qb-loading">
@@ -1938,8 +2448,11 @@
         window.SmurdyWeakSpots?.refreshMenuCount?.();
 
         const cards = filterCards(
-            await loadCardsForSelection(),
-            browserFilter
+            await loadCardsForCurrentView(),
+            browserFilter,
+            activeLibraryView === "browse"
+                ? activeSizeFilter
+                : "all"
         );
 
         if (thisRender !== renderVersion) return;
@@ -1947,11 +2460,33 @@
         const list = panel.querySelector("#qb-list");
         if (!list) return;
 
+        const snapshot = quizLibrarySnapshot();
+        const favoriteKeys = new Set(
+            snapshot.favorites.map(entry => entry.key)
+        );
+        const showContext =
+            activeLibraryView !== "browse" ||
+            activeInteraction === "all" ||
+            activeFamily === "all";
+        const emptyMessage = activeLibraryView === "favorites"
+            ? "No favorites yet. Star a quiz to save it here."
+            : activeLibraryView === "recent"
+                ? "No recently played quizzes yet."
+                : "No quiz sets match these filters.";
+
         list.innerHTML = cards.length
-            ? cards.map(renderCard).join("")
-            : `<div class="qb-empty">No quiz sets match your search.</div>`;
+            ? cards.map(card => renderCard(
+                card,
+                favoriteKeys,
+                showContext
+            )).join("")
+            : `<div class="qb-empty">${emptyMessage}</div>`;
 
         attachCardEvents(panel);
+
+        if (oldScrollTop !== null) {
+            list.scrollTop = oldScrollTop;
+        }
 
         if (oldCaret !== null) {
             try {
@@ -2112,6 +2647,18 @@
 (function globalLaunch() {
     // Ensure launchQuiz exists for startQuizFor / buttons
     window.launchQuiz = function launchQuiz(file, mode, extraParams = {}) {
+        const libraryManifestId = String(file || "")
+            .replace(/^manifest:/i, "")
+            .toLowerCase();
+        const libraryGroupId = String(
+            extraParams.group || "world"
+        ).toLowerCase();
+
+        window.SmurdyQuizLibrary?.recordPlayed?.(
+            libraryManifestId,
+            libraryGroupId
+        );
+
         const params = new URLSearchParams();
         params.set("mode", mode);
         params.set("quiz", file);
