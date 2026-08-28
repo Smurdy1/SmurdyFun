@@ -115,6 +115,15 @@ test("quiz browser exposes library views and search filters", () => {
     assert.match(browse, /data-library-view=/);
     assert.match(browse, /id="qb-size-filter"/);
     assert.match(browse, /class="qb-favorite"/);
+    assert.match(browse, /tags\.add\("continent"\)/);
+    assert.match(browse, /tags\.add\("large set"\)/);
+    assert.match(browse, /Array\.from\(tags\)\.slice\(0, 2\)/);
+    assert.doesNotMatch(browse, /All Modes/);
+    assert.doesNotMatch(browse, /All Types/);
+    assert.match(
+        browse,
+        /showSuggested && card\.featured/
+    );
     assert.match(browse, /SmurdyQuizLibrary\?\.recordPlayed/);
     assert.match(home, /src\/js\/quiz_library\.js/);
     assert.match(

@@ -1066,7 +1066,6 @@
     ];
 
     const MODE_PRESENTATION = {
-        all: { title: "All Modes" },
         click: { title: "Click" },
         type: { title: "Type" },
         find: { title: "No Borders" },
@@ -1083,7 +1082,6 @@
     ];
 
     const FAMILY_PRESENTATION = {
-        all: { title: "All Types" },
         countries: { title: "Countries" },
         subdivisions: { title: "Subdivisions" }
     };
@@ -1182,10 +1180,6 @@
     }
 
     function manifestsForMode(category, interaction) {
-        if (interaction === "all") {
-            return manifestsForCategory(category);
-        }
-
         return manifestsForCategory(category).filter(
             item => interactionKeyForManifest(item) === interaction
         );
@@ -1197,9 +1191,6 @@
         family
     ) {
         const manifests = manifestsForMode(category, interaction);
-
-        if (family === "all") return manifests;
-
         return manifests.filter(
             item => familyKeyForManifest(item) === family
         );
@@ -1238,9 +1229,7 @@
             )
         ];
 
-        return ordered.length > 1
-            ? ["all", ...ordered]
-            : ordered;
+        return ordered;
     }
 
     function availableFamilyKeys(category, interaction) {
@@ -1261,9 +1250,7 @@
             )
         ];
 
-        return ordered.length > 1
-            ? ["all", ...ordered]
-            : ordered;
+        return ordered;
     }
 
     function ensureValidSelection() {
@@ -1384,7 +1371,7 @@
         return `Practice the countries and locations of ${label} on an interactive map.`;
     }
 
-    function tagsForGroup(id, group) {
+    function tagsForGroup(id, group, family) {
         const tags = new Set(
             (group?.tags || []).map(
                 tag => String(tag).toLowerCase()
@@ -1407,7 +1394,34 @@
             tags.add("islands");
         }
 
-        return Array.from(tags);
+        if ([
+            "europe",
+            "asia",
+            "africa",
+            "south_america",
+            "north_america",
+            "oceania"
+        ].includes(id)) {
+            tags.add("continent");
+        }
+
+        if (id === "european_union") {
+            tags.add("organization");
+        }
+
+        if (id === "former_soviet_union") {
+            tags.add("historical");
+        }
+
+        if (members.length >= 50) {
+            tags.add("large set");
+        }
+
+        if (family === "subdivisions") {
+            tags.add("subdivisions");
+        }
+
+        return Array.from(tags).slice(0, 2);
     }
 
     function buildCardsForManifest(
@@ -1450,7 +1464,7 @@
                     family,
                     pageDescriptions
                 ),
-                tags: tagsForGroup(id, group),
+                tags: tagsForGroup(id, group, family),
                 meta: group,
                 manifest: manifestItem,
                 memberCount: members.length,
@@ -1807,7 +1821,12 @@
         });
     }
 
-    function renderCard(card, favoriteKeys, showContext) {
+    function renderCard(
+        card,
+        favoriteKeys,
+        showContext,
+        showSuggested
+    ) {
         const key = quizLibraryKey(
             card.manifest.id,
             card.id
@@ -1824,14 +1843,14 @@
 
         return `
             <div
-                class="qb-card${card.featured ? " qb-card-featured" : ""}${favorite ? " qb-card-favorite" : ""}"
+                class="qb-card${showSuggested && card.featured ? " qb-card-featured" : ""}${favorite ? " qb-card-favorite" : ""}"
                 data-group="${escapeHtml(card.id)}"
             >
                 <div class="qb-card-layout">
                     <div class="qb-card-copy">
                         <div class="qb-title">
                             ${escapeHtml(card.label)}
-                            ${card.featured
+                            ${showSuggested && card.featured
                                 ? `<span class="qb-main-badge">Suggested</span>`
                                 : ""}
                         </div>
@@ -2343,10 +2362,7 @@
         const favoriteKeys = new Set(
             snapshot.favorites.map(entry => entry.key)
         );
-        const showContext =
-            activeLibraryView !== "browse" ||
-            activeInteraction === "all" ||
-            activeFamily === "all";
+        const showContext = activeLibraryView !== "browse";
         const emptyMessage = activeLibraryView === "favorites"
             ? "No favorites yet. Star a quiz to save it here."
             : activeLibraryView === "recent"
@@ -2357,7 +2373,8 @@
             ? cards.map(card => renderCard(
                 card,
                 favoriteKeys,
-                showContext
+                showContext,
+                activeLibraryView === "browse"
             )).join("")
             : `<div class="qb-empty">${emptyMessage}</div>`;
 
