@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "flags:sync": "node tools/sync_wikimedia_flags.js",
+    "flags:check": "node tools/sync_wikimedia_flags.js --dry-run"
   },
   "dependencies": {
     "i18n-iso-countries": "^7.14.0"
