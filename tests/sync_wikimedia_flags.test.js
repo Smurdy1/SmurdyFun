@@ -5,6 +5,7 @@ const {
   buildTargets,
   countryDestination,
   preferredClaim,
+  publicDomainTargets,
   updateCountryFlagPaths,
 } = require("../tools/sync_wikimedia_flags");
 
@@ -14,6 +15,14 @@ test("keeps custom country filenames and uses codes for normal countries", () =>
     "somaliland.svg",
   );
   assert.equal(countryDestination({ code: "us", flag_1x1: "flags/1x1/us.svg" }), "us.svg");
+});
+
+test("only downloads files Commons marks public domain", () => {
+  const targets = [
+    { name: "Allowed", license: "Public domain" },
+    { name: "Licensed", license: "Copyrighted free use" },
+  ];
+  assert.deepEqual(publicDomainTargets(targets), [targets[0]]);
 });
 
 test("builds country and 50-state targets without including DC", () => {
