@@ -339,10 +339,6 @@ function sourceManifest(targets) {
   };
 }
 
-function publicDomainTargets(targets) {
-  return targets.filter((target) => target.license === "Public domain");
-}
-
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
@@ -359,23 +355,18 @@ async function main() {
   console.log(`Resolving ${targets.length} flags from Wikidata...`);
   const withNames = await resolveFlagNames(targets);
   const resolved = await resolveCommonsFiles(withNames);
-  const downloadable = publicDomainTargets(resolved);
-  const skipped = resolved.filter((target) => target.license !== "Public domain");
-  for (const target of skipped) {
-    console.warn(`Skipping ${target.name}: Commons license is ${target.license || "unknown"}`);
-  }
 
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "smurdy-flags-"));
   try {
-    console.log(`Downloading ${downloadable.length} public-domain SVGs from Commons...`);
-    await downloadFlags(downloadable, tempDir);
+    console.log(`Downloading ${resolved.length} original SVGs from Commons...`);
+    await downloadFlags(resolved, tempDir);
     if (options.dryRun) {
       console.log("Dry run complete. No files changed.");
       return;
     }
 
     await fs.mkdir(FLAGS_DIR, { recursive: true });
-    for (const target of downloadable) {
+    for (const target of resolved) {
       await fs.copyFile(
         path.join(tempDir, target.filename),
         path.join(FLAGS_DIR, target.filename),
@@ -387,9 +378,9 @@ async function main() {
     );
     await fs.writeFile(
       SOURCES_PATH,
-      `${JSON.stringify(sourceManifest(downloadable), null, 2)}\n`,
+      `${JSON.stringify(sourceManifest(resolved), null, 2)}\n`,
     );
-    console.log(`Updated ${downloadable.length} flags and ${path.relative(ROOT, SOURCES_PATH)}.`);
+    console.log(`Updated ${resolved.length} flags and ${path.relative(ROOT, SOURCES_PATH)}.`);
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
@@ -407,7 +398,6 @@ module.exports = {
   countryDestination,
   countryQid,
   preferredClaim,
-  publicDomainTargets,
   sourceManifest,
   updateCountryFlagPaths,
 };
