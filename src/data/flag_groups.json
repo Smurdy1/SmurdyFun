@@ -1,0 +1,18 @@
+{
+  "world": {
+    "label": "World Flags",
+    "allowedTypes": ["type"],
+    "unitName": "country",
+    "memberCount": 200,
+    "description": "Identify all 200 country and territory flags by name.",
+    "tags": ["large set"]
+  },
+  "us_states": {
+    "label": "US State Flags",
+    "allowedTypes": ["type"],
+    "unitName": "state",
+    "memberCount": 50,
+    "description": "Identify the flags of all 50 US states by name.",
+    "tags": ["US states"]
+  }
+}
