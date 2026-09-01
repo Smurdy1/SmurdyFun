@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 20594)
+Total output lines: 2618
+
 (() => {
     // manifest will be populated at init (try global first, then fetch JSON)
     let baseManifest = window.SmurdyQuizManifest || [];
@@ -1280,98 +1283,7 @@
         );
 
         if (!families.includes(activeFamily)) {
-            activeFamily = families[0] || "countries";
-        }
-    }
-
-    function loadPageDescriptions() {
-        if (pageDescriptionsPromise) {
-            return pageDescriptionsPromise;
-        }
-
-        pageDescriptionsPromise = fetch(
-            "/src/data/quiz_page_descriptions.json"
-        )
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(
-                        `HTTP ${response.status}`
-                    );
-                }
-                return response.json();
-            })
-            .catch(error => {
-                console.warn(
-                    "Could not load quiz-page descriptions.",
-                    error
-                );
-                return {};
-            });
-
-        return pageDescriptionsPromise;
-    }
-
-    function shortenDescription(text, maxLength = 150) {
-        const normalized = String(text || "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        if (!normalized) return "";
-
-        const sentenceMatch = normalized.match(
-            /^.*?[.!?](?:\s|$)/
-        );
-        let result = sentenceMatch
-            ? sentenceMatch[0].trim()
-            : normalized;
-
-        if (result.length > maxLength) {
-            result =
-                result.slice(0, maxLength - 1)
-                    .replace(/\s+\S*$/, "")
-                    .trim() +
-                "…";
-        }
-
-        return result;
-    }
-
-    function descriptionForCard(
-        id,
-        group,
-        family,
-        pageDescriptions
-    ) {
-        const custom = group?.description;
-        const overview =
-            pageDescriptions?.groups?.[id]?.overview;
-
-        const selected = shortenDescription(
-            custom || overview
-        );
-
-        if (selected) return selected;
-
-        const label = group?.label || getFriendlyTypeLabel(id);
-
-        if (family === "subdivisions") {
-            const parent =
-                group?.parent ||
-                group?.parentName ||
-                label;
-            const unit = group?.unitName || "subdivisions";
-
-            return `Practice the ${unit} of ${parent} on an interactive map.`;
-        }
-
-        if (id === "world") {
-            return "Practice countries from every part of the world in one complete map.";
-        }
-
-        return `Practice the countries and locations of ${label} on an interactive map.`;
-    }
-
-    function tagsForGroup(id, group, family) {
+            activeFamily = families[0] || "countri…594 tokens truncated…tion tagsForGroup(id, group, family) {
         const tags = new Set(
             (group?.tags || []).map(
                 tag => String(tag).toLowerCase()
@@ -1467,7 +1379,9 @@
                 tags: tagsForGroup(id, group, family),
                 meta: group,
                 manifest: manifestItem,
-                memberCount: members.length,
+                memberCount: Number.isFinite(Number(group?.memberCount))
+                    ? Number(group.memberCount)
+                    : members.length,
                 featured:
                     family === "countries" &&
                     id === "world"
@@ -2253,6 +2167,13 @@
                         );
 
                     if (!manifestItem) return;
+
+                    // Flag quizzes use their own image-first game shell rather
+                    // than the MapLibre app, so open the crawlable flag page.
+                    if (categoryKeyForManifest(manifestItem) === "flags") {
+                        window.location.assign(link.href);
+                        return;
+                    }
 
                     await startQuizForManifest(
                         manifestItem,

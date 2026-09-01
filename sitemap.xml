@@ -585,4 +585,19 @@
     <lastmod>2026-08-22</lastmod>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-flag/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-flag/world/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-flag/us_states/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

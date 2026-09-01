@@ -41,6 +41,29 @@ window.SmurdyQuizManifest = [
         }
     },
     {
+        id: "type-flag",
+        title: "Type the Flags",
+        file: "manifest:type-flag",
+        type: "type",
+        category: "flags",
+        family: "places",
+        difficulty: "Medium",
+        tags: ["Flags", "Typing"],
+        groupSet: "flag_groups",
+        borders: 0,
+        descriptionTemplate: "Name the place represented by the flag.",
+        shortDescription: "Identify flags by typing the country or state name.",
+        longDescription: "This {label} flag quiz tests your ability to identify each flag and type the place it represents.",
+        config: {
+            mode: "type",
+            titleBuilder: () => "Name the place represented by this flag",
+            inputPlaceholder: "Enter the country or state name...",
+            persistCompletedHighlights: false,
+            showTargetOnWrong: false,
+            flagQuiz: true
+        }
+    },
+    {
         id: "find-country",
         title: "Find the Countries",
         file: "manifest:find-country",

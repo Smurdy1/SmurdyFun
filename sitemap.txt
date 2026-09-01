@@ -115,3 +115,6 @@ https://smurdy.fun/quizzes/click-country/
 https://smurdy.fun/quizzes/type-country/
 https://smurdy.fun/quizzes/find-country/
 https://smurdy.fun/quizzes/find-point/
+https://smurdy.fun/quizzes/type-flag/
+https://smurdy.fun/quizzes/type-flag/world/
+https://smurdy.fun/quizzes/type-flag/us_states/

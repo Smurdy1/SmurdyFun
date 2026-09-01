@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>US State Flag Quiz - Type the States | Smurdy</title>
+  <meta name="description" content="Practice all 50 US state flags by typing the state represented by each flag.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://smurdy.fun/quizzes/type-flag/us_states/">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260901-flag-quiz-1">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
+</head>
+<body data-flag-set="us_states">
+  <a class="flag-brand" href="/" aria-label="Smurdy home">
+    <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt="">
+    <span>Smurdy</span>
+  </a>
+
+  <main class="flag-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Smurdy</a><span aria-hidden="true">›</span>
+      <a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span>
+      <span>US State Flags</span>
+    </nav>
+
+    <article data-flag-landing>
+      <h1>US State Flag Quiz</h1>
+      <div class="flag-meta">Type the Flags · US States · 50 flags</div>
+      <p class="flag-lead">Identify the flags of all 50 US states by typing each state name.</p>
+      <div class="flag-actions">
+        <button class="flag-button primary" type="button" data-flag-launch>Open quiz</button>
+        <a class="flag-button" href="/quizzes/type-flag/world/">Try World Flags</a>
+        <a class="flag-button" href="/quizzes/">Browse all quizzes</a>
+      </div>
+      <section class="flag-info">
+        <h2>How it works</h2>
+        <p>One state flag appears at a time. Type the state name, submit your answer, and continue through the complete 50-state set.</p>
+        <h2>What this set includes</h2>
+        <p>Every current US state flag is included, from Alabama through Wyoming, including Mississippi's current magnolia flag.</p>
+      </section>
+    </article>
+
+    <section class="flag-game" data-flag-game hidden aria-label="US state flag quiz">
+      <h1>Name this state flag</h1>
+      <div class="flag-game-header"><span data-flag-progress>0 / 50 completed</span><span data-flag-accuracy>100% correct</span></div>
+      <div class="flag-stage"><img data-flag-image alt=""></div>
+      <form class="flag-form" data-flag-form autocomplete="off">
+        <label for="flag-answer" class="visually-hidden">State name</label>
+        <input id="flag-answer" data-flag-input type="text" placeholder="Enter the state name..." autocapitalize="words" spellcheck="false" required>
+        <button class="flag-button primary" type="submit">Submit</button>
+      </form>
+      <p class="flag-result" data-flag-result aria-live="polite"></p>
+      <div class="flag-game-actions">
+        <button class="flag-button" type="button" data-flag-giveup>Give Up</button>
+        <button class="flag-button primary" type="button" data-flag-restart hidden>Restart</button>
+      </div>
+      <section class="flag-review" data-flag-review hidden></section>
+    </section>
+  </main>
+
+  <footer class="flag-footer"><a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  <script src="/src/js/weak_spots.js?v=20260826-ui-polish-1" defer></script>
+  <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260901-flag-quiz-1" defer></script>
+</body>
+</html>

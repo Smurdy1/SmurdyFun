@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>World Flag Quiz - Type the Countries | Smurdy</title>
+  <meta name="description" content="Practice all 200 world flags by typing the country or territory represented by each flag.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://smurdy.fun/quizzes/type-flag/world/">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260901-flag-quiz-1">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
+</head>
+<body data-flag-set="world">
+  <a class="flag-brand" href="/" aria-label="Smurdy home">
+    <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt="">
+    <span>Smurdy</span>
+  </a>
+
+  <main class="flag-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Smurdy</a><span aria-hidden="true">›</span>
+      <a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span>
+      <span>World Flags</span>
+    </nav>
+
+    <article data-flag-landing>
+      <h1>World Flag Quiz</h1>
+      <div class="flag-meta">Type the Flags · World · 200 flags</div>
+      <p class="flag-lead">Identify every country and territory flag by typing the place it represents.</p>
+      <div class="flag-actions">
+        <button class="flag-button primary" type="button" data-flag-launch>Open quiz</button>
+        <a class="flag-button" href="/quizzes/type-flag/us_states/">Try US State Flags</a>
+        <a class="flag-button" href="/quizzes/">Browse all quizzes</a>
+      </div>
+      <section class="flag-info">
+        <h2>How it works</h2>
+        <p>One flag appears at a time. Type the country or territory name, submit your answer, and continue through the complete 200-flag set. Common alternate names are accepted.</p>
+        <h2>What this set includes</h2>
+        <p>The set matches Smurdy's 200-place world map, including places such as Kosovo, Northern Cyprus, Somaliland, Taiwan, and Western Sahara.</p>
+      </section>
+    </article>
+
+    <section class="flag-game" data-flag-game hidden aria-label="World flag quiz">
+      <h1>Name this flag</h1>
+      <div class="flag-game-header"><span data-flag-progress>0 / 200 completed</span><span data-flag-accuracy>100% correct</span></div>
+      <div class="flag-stage"><img data-flag-image alt=""></div>
+      <form class="flag-form" data-flag-form autocomplete="off">
+        <label for="flag-answer" class="visually-hidden">Country or territory name</label>
+        <input id="flag-answer" data-flag-input type="text" placeholder="Enter the country or territory..." autocapitalize="words" spellcheck="false" required>
+        <button class="flag-button primary" type="submit">Submit</button>
+      </form>
+      <p class="flag-result" data-flag-result aria-live="polite"></p>
+      <div class="flag-game-actions">
+        <button class="flag-button" type="button" data-flag-giveup>Give Up</button>
+        <button class="flag-button primary" type="button" data-flag-restart hidden>Restart</button>
+      </div>
+      <section class="flag-review" data-flag-review hidden></section>
+    </section>
+  </main>
+
+  <footer class="flag-footer"><a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  <script src="/src/js/weak_spots.js?v=20260826-ui-polish-1" defer></script>
+  <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260901-flag-quiz-1" defer></script>
+</body>
+</html>
