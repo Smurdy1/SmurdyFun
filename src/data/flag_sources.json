@@ -1776,6 +1776,19 @@
       "attributionRequired": false
     },
     {
+      "code": "om",
+      "name": "Oman",
+      "kind": "country",
+      "filename": "om.svg",
+      "wikidataId": "Q842",
+      "commonsFile": "Flag of Oman.svg",
+      "commonsPage": "https://commons.wikimedia.org/wiki/File:Flag_of_Oman.svg",
+      "license": "OGL-om 1.0",
+      "artist": "See File history below for details.",
+      "credit": "Own work. Vectorized from qanoon.om",
+      "attributionRequired": true
+    },
+    {
       "code": "pa",
       "name": "Panama",
       "kind": "country",
@@ -2707,6 +2720,19 @@
       "license": "Public domain",
       "artist": "Marie Watkins Oliver",
       "credit": "from the xrmap flag collection 2.7",
+      "attributionRequired": false
+    },
+    {
+      "code": "us-ms",
+      "name": "Mississippi",
+      "kind": "us-state",
+      "filename": "us-ms.svg",
+      "wikidataId": "Q1494",
+      "commonsFile": "Flag of Mississippi.svg",
+      "commonsPage": "https://commons.wikimedia.org/wiki/File:Flag_of_Mississippi.svg",
+      "license": "Copyrighted free use",
+      "artist": "Rocky Vaughn, Sue Anna Joe, Dominique Pugh, Clay Moss, Kara Giles, Micah Whitson and the Mississippi Department of Archives and History",
+      "credit": "Own work using: https://www.mdah.ms.gov/msflag",
       "attributionRequired": false
     },
     {
