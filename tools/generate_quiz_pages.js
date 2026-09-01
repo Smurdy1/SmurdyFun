@@ -8,6 +8,7 @@ const vm = require("vm");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
     const countriesDataPath = path.join(repoRoot, "src", "data", "countries.json");
     const subdivisionGroupsPath = path.join(repoRoot, "src", "data", "subdivision_groups.json");
+    const flagGroupsPath = path.join(repoRoot, "src", "data", "flag_groups.json");
     const copyPath = path.join(repoRoot, "src", "data", "quiz_page_descriptions.json");
     const outDir = path.join(repoRoot, "quizzes");
 
@@ -20,9 +21,11 @@ const vm = require("vm");
     const countriesData = await readJson(countriesDataPath, "countries.json");
     const worldCountryNames = getWorldQuizNames(countriesData.features || []);
     const subdivisionGroups = await readJson(subdivisionGroupsPath, "subdivision_groups.json");
+    const flagGroups = await readJson(flagGroupsPath, "flag_groups.json");
     const groupSets = {
         country_groups: groups,
-        subdivision_groups: subdivisionGroups
+        subdivision_groups: subdivisionGroups,
+        flag_groups: flagGroups
     };
     const pageCopy = await readJson(copyPath, "quiz_page_descriptions.json");
 
@@ -56,6 +59,7 @@ const vm = require("vm");
     // The mode folders are generated output. Removing only those folders clears
     // stale pages when a group's allowedTypes changes without touching unrelated files.
     for (const manifestEntry of manifest) {
+        if (manifestEntry.config && manifestEntry.config.flagQuiz) continue;
         const manifestId = getManifestId(manifestEntry);
         await fs.rm(path.join(outDir, slug(manifestId)), { recursive: true, force: true });
     }
@@ -64,6 +68,8 @@ const vm = require("vm");
     const pageRecords = [];
 
     for (const manifestEntry of manifest) {
+        // Flag pages use their own image-based runner and richer generator.
+        if (manifestEntry.config && manifestEntry.config.flagQuiz) continue;
         const manifestId = getManifestId(manifestEntry);
         const modeKey = normalizeModeKey(manifestEntry);
         const modeCopy = modeCopyMap[manifestId] || modeCopyMap[modeKey] || {};
@@ -507,8 +513,27 @@ ${pageSpecificSectionHtml}
 
     await writeLegacySubdivisionPages({ outDir, publicRoot });
     const modeHubPages = await writeModeIndexes({ outDir, pageRecords, publicRoot });
-    await writeQuizIndex({ outDir, pageRecords, publicRoot });
-    await writeSitemap({ repoRoot, pages: [...pages, ...modeHubPages], publicRoot });
+    const flagPageRecords = Object.entries(groupSets.flag_groups || {}).map(([groupId, group]) => ({
+        url: `${publicRoot}/quizzes/type-flag/${slug(groupId)}/`,
+        path: `/quizzes/type-flag/${slug(groupId)}/`,
+        title: `${group.shortLabel || group.label || humanize(groupId)} Flag Quiz | Smurdy`,
+        groupLabel: group.shortLabel || group.label || humanize(groupId),
+        quizTitle: "Type the Flags",
+        manifestId: "type-flag",
+        groupId,
+        groupSet: "flag_groups"
+    }));
+    await writeQuizIndex({ outDir, pageRecords: [...pageRecords, ...flagPageRecords], publicRoot });
+    await writeSitemap({
+        repoRoot,
+        pages: [
+            ...pages,
+            ...modeHubPages,
+            `${publicRoot}/quizzes/type-flag/`,
+            ...flagPageRecords.map(record => record.url)
+        ],
+        publicRoot
+    });
 
     console.log(`Wrote ${pages.length} quiz pages to quizzes/ and updated sitemap.xml + sitemap.txt.`);
     console.log(`Editable descriptions: ${path.relative(repoRoot, copyPath)}`);
@@ -1045,7 +1070,8 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
         "click-country": "Click the Countries",
         "type-country": "Type the Countries",
         "find-country": "Find the Countries Without Borders",
-        "find-point": "Find the Point"
+        "find-point": "Find the Point",
+        "type-flag": "Type the Flags"
     };
 
     const html = `<!doctype html>

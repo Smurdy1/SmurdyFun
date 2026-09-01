@@ -2,9 +2,7 @@
     "use strict";
 
     const api = factory();
-    if (typeof module !== "undefined" && module.exports) {
-        module.exports = api;
-    }
+    if (typeof module !== "undefined" && module.exports) module.exports = api;
     if (!root || !root.document) return;
 
     root.SmurdyFlagQuiz = api;
@@ -30,19 +28,45 @@
     }
 
     function acceptedAnswers(name, aliases) {
-        const values = [name, ...(Array.isArray(aliases?.[name]) ? aliases[name] : [])];
-        return new Set(values.map(normalizeAnswer).filter(Boolean));
+        const direct = Array.isArray(aliases?.[name]) ? aliases[name] : [];
+        const normalizedName = normalizeAnswer(name);
+        const reverse = Object.entries(aliases || {})
+            .filter(([canonical, values]) =>
+                normalizeAnswer(canonical) === normalizedName ||
+                (Array.isArray(values) && values.some(value => normalizeAnswer(value) === normalizedName))
+            )
+            .flatMap(([canonical, values]) => [canonical, ...(Array.isArray(values) ? values : [])]);
+        return new Set([name, ...direct, ...reverse].map(normalizeAnswer).filter(Boolean));
     }
 
-    function selectFlags(source, setId) {
-        const kind = setId === "us_states" ? "us-state" : "country";
-        return (source?.flags || [])
-            .filter(flag => flag.kind === kind && flag.name && flag.filename)
-            .map(flag => ({
-                id: `${flag.kind}:${flag.filename}`,
-                name: String(flag.name),
-                src: `/assets/flags/${flag.filename}`
-            }));
+    function canonicalFlagName(name, aliases) {
+        const normalizedName = normalizeAnswer(name);
+        const match = Object.entries(aliases || {}).find(([canonical, values]) =>
+            normalizeAnswer(canonical) === normalizedName ||
+            (Array.isArray(values) && values.some(value => normalizeAnswer(value) === normalizedName))
+        );
+        return match ? match[0] : String(name);
+    }
+
+    function selectFlags(source, setId, flagGroups = {}, countryGroups = {}, aliases = {}) {
+        const definition = flagGroups?.[setId] || {};
+        const kind = definition.sourceKind || (setId === "us_states" ? "us-state" : "country");
+        let selected = (source?.flags || []).filter(flag => flag.kind === kind && flag.name && flag.filename);
+
+        if (definition.sourceGroup) {
+            const sourceGroup = countryGroups?.[definition.sourceGroup] || {};
+            const members = sourceGroup.members || sourceGroup.countries || [];
+            const acceptedMembers = members.map(name => acceptedAnswers(name, aliases));
+            selected = selected.filter(flag =>
+                acceptedMembers.some(answers => answers.has(normalizeAnswer(flag.name)))
+            );
+        }
+
+        return selected.map(flag => ({
+            id: `${flag.kind}:${flag.filename}`,
+            name: canonicalFlagName(flag.name, aliases),
+            src: `/assets/flags/${flag.filename}`
+        }));
     }
 
     function shuffle(items, random = Math.random) {
@@ -52,6 +76,22 @@
             [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
         }
         return result;
+    }
+
+    function formatElapsed(milliseconds) {
+        const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
     }
 
     function mount(document, root) {
@@ -65,28 +105,119 @@
         const input = document.querySelector("[data-flag-input]");
         const result = document.querySelector("[data-flag-result]");
         const progress = document.querySelector("[data-flag-progress]");
+        const progressBar = document.querySelector("[data-flag-progress-bar]");
         const accuracy = document.querySelector("[data-flag-accuracy]");
+        const timer = document.querySelector("[data-flag-time]");
         const giveUp = document.querySelector("[data-flag-giveup]");
         const restart = document.querySelector("[data-flag-restart]");
+        const retry = document.querySelector("[data-flag-retry]");
         const review = document.querySelector("[data-flag-review]");
+        const summary = document.querySelector("[data-flag-summary]");
+        const favorite = document.querySelector("[data-flag-favorite]");
 
         if (!launch || !landing || !game || !image || !form || !input) return null;
 
+        let allFlags = [];
         let flags = [];
         let aliases = {};
+        let flagGroups = {};
         let index = 0;
         let attempts = 0;
         let correct = 0;
         let locked = false;
         let misses = [];
+        let startedAt = 0;
+        let elapsed = 0;
+        let timerInterval = null;
         let loadPromise = null;
 
+        function analyticsSnapshot(answerCorrect) {
+            return {
+                correct: answerCorrect,
+                attempts,
+                correctAnswers: correct,
+                completedPlaces: index + (locked ? 1 : 0),
+                placesTotal: flags.length,
+                completionTimeSeconds: Math.round(elapsed / 1000)
+            };
+        }
+
+        function updateFavoriteButton() {
+            if (!favorite) return;
+            const saved = Boolean(root.SmurdyQuizLibrary?.isFavorite?.("type-flag", setId));
+            favorite.setAttribute("aria-pressed", String(saved));
+            favorite.textContent = saved ? "★ Favorited" : "☆ Add to favorites";
+        }
+
         function updateStats() {
-            if (progress) progress.textContent = `${Math.min(index, flags.length)} / ${flags.length} completed`;
+            const completed = Math.min(index, flags.length);
+            if (progress) progress.textContent = `${completed} / ${flags.length} completed`;
+            if (progressBar) {
+                progressBar.style.width = `${flags.length ? (completed / flags.length) * 100 : 0}%`;
+                progressBar.parentElement?.setAttribute("aria-valuenow", String(completed));
+                progressBar.parentElement?.setAttribute("aria-valuemax", String(flags.length));
+            }
             if (accuracy) {
                 const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
                 accuracy.textContent = `${percent}% correct`;
             }
+            if (timer) timer.textContent = formatElapsed(elapsed);
+        }
+
+        function stopTimer() {
+            if (timerInterval) root.clearInterval(timerInterval);
+            timerInterval = null;
+            if (startedAt) elapsed = Date.now() - startedAt;
+            updateStats();
+        }
+
+        function startTimer() {
+            stopTimer();
+            elapsed = 0;
+            startedAt = Date.now();
+            timerInterval = root.setInterval(() => {
+                elapsed = Date.now() - startedAt;
+                updateStats();
+            }, 250);
+        }
+
+        function renderReview() {
+            if (!review) return;
+            review.hidden = misses.length === 0;
+            review.innerHTML = misses.length ? `
+                <h2>Flags to review</h2>
+                <p>These were answered incorrectly or given up.</p>
+                <ul class="flag-review-grid">${misses.map(flag => `
+                    <li><img src="${escapeHtml(flag.src)}" alt=""><span>${escapeHtml(flag.name)}</span></li>
+                `).join("")}</ul>` : "";
+        }
+
+        function finishQuiz() {
+            stopTimer();
+            image.removeAttribute("src");
+            image.alt = "";
+            image.hidden = true;
+            form.hidden = true;
+            giveUp.hidden = true;
+            restart.hidden = false;
+            if (retry) retry.hidden = misses.length === 0;
+
+            const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
+            result.textContent = "Quiz complete";
+            result.className = "flag-result is-finished";
+            if (summary) {
+                summary.hidden = false;
+                summary.innerHTML = `
+                    <h2>Results</h2>
+                    <div class="flag-summary-grid">
+                        <div><strong>${correct} / ${flags.length}</strong><span>Flags correct</span></div>
+                        <div><strong>${percent}%</strong><span>Accuracy</span></div>
+                        <div><strong>${formatElapsed(elapsed)}</strong><span>Time</span></div>
+                    </div>`;
+            }
+            renderReview();
+            updateStats();
+            root.SmurdyAnalytics?.completeQuiz?.(analyticsSnapshot());
         }
 
         function showQuestion() {
@@ -96,31 +227,19 @@
             input.value = "";
 
             if (index >= flags.length) {
-                image.removeAttribute("src");
-                image.alt = "";
-                image.hidden = true;
-                form.hidden = true;
-                giveUp.hidden = true;
-                restart.hidden = false;
-                result.textContent = `Finished! You identified ${correct} of ${flags.length} flags correctly.`;
-                result.classList.add("is-finished");
-                if (review) {
-                    review.hidden = misses.length === 0;
-                    review.innerHTML = misses.length
-                        ? `<h2>Review your misses</h2><ul>${misses.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`
-                        : "";
-                }
-                updateStats();
+                finishQuiz();
                 return;
             }
 
             const current = flags[index];
             image.hidden = false;
             image.src = current.src;
-            image.alt = `Flag number ${index + 1}`;
+            image.alt = `Flag ${index + 1} of ${flags.length}`;
             form.hidden = false;
             giveUp.hidden = false;
             restart.hidden = true;
+            if (retry) retry.hidden = true;
+            if (summary) summary.hidden = true;
             updateStats();
             input.focus({ preventScroll: true });
 
@@ -128,13 +247,16 @@
             if (next) new Image().src = next.src;
         }
 
-        function escapeHtml(value) {
-            return String(value)
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#39;");
+        function recordMiss(current, guess, gaveUp) {
+            if (!misses.some(flag => flag.id === current.id)) misses.push(current);
+            try {
+                root.SmurdyWeakSpots?.recordMiss?.({
+                    name: current.name,
+                    mode: setId === "us_states" ? "type-flag-subdivision" : "type-flag",
+                    group: setId,
+                    guess: gaveUp ? "" : String(guess || "")
+                });
+            } catch (_) {}
         }
 
         function finishQuestion(wasCorrect, guess, gaveUp = false) {
@@ -148,24 +270,17 @@
                 result.textContent = "Correct!";
                 result.classList.add("is-correct");
             } else {
-                misses.push(current.name);
-                result.textContent = `The answer was ${current.name}.`;
+                recordMiss(current, guess, gaveUp);
+                result.textContent = `Answer: ${current.name}`;
                 result.classList.add("is-wrong");
-                try {
-                    root.SmurdyWeakSpots?.recordMiss?.({
-                        name: current.name,
-                        mode: "type-flag",
-                        group: setId,
-                        guess: gaveUp ? "" : String(guess || "")
-                    });
-                } catch (_) {}
             }
 
+            root.SmurdyAnalytics?.recordAnswer?.(analyticsSnapshot(wasCorrect));
             updateStats();
             root.setTimeout(() => {
                 index++;
                 showQuestion();
-            }, wasCorrect ? 500 : 1100);
+            }, wasCorrect ? 650 : 1150);
         }
 
         function submitAnswer(event) {
@@ -173,32 +288,38 @@
             if (locked || !flags[index]) return;
             const guess = normalizeAnswer(input.value);
             if (!guess) return;
-            const answers = acceptedAnswers(flags[index].name, aliases);
-            finishQuestion(answers.has(guess), input.value);
+            finishQuestion(acceptedAnswers(flags[index].name, aliases).has(guess), input.value);
         }
 
-        function restartQuiz() {
-            flags = shuffle(flags);
+        function startRun(items, reason = "start") {
+            flags = shuffle(items);
             index = 0;
             attempts = 0;
             correct = 0;
             misses = [];
             locked = false;
-            if (review) {
-                review.hidden = true;
-                review.innerHTML = "";
-            }
+            if (review) { review.hidden = true; review.innerHTML = ""; }
+            root.SmurdyAnalytics?.beginQuiz?.({
+                quiz_mode: "type-flag",
+                quiz_group: setId,
+                places_total: flags.length,
+                start_reason: reason
+            });
+            startTimer();
             showQuestion();
         }
 
         async function loadData() {
             if (!loadPromise) {
+                const fetchJson = path => root.fetch(path).then(response => {
+                    if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
+                    return response.json();
+                });
                 loadPromise = Promise.all([
-                    root.fetch("/src/data/flag_sources.json").then(response => {
-                        if (!response.ok) throw new Error(`Flag data returned HTTP ${response.status}`);
-                        return response.json();
-                    }),
-                    root.fetch("/src/data/aliases.json").then(response => response.ok ? response.json() : {})
+                    fetchJson("/src/data/flag_sources.json"),
+                    fetchJson("/src/data/aliases.json"),
+                    fetchJson("/src/data/flag_groups.json"),
+                    fetchJson("/src/data/country_groups.json")
                 ]);
             }
             return loadPromise;
@@ -210,16 +331,20 @@
             launch.textContent = "Loading flags...";
 
             try {
-                const [source, loadedAliases] = await loadData();
-                flags = shuffle(selectFlags(source, setId));
+                const [source, loadedAliases, loadedFlagGroups, countryGroups] = await loadData();
                 aliases = loadedAliases || {};
-                if (!flags.length) throw new Error(`No flags found for ${setId}`);
+                flagGroups = loadedFlagGroups || {};
+                allFlags = selectFlags(source, setId, flagGroups, countryGroups, aliases);
+                const expected = Number(flagGroups?.[setId]?.memberCount || 0);
+                if (!allFlags.length || (expected && allFlags.length !== expected)) {
+                    throw new Error(`Expected ${expected || "some"} flags for ${setId}, found ${allFlags.length}`);
+                }
 
                 landing.hidden = true;
                 game.hidden = false;
-                document.body.classList.add("flag-quiz-running");
+                body.classList.add("flag-quiz-running");
                 try { root.SmurdyQuizLibrary?.recordPlayed?.("type-flag", setId); } catch (_) {}
-                restartQuiz();
+                startRun(allFlags);
             } catch (error) {
                 console.error("Could not start flag quiz", error);
                 launch.disabled = false;
@@ -231,10 +356,19 @@
         launch.addEventListener("click", launchQuiz);
         form.addEventListener("submit", submitAnswer);
         giveUp?.addEventListener("click", () => finishQuestion(false, "", true));
-        restart?.addEventListener("click", restartQuiz);
+        restart?.addEventListener("click", () => startRun(allFlags, "restart"));
+        retry?.addEventListener("click", () => {
+            const missedFlags = misses.slice();
+            if (missedFlags.length) startRun(missedFlags, "retry_missed");
+        });
+        favorite?.addEventListener("click", () => {
+            root.SmurdyQuizLibrary?.toggleFavorite?.("type-flag", setId);
+            updateFavoriteButton();
+        });
+        updateFavoriteButton();
 
-        return { launchQuiz, restartQuiz };
+        return { launchQuiz, restartQuiz: () => startRun(allFlags, "restart") };
     }
 
-    return { normalizeAnswer, acceptedAnswers, selectFlags, shuffle, mount };
+    return { normalizeAnswer, acceptedAnswers, canonicalFlagName, selectFlags, shuffle, formatElapsed, mount };
 });

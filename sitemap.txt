@@ -118,3 +118,9 @@ https://smurdy.fun/quizzes/find-point/
 https://smurdy.fun/quizzes/type-flag/
 https://smurdy.fun/quizzes/type-flag/world/
 https://smurdy.fun/quizzes/type-flag/us_states/
+https://smurdy.fun/quizzes/type-flag/europe/
+https://smurdy.fun/quizzes/type-flag/asia/
+https://smurdy.fun/quizzes/type-flag/africa/
+https://smurdy.fun/quizzes/type-flag/north_america/
+https://smurdy.fun/quizzes/type-flag/south_america/
+https://smurdy.fun/quizzes/type-flag/oceania/
