@@ -100,6 +100,15 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(html, /data-flag-favorite/);
     assert.match(html, /data-flag-retry/);
     assert.match(html, /Countries included in this quiz \(44\)/);
-    assert.match(directory, /North American Flags/);
+    assert.match(directory, /Countries and territories/);
+    assert.match(directory, /<h2>Subdivisions<\/h2>/);
+    assert.match(directory, /directory-card-title">North America/);
+    assert.match(directory, /directory-card-title">US States/);
+    assert.match(directory, /directory-card-title">Locate/);
+    assert.match(directory, /Coming soon!/);
+    assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
+    assert.match(html, /data-flag-restart>Restart/);
+    assert.match(html, /data-flag-after-actions hidden/);
+    assert.doesNotMatch(html, /flag-eyebrow|class="flag-exit"/);
     assert.match(sitemap, /quizzes\/type-flag\/oceania\//);
 });

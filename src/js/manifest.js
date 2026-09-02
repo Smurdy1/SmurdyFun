@@ -46,7 +46,7 @@ window.SmurdyQuizManifest = [
         file: "manifest:type-flag",
         type: "type",
         category: "flags",
-        family: "places",
+        families: ["countries", "subdivisions"],
         difficulty: "Medium",
         tags: ["Flags", "Typing"],
         groupSet: "flag_groups",
@@ -61,6 +61,23 @@ window.SmurdyQuizManifest = [
             persistCompletedHighlights: false,
             showTargetOnWrong: false,
             flagQuiz: true
+        }
+    },
+    {
+        id: "locate-flag",
+        title: "Locate the Flags",
+        file: "manifest:locate-flag",
+        interaction: "locate",
+        category: "flags",
+        families: ["countries", "subdivisions"],
+        status: "coming-soon",
+        difficulty: "Medium",
+        tags: ["Flags", "Map", "Locate"],
+        groupSet: "flag_groups",
+        shortDescription: "See a flag and locate its place on the map.",
+        config: {
+            flagQuiz: true,
+            comingSoon: true
         }
     },
     {

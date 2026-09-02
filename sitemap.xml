@@ -586,6 +586,26 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://smurdy.fun/quizzes/click-subdivision/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/type-subdivision/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-subdivision/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://smurdy.fun/quizzes/find-point-subdivision/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://smurdy.fun/quizzes/type-flag/</loc>
     <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>

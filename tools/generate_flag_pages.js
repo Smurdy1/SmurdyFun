@@ -110,7 +110,7 @@ function quizPage(groupId, group) {
         about: { "@type": "Thing", name: `${group.shortLabel} flags` },
         isPartOf: { "@type": "WebSite", name: "Smurdy", url: baseUrl }
     })}</script>
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260901-flag-quiz-2">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260901-flag-quiz-3">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
@@ -184,7 +184,7 @@ function quizPage(groupId, group) {
     </article>
 
     <section class="flag-game" data-flag-game hidden aria-label="${escapeHtml(heading)}">
-      <div class="flag-game-title-row"><div><p class="flag-eyebrow">${escapeHtml(group.shortLabel)} flags</p><h1>Name this flag</h1></div><a href="/quizzes/" class="flag-exit">Exit quiz</a></div>
+      <div class="flag-game-title-row"><h1>Name this flag</h1></div>
       <div class="flag-game-header">
         <span data-flag-progress>0 / ${flags.length} completed</span>
         <span data-flag-time>00:00</span>
@@ -199,13 +199,14 @@ function quizPage(groupId, group) {
       </form>
       <p class="flag-result" data-flag-result aria-live="polite"></p>
       <div class="flag-game-actions">
+        <a class="flag-button" href="/">Back</a>
         <button class="flag-button" type="button" data-flag-giveup>Give Up</button>
+        <button class="flag-button" type="button" data-flag-restart>Restart</button>
         <button class="flag-button" type="button" data-flag-retry hidden>Retry missed flags</button>
-        <button class="flag-button primary" type="button" data-flag-restart hidden>Play again</button>
       </div>
       <section class="flag-summary" data-flag-summary hidden></section>
       <section class="flag-review" data-flag-review hidden></section>
-      <div class="flag-after-actions"><a class="flag-button" href="/quizzes/type-flag/">More flag quizzes</a><a class="flag-button" href="/quizzes/">All quizzes</a></div>
+      <div class="flag-after-actions" data-flag-after-actions hidden><a class="flag-button" href="/quizzes/type-flag/">More flag quizzes</a><a class="flag-button" href="/quizzes/">All quizzes</a></div>
     </section>
   </main>
 
@@ -213,37 +214,43 @@ function quizPage(groupId, group) {
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260826-ui-polish-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260901-flag-quiz-2" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260901-flag-quiz-3" defer></script>
 </body>
 </html>`;
 }
 
 function directoryPage() {
-    const cards = Object.entries(groups).map(([id, group]) => `
-      <a class="flag-directory-card" href="/quizzes/type-flag/${id}/">
-        <span class="flag-directory-title">${escapeHtml(group.label)}</span>
-        <span>${escapeHtml(group.description)}</span>
-        <strong>${group.memberCount} flags</strong>
-      </a>`).join("");
+    const cardsForFamily = family => Object.entries(groups)
+        .filter(([, group]) => group.family === family)
+        .map(([id, group]) => `
+          <a class="directory-card" href="/quizzes/type-flag/${id}/">
+            <span class="directory-card-title">${escapeHtml(group.label)}</span>
+            <span class="directory-card-description">${escapeHtml(group.description)}</span>
+            <span class="directory-card-meta">${group.memberCount} flags</span>
+          </a>`).join("");
     return `<!doctype html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Flag Quizzes - World, Continents, and US States | Smurdy</title>
   <meta name="description" content="Choose from eight free flag quizzes covering the world, six continents, and all 50 US states.">
   <meta name="robots" content="index, follow"><link rel="canonical" href="${baseUrl}/quizzes/type-flag/">
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260901-flag-quiz-2">
+  <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260901-directory-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
 </head><body>
-  <a class="flag-brand" href="/" aria-label="Smurdy home"><img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span></a>
-  <main class="flag-page">
-    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Smurdy</a><span aria-hidden="true">›</span><a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span><span>Flags</span></nav>
-    <h1>Flag Quizzes</h1>
-    <p class="flag-lead">Choose a focused set and type the place represented by each flag. Start with a continent, or take on the complete 200-flag world quiz.</p>
-    <div class="flag-directory-grid">${cards}</div>
-    <section class="flag-info content-section"><h2>How to learn flags with Smurdy</h2><p>Regional sets make the complete world quiz easier to approach. Start with a smaller continent, retry the flags you miss, and use the world set once you can switch between regions comfortably.</p></section>
-    <div class="flag-actions"><a class="flag-button" href="/quizzes/">Browse all geography quizzes</a><a class="flag-button" href="/">Back to home</a></div>
+  <header class="directory-header"><a class="directory-brand" href="/" aria-label="Smurdy home"><img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span></a></header>
+  <main class="directory-shell">
+    <nav class="directory-breadcrumbs" aria-label="Breadcrumb"><a href="/">Smurdy</a><span aria-hidden="true">›</span><a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span><span>Flags</span></nav>
+    <h1 class="directory-title">Flag Quizzes</h1>
+    <p class="directory-lead">Choose a flag set, then type the country, territory, or subdivision it represents.</p>
+    <section class="directory-section"><h2>Countries and territories</h2><p class="directory-section-lead">Practice the world at once or focus on one continent.</p><div class="directory-card-grid">${cardsForFamily("countries")}</div></section>
+    <section class="directory-section"><h2>Subdivisions</h2><p class="directory-section-lead">Practice flags for states, provinces, and other first-level subdivisions.</p><div class="directory-card-grid">${cardsForFamily("subdivisions")}</div></section>
+    <section class="directory-section"><h2>Flag modes</h2><div class="directory-mode-grid">
+      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a flag and type the place it represents.</span><span class="directory-card-meta">Available now</span></div>
+      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag, then locate its place on the map.</span><span class="directory-coming-soon">Coming soon!</span></div>
+    </div></section>
+    <section class="directory-section"><h2>How to learn flags with Smurdy</h2><p class="directory-section-lead">Start with a smaller regional set, retry the flags you miss, and move to the world set once you can switch between regions comfortably.</p><div class="directory-related"><a class="directory-chip" href="/quizzes/">Browse all geography quizzes</a><a class="directory-chip" href="/">Back to home</a></div></section>
   </main>
-  <footer class="flag-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  <footer class="directory-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
 </body></html>`;
 }
 

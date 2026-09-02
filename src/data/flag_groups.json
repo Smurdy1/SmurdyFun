@@ -1,6 +1,6 @@
 {
   "world": {
-    "label": "World Flags", "shortLabel": "World", "allowedTypes": ["type"],
+    "label": "World", "shortLabel": "World", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country or territory", "memberCount": 200, "sourceKind": "country",
     "description": "Identify all 200 country and territory flags by name.",
     "lead": "Identify every country and territory flag by typing the place it represents.",
@@ -11,7 +11,7 @@
     "tags": ["large set"]
   },
   "us_states": {
-    "label": "US State Flags", "shortLabel": "US States", "allowedTypes": ["type"],
+    "label": "US States", "shortLabel": "US States", "family": "subdivisions", "allowedTypes": ["type"],
     "unitName": "state", "memberCount": 50, "sourceKind": "us-state",
     "description": "Identify the flags of all 50 US states by name.",
     "lead": "Identify the flags of all 50 US states by typing each state name.",
@@ -22,7 +22,7 @@
     "tags": ["US states", "large set"]
   },
   "europe": {
-    "label": "European Flags", "shortLabel": "Europe", "allowedTypes": ["type"],
+    "label": "Europe", "shortLabel": "Europe", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country", "memberCount": 44, "sourceKind": "country", "sourceGroup": "europe",
     "description": "Practice all 44 flags in Smurdy's Europe set.",
     "lead": "Type the country represented by each of the 44 European flags.",
@@ -33,7 +33,7 @@
     "tags": ["continent", "large set"]
   },
   "asia": {
-    "label": "Asian Flags", "shortLabel": "Asia", "allowedTypes": ["type"],
+    "label": "Asia", "shortLabel": "Asia", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country or territory", "memberCount": 50, "sourceKind": "country", "sourceGroup": "asia",
     "description": "Practice the 50 available flags in Smurdy's Asia set.",
     "lead": "Type the place represented by each of the 50 available Asian flags.",
@@ -44,7 +44,7 @@
     "tags": ["continent", "large set"]
   },
   "africa": {
-    "label": "African Flags", "shortLabel": "Africa", "allowedTypes": ["type"],
+    "label": "Africa", "shortLabel": "Africa", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country or territory", "memberCount": 56, "sourceKind": "country", "sourceGroup": "africa",
     "description": "Practice all 56 flags in Smurdy's Africa set.",
     "lead": "Type the place represented by each of the 56 African flags.",
@@ -55,7 +55,7 @@
     "tags": ["continent", "large set"]
   },
   "north_america": {
-    "label": "North American Flags", "shortLabel": "North America", "allowedTypes": ["type"],
+    "label": "North America", "shortLabel": "North America", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country", "memberCount": 23, "sourceKind": "country", "sourceGroup": "north_america",
     "description": "Practice the 23 national flags in Smurdy's North America set.",
     "lead": "Type the country represented by each of the 23 North American flags.",
@@ -66,7 +66,7 @@
     "tags": ["continent", "small set"]
   },
   "south_america": {
-    "label": "South American Flags", "shortLabel": "South America", "allowedTypes": ["type"],
+    "label": "South America", "shortLabel": "South America", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country", "memberCount": 12, "sourceKind": "country", "sourceGroup": "south_america",
     "description": "Practice the flags of all 12 South American countries.",
     "lead": "Type the country represented by each of the 12 South American flags.",
@@ -77,7 +77,7 @@
     "tags": ["continent", "small set"]
   },
   "oceania": {
-    "label": "Oceanian Flags", "shortLabel": "Oceania", "allowedTypes": ["type"],
+    "label": "Oceania", "shortLabel": "Oceania", "family": "countries", "allowedTypes": ["type"],
     "unitName": "country", "memberCount": 14, "sourceKind": "country", "sourceGroup": "oceania",
     "description": "Practice the flags of all 14 countries in Smurdy's Oceania set.",
     "lead": "Type the country represented by each of the 14 Oceanian flags.",

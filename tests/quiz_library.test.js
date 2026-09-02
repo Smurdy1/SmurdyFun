@@ -131,3 +131,30 @@ test("quiz browser exposes library views and search filters", () => {
         /favorite quizzes, recently played quizzes/
     );
 });
+
+test("quiz directories share one design and flags expose the planned taxonomy", () => {
+    const manifest = fs.readFileSync(
+        path.resolve(__dirname, "../src/js/manifest.js"),
+        "utf8"
+    );
+    const allQuizzes = fs.readFileSync(
+        path.resolve(__dirname, "../quizzes/index.html"),
+        "utf8"
+    );
+    const modeHub = fs.readFileSync(
+        path.resolve(__dirname, "../quizzes/click-country/index.html"),
+        "utf8"
+    );
+
+    assert.match(manifest, /id: "locate-flag"/);
+    assert.match(manifest, /status: "coming-soon"/);
+    assert.match(manifest, /families: \["countries", "subdivisions"\]/);
+    assert.match(allQuizzes, /styles\/quiz_directory\.css/);
+    assert.match(allQuizzes, /<h2>Country maps<\/h2>/);
+    assert.match(allQuizzes, /<h2>Subdivision maps<\/h2>/);
+    assert.match(allQuizzes, /<h2>Flags<\/h2>/);
+    assert.match(modeHub, /styles\/quiz_directory\.css/);
+    assert.match(modeHub, /<h2>Main sets<\/h2>/);
+    assert.match(modeHub, /<h2>Regional sets<\/h2>/);
+    assert.doesNotMatch(allQuizzes, /<ul>/);
+});

@@ -1,0 +1,59 @@
+:root {
+    --directory-blue: #0077cc;
+    --directory-blue-dark: #075f9e;
+    --directory-text: #171717;
+    --directory-muted: #626262;
+    --directory-line: #dedede;
+    --directory-soft: #f3f6f8;
+    --directory-radius: 12px;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--directory-soft); color: var(--directory-text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.55; }
+a { color: var(--directory-blue-dark); }
+a:focus-visible, summary:focus-visible { outline: 3px solid rgba(0, 119, 204, .28); outline-offset: 3px; }
+
+.directory-header { border-bottom: 1px solid rgba(0, 0, 0, .09); background: #fff; }
+.directory-brand { display: flex; width: fit-content; min-height: 78px; margin: 0 auto; padding: 13px 20px; align-items: center; gap: 11px; color: var(--directory-text); font-size: 19px; font-weight: 800; text-decoration: none; }
+.directory-brand img { width: 48px; height: 48px; object-fit: contain; }
+.directory-shell { width: min(1100px, calc(100% - 36px)); margin: 24px auto; padding: 30px 32px 28px; border: 1px solid rgba(0, 0, 0, .09); border-radius: var(--directory-radius); background: #fff; box-shadow: 0 7px 24px rgba(0, 0, 0, .08); }
+.directory-breadcrumbs { display: flex; margin: 0 0 22px; align-items: center; flex-wrap: wrap; gap: 7px; color: var(--directory-muted); font-size: 14px; }
+.directory-breadcrumbs a { text-decoration: none; }
+.directory-breadcrumbs a:hover { text-decoration: underline; }
+.directory-title { margin: 0 0 9px; font-size: clamp(30px, 4.5vw, 42px); line-height: 1.15; letter-spacing: -.025em; }
+.directory-lead { max-width: 76ch; margin: 0; color: #333; font-size: 18px; }
+.directory-section { margin-top: 34px; }
+.directory-section + .directory-section { padding-top: 28px; border-top: 1px solid var(--directory-line); }
+.directory-section h2 { margin: 0 0 5px; font-size: 23px; line-height: 1.25; }
+.directory-section-lead { margin: 0 0 15px; color: var(--directory-muted); }
+.directory-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.directory-card { display: flex; min-width: 0; min-height: 82px; padding: 14px 15px; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid var(--directory-line); border-radius: 9px; background: #fff; color: var(--directory-text); text-decoration: none; }
+.directory-card:hover { border-color: #aaa; background: #fafbfc; }
+.directory-card-title { font-size: 16px; font-weight: 800; line-height: 1.25; }
+.directory-card-meta { color: var(--directory-muted); font-size: 13px; }
+.directory-card-description { color: #444; font-size: 14px; line-height: 1.4; }
+.directory-card-disabled { cursor: default; border-style: dashed; background: #f7f7f7; color: #888; }
+.directory-card-disabled:hover { border-color: var(--directory-line); background: #f7f7f7; }
+.directory-coming-soon { color: #888; font-size: 12px; font-weight: 750; }
+.directory-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.directory-mode-card { min-height: 126px; justify-content: flex-start; }
+.directory-mode-card .directory-card-title { color: var(--directory-blue-dark); font-size: 19px; }
+.directory-related { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.directory-chip { display: inline-flex; min-height: 40px; padding: 8px 12px; align-items: center; border: 1px solid var(--directory-line); border-radius: 7px; background: #fff; color: var(--directory-text); text-decoration: none; }
+.directory-chip:hover { border-color: #aaa; text-decoration: underline; text-underline-offset: 3px; }
+.directory-footer { width: min(1100px, calc(100% - 36px)); margin: 0 auto; padding: 0 0 34px; color: var(--directory-muted); font-size: 14px; }
+
+@media (max-width: 820px) {
+    .directory-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+    body { background: #fff; }
+    .directory-brand { min-height: 68px; }
+    .directory-brand img { width: 43px; height: 43px; }
+    .directory-shell { width: 100%; margin: 0; padding: 22px 18px 24px; border: 0; border-radius: 0; box-shadow: none; }
+    .directory-card-grid, .directory-mode-grid { grid-template-columns: 1fr; }
+    .directory-card { min-height: 72px; }
+    .directory-footer { width: 100%; padding: 18px 18px 30px; border-top: 1px solid var(--directory-line); }
+}
