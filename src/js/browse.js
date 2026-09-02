@@ -560,6 +560,23 @@
             box-shadow: 0 1px 3px rgba(0,0,0,.14);
         }
 
+        .qb-mode-tab:disabled {
+            cursor: not-allowed;
+            color: #9b9b9b;
+            opacity: .76;
+        }
+
+        .qb-mode-tab:disabled:hover {
+            background: transparent;
+        }
+
+        .qb-mode-tab .qb-coming-soon {
+            display: inline;
+            margin: 0 0 0 5px;
+            font-size: 10px;
+            color: inherit;
+        }
+
         /* Row 3: simple underlined content-family tabs. */
         #qb-family-tabs {
             display: flex;
@@ -1070,6 +1087,7 @@
         type: { title: "Type" },
         find: { title: "No Borders" },
         "find-point": { title: "Point" },
+        locate: { title: "Locate" },
         "multiple-choice": { title: "Multiple Choice" }
     };
 
@@ -1078,6 +1096,7 @@
         "type",
         "find",
         "find-point",
+        "locate",
         "multiple-choice"
     ];
 
@@ -1135,6 +1154,9 @@
         if (raw.includes("find-point")) {
             return "find-point";
         }
+        if (raw === "locate" || raw.includes("locate-flag")) {
+            return "locate";
+        }
         if (
             raw === "find" ||
             raw.includes("find-country") ||
@@ -1173,6 +1195,18 @@
         return "countries";
     }
 
+    function familyKeysForManifest(item) {
+        const explicit = Array.isArray(item?.families)
+            ? item.families.map(value => String(value).toLowerCase()).filter(Boolean)
+            : [];
+        return explicit.length ? explicit : [familyKeyForManifest(item)];
+    }
+
+    function manifestIsPlayable(item) {
+        return String(item?.status || "").toLowerCase() !== "coming-soon" &&
+            !item?.config?.comingSoon;
+    }
+
     function manifestsForCategory(category) {
         return (baseManifest || []).filter(
             item => categoryKeyForManifest(item) === category
@@ -1192,7 +1226,7 @@
     ) {
         const manifests = manifestsForMode(category, interaction);
         return manifests.filter(
-            item => familyKeyForManifest(item) === family
+            item => manifestIsPlayable(item) && familyKeysForManifest(item).includes(family)
         );
     }
 
@@ -1235,9 +1269,9 @@
     function availableFamilyKeys(category, interaction) {
         const discovered = Array.from(
             new Set(
-                manifestsForMode(category, interaction).map(
-                    familyKeyForManifest
-                )
+                manifestsForMode(category, interaction)
+                    .filter(manifestIsPlayable)
+                    .flatMap(familyKeysForManifest)
             )
         );
 
@@ -1267,8 +1301,9 @@
                 "maps";
         }
 
-        const interactions =
-            availableInteractionKeys(activeCategory);
+        const interactions = availableInteractionKeys(activeCategory).filter(key =>
+            manifestsForMode(activeCategory, key).some(manifestIsPlayable)
+        );
 
         if (!interactions.includes(activeInteraction)) {
             activeInteraction = interactions[0] || "click";
@@ -1427,11 +1462,12 @@
     function buildCardsForManifest(
         manifestItem,
         groupCollection,
-        pageDescriptions
+        pageDescriptions,
+        selectedFamily = null
     ) {
         const interaction =
             interactionKeyForManifest(manifestItem);
-        const family =
+        const fallbackFamily =
             familyKeyForManifest(manifestItem);
         const out = [];
 
@@ -1439,6 +1475,14 @@
             const [id, group]
             of Object.entries(groupCollection || {})
         ) {
+            if (
+                selectedFamily &&
+                group.family &&
+                group.family !== selectedFamily
+            ) {
+                continue;
+            }
+
             if (
                 Array.isArray(group.allowedTypes) &&
                 group.allowedTypes.length > 0 &&
@@ -1454,6 +1498,10 @@
                         ? group.countries
                         : []
                 );
+            const family =
+                group.family ||
+                selectedFamily ||
+                fallbackFamily;
 
             out.push({
                 id,
@@ -1593,8 +1641,15 @@
                             MODE_PRESENTATION[key] ||
                             {
                                 title:
-                                    getFriendlyTypeLabel(key)
+                                getFriendlyTypeLabel(key)
                             };
+                        const available = manifestsForMode(
+                            activeCategory,
+                            key
+                        ).some(manifestIsPlayable);
+                        const selected =
+                            available &&
+                            key === activeInteraction;
 
                         return `
                             <button
@@ -1602,9 +1657,13 @@
                                 type="button"
                                 role="tab"
                                 data-interaction="${escapeHtml(key)}"
-                                aria-selected="${key === activeInteraction ? "true" : "false"}"
+                                aria-selected="${selected ? "true" : "false"}"
+                                ${available ? "" : "disabled"}
                             >
                                 ${escapeHtml(info.title)}
+                                ${available
+                                    ? ""
+                                    : `<span class="qb-coming-soon">Coming soon!</span>`}
                             </button>
                         `;
                     }).join("")}
@@ -1710,7 +1769,8 @@
                     ...buildCardsForManifest(
                         manifestItem,
                         groupCollection,
-                        pageDescriptions
+                        pageDescriptions,
+                        activeFamily
                     )
                 );
             } catch (error) {
@@ -1733,6 +1793,10 @@
             const cards = [];
 
             for (const manifestItem of baseManifest || []) {
+                if (!manifestIsPlayable(manifestItem)) {
+                    continue;
+                }
+
                 const groupSetId =
                     manifestItem.groupSet ||
                     "country_groups";

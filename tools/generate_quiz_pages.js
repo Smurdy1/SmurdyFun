@@ -506,13 +506,15 @@ ${pageSpecificSectionHtml}
                 quizTitle: titleBase,
                 manifestId,
                 groupId,
-                groupSet: activeGroupSetId
+                groupSet: activeGroupSetId,
+                entryCount,
+                unitPlural
             });
         }
     }
 
     await writeLegacySubdivisionPages({ outDir, publicRoot });
-    const modeHubPages = await writeModeIndexes({ outDir, pageRecords, publicRoot });
+    const modeHubPages = await writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot });
     const flagPageRecords = Object.entries(groupSets.flag_groups || {}).map(([groupId, group]) => ({
         url: `${publicRoot}/quizzes/type-flag/${slug(groupId)}/`,
         path: `/quizzes/type-flag/${slug(groupId)}/`,
@@ -521,9 +523,11 @@ ${pageSpecificSectionHtml}
         quizTitle: "Type the Flags",
         manifestId: "type-flag",
         groupId,
-        groupSet: "flag_groups"
+        groupSet: "flag_groups",
+        entryCount: Number(group.memberCount || 0),
+        unitPlural: "flags"
     }));
-    await writeQuizIndex({ outDir, pageRecords: [...pageRecords, ...flagPageRecords], publicRoot });
+    await writeUnifiedQuizIndex({ outDir, pageRecords: [...pageRecords, ...flagPageRecords], publicRoot });
     await writeSitemap({
         repoRoot,
         pages: [
@@ -932,6 +936,145 @@ function buildKeywords({ manifestEntry, modeCopy, groupCopy, groupLabel, unitPlu
             return true;
         })
         .slice(0, 18);
+}
+
+const DIRECTORY_MODE_CONFIG = {
+    "click-country": { name: "Click", heading: "Click the Countries", family: "countries", description: "Choose a named country by clicking it on the map." },
+    "type-country": { name: "Type", heading: "Type the Countries", family: "countries", description: "Type the name of each highlighted country." },
+    "find-country": { name: "No Borders", heading: "Find Countries Without Borders", family: "countries", description: "Locate countries with their political borders hidden." },
+    "find-point": { name: "Point", heading: "Find the Country from a Point", family: "countries", description: "Identify the country containing each point." },
+    "click-subdivision": { name: "Click", heading: "Click the Subdivisions", family: "subdivisions", description: "Choose a named state or subdivision on the map." },
+    "type-subdivision": { name: "Type", heading: "Type the Subdivisions", family: "subdivisions", description: "Type the name of each highlighted subdivision." },
+    "find-subdivision": { name: "No Borders", heading: "Find Subdivisions Without Borders", family: "subdivisions", description: "Locate subdivisions with their internal borders hidden." },
+    "find-point-subdivision": { name: "Point", heading: "Find the Subdivision from a Point", family: "subdivisions", description: "Identify the subdivision containing each point." },
+    "type-flag": { name: "Type", heading: "Type the Flags", family: "flags", description: "Identify each flag by typing the place it represents." }
+};
+
+const MAIN_DIRECTORY_GROUPS = new Set([
+    "world", "europe", "asia", "africa", "north_america", "south_america", "oceania"
+]);
+const SPECIALTY_DIRECTORY_GROUPS = new Set([
+    "european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands"
+]);
+
+function directoryDocumentStart({ title, description, canonical, publicRoot }) {
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(description)}"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="${escapeHtml(canonical)}"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_directory.css?v=20260901-directory-1"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
+</head>
+<body>
+  <header class="directory-header"><a class="directory-brand" href="${publicRoot}/"><img src="${publicRoot}/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span></a></header>`;
+}
+
+function directoryBreadcrumbs(items, publicRoot) {
+    return `<nav class="directory-breadcrumbs" aria-label="Breadcrumb">
+      <a href="${publicRoot}/">Smurdy</a><span aria-hidden="true">›</span>
+      ${items.map((item, index) => item.href
+        ? `<a href="${item.href}">${escapeHtml(item.label)}</a><span aria-hidden="true">›</span>`
+        : `<span>${escapeHtml(item.label)}</span>`
+      ).join("")}
+    </nav>`;
+}
+
+function directoryFooter(publicRoot) {
+    return `<footer class="directory-footer"><a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy</a></footer></body></html>`;
+}
+
+function recordMeta(record) {
+    const count = Number(record.entryCount || 0);
+    const units = String(record.unitPlural || "items");
+    return count ? `${count} ${units}` : "Full set";
+}
+
+function renderRecordCards(records) {
+    return `<div class="directory-card-grid">${records.map(record => `
+      <a class="directory-card" href="${record.path}">
+        <span class="directory-card-title">${escapeHtml(record.groupLabel)}</span>
+        <span class="directory-card-meta">${escapeHtml(recordMeta(record))}</span>
+      </a>`).join("")}
+    </div>`;
+}
+
+function groupedDirectorySections(records) {
+    const main = records.filter(record => MAIN_DIRECTORY_GROUPS.has(record.groupId));
+    const specialty = records.filter(record => SPECIALTY_DIRECTORY_GROUPS.has(record.groupId));
+    const regional = records.filter(record =>
+        !MAIN_DIRECTORY_GROUPS.has(record.groupId) &&
+        !SPECIALTY_DIRECTORY_GROUPS.has(record.groupId) &&
+        record.groupId !== "us_states"
+    );
+    const subdivisions = records.filter(record => record.groupId === "us_states");
+    const sections = [];
+    if (main.length) sections.push(["Main sets", "Start with the world or one continent.", main]);
+    if (subdivisions.length) sections.push(["Subdivision sets", "Practice geography below the country level.", subdivisions]);
+    if (regional.length) sections.push(["Regional sets", "Focus on a smaller geographic region.", regional]);
+    if (specialty.length) sections.push(["Specialty sets", "Practice political, historical, island, and size-based groups.", specialty]);
+    return sections.map(([heading, lead, values]) => `<section class="directory-section"><h2>${heading}</h2><p class="directory-section-lead">${lead}</p>${renderRecordCards(values)}</section>`).join("");
+}
+
+async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
+    const availableModeIds = Object.keys(DIRECTORY_MODE_CONFIG).filter(modeId =>
+        modeId !== "type-flag" && pageRecords.some(record => record.manifestId === modeId)
+    );
+    const pages = [];
+    for (const modeId of availableModeIds) {
+        const mode = DIRECTORY_MODE_CONFIG[modeId];
+        const records = pageRecords.filter(record => record.manifestId === modeId);
+        const related = availableModeIds
+            .filter(id => id !== modeId && DIRECTORY_MODE_CONFIG[id].family === mode.family)
+            .map(id => `<a class="directory-chip" href="${publicRoot}/quizzes/${id}/">${escapeHtml(DIRECTORY_MODE_CONFIG[id].heading)}</a>`)
+            .join("");
+        const pageDescription = `${mode.description} Choose from ${records.length} available quiz sets.`;
+        const html = `${directoryDocumentStart({ title: `${mode.heading} Geography Quizzes | Smurdy`, description: pageDescription, canonical: `${publicRoot}/quizzes/${modeId}/`, publicRoot })}
+  <main class="directory-shell">
+    ${directoryBreadcrumbs([{ label: "All quizzes", href: `${publicRoot}/quizzes/` }, { label: mode.heading }], publicRoot)}
+    <h1 class="directory-title">${escapeHtml(mode.heading)} Quizzes</h1>
+    <p class="directory-lead">${escapeHtml(pageDescription)}</p>
+    ${groupedDirectorySections(records)}
+    <section class="directory-section"><h2>Other ${mode.family === "countries" ? "country" : "subdivision"} modes</h2><div class="directory-related">${related}</div></section>
+  </main>
+  ${directoryFooter(publicRoot)}`;
+        const modeDir = path.join(outDir, modeId);
+        await fs.mkdir(modeDir, { recursive: true });
+        await fs.writeFile(path.join(modeDir, "index.html"), html, "utf8");
+        pages.push(`${publicRoot}/quizzes/${modeId}/`);
+    }
+    return pages;
+}
+
+function renderModeDirectoryCard({ modeId, count, publicRoot }) {
+    const mode = DIRECTORY_MODE_CONFIG[modeId];
+    return `<a class="directory-card directory-mode-card" href="${publicRoot}/quizzes/${modeId}/">
+      <span class="directory-card-title">${escapeHtml(mode.name)}</span>
+      <span class="directory-card-description">${escapeHtml(mode.description)}</span>
+      <span class="directory-card-meta">${count} ${count === 1 ? "quiz set" : "quiz sets"}</span>
+    </a>`;
+}
+
+async function writeUnifiedQuizIndex({ outDir, pageRecords, publicRoot }) {
+    const countFor = modeId => pageRecords.filter(record => record.manifestId === modeId).length;
+    const countryModes = ["click-country", "type-country", "find-country", "find-point"];
+    const subdivisionModes = ["click-subdivision", "type-subdivision", "find-subdivision", "find-point-subdivision"];
+    const description = "Browse every Smurdy geography quiz by category, game mode, and subject.";
+    const html = `${directoryDocumentStart({ title: "All Smurdy Geography Quizzes", description, canonical: `${publicRoot}/quizzes/`, publicRoot })}
+  <main class="directory-shell">
+    ${directoryBreadcrumbs([{ label: "All quizzes" }], publicRoot)}
+    <h1 class="directory-title">All Geography Quizzes</h1>
+    <p class="directory-lead">Choose a category and game mode. Each directory contains the complete list of available quiz sets.</p>
+    <section class="directory-section"><h2>Country maps</h2><p class="directory-section-lead">Learn country names, shapes, locations, and borders.</p><div class="directory-mode-grid">${countryModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Subdivision maps</h2><p class="directory-section-lead">Practice states and other first-level subdivisions.</p><div class="directory-mode-grid">${subdivisionModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Flags</h2><p class="directory-section-lead">Recognize flags and connect them with their places.</p><div class="directory-mode-grid">${renderModeDirectoryCard({ modeId: "type-flag", count: countFor("type-flag"), publicRoot })}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag and locate its country on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
+  </main>
+  ${directoryFooter(publicRoot)}`;
+    await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
 }
 
 async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {

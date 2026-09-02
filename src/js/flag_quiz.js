@@ -114,6 +114,7 @@
         const review = document.querySelector("[data-flag-review]");
         const summary = document.querySelector("[data-flag-summary]");
         const favorite = document.querySelector("[data-flag-favorite]");
+        const afterActions = document.querySelector("[data-flag-after-actions]");
 
         if (!launch || !landing || !game || !image || !form || !input) return null;
 
@@ -129,6 +130,7 @@
         let startedAt = 0;
         let elapsed = 0;
         let timerInterval = null;
+        let advanceTimeout = null;
         let loadPromise = null;
 
         function analyticsSnapshot(answerCorrect) {
@@ -201,6 +203,7 @@
             giveUp.hidden = true;
             restart.hidden = false;
             if (retry) retry.hidden = misses.length === 0;
+            if (afterActions) afterActions.hidden = false;
 
             const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
             result.textContent = "Quiz complete";
@@ -237,9 +240,10 @@
             image.alt = `Flag ${index + 1} of ${flags.length}`;
             form.hidden = false;
             giveUp.hidden = false;
-            restart.hidden = true;
+            restart.hidden = false;
             if (retry) retry.hidden = true;
             if (summary) summary.hidden = true;
+            if (afterActions) afterActions.hidden = true;
             updateStats();
             input.focus({ preventScroll: true });
 
@@ -277,7 +281,8 @@
 
             root.SmurdyAnalytics?.recordAnswer?.(analyticsSnapshot(wasCorrect));
             updateStats();
-            root.setTimeout(() => {
+            advanceTimeout = root.setTimeout(() => {
+                advanceTimeout = null;
                 index++;
                 showQuestion();
             }, wasCorrect ? 650 : 1150);
@@ -292,6 +297,8 @@
         }
 
         function startRun(items, reason = "start") {
+            if (advanceTimeout) root.clearTimeout(advanceTimeout);
+            advanceTimeout = null;
             flags = shuffle(items);
             index = 0;
             attempts = 0;
@@ -299,6 +306,7 @@
             misses = [];
             locked = false;
             if (review) { review.hidden = true; review.innerHTML = ""; }
+            if (afterActions) afterActions.hidden = true;
             root.SmurdyAnalytics?.beginQuiz?.({
                 quiz_mode: "type-flag",
                 quiz_group: setId,
