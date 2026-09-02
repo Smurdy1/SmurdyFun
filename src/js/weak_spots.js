@@ -72,18 +72,23 @@
         return root?.sessionStorage || null;
     }
 
+    function dispatchChange() {
+        try {
+            if (!root?.dispatchEvent) return;
+            const EventCtor = root.CustomEvent || (typeof CustomEvent !== "undefined" ? CustomEvent : null);
+            if (EventCtor) root.dispatchEvent(new EventCtor("smurdy:weakspotschange"));
+        } catch (_) {}
+    }
+
     function migratedEntry(name, mode, oldEntry, misses) {
         const definition = modeDefinition(mode, oldEntry?.kind);
         const normalizedMode = normalizeMode(mode, definition.kind);
         const now = Date.now();
-        const groups = oldEntry?.groups && typeof oldEntry.groups === "object"
-            ? { ...oldEntry.groups }
-            : {};
-        const group = String(
-            oldEntry?.group ||
-            Object.entries(groups).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ||
-            definition.defaultGroup
-        );
+
+        // Older stores counted modes and groups independently, so a regional
+        // group cannot be safely assigned to one specific mode. Use a known
+        // broad group unless the legacy entry explicitly stored one group.
+        const group = String(oldEntry?.group || definition.defaultGroup);
 
         return {
             key: entryKey(name, normalizedMode),
@@ -192,7 +197,7 @@
             store.version = FORMAT_VERSION;
             store.entries = Object.fromEntries(keep.map(entry => [entry.key, entry]));
             local.setItem(STORAGE_KEY, JSON.stringify(store));
-            root?.dispatchEvent?.(new CustomEvent("smurdy:weakspotschange"));
+            dispatchChange();
             return true;
         } catch (_) {
             return false;
@@ -263,7 +268,7 @@
                 for (const legacyKey of LEGACY_STORAGE_KEYS) local.removeItem(legacyKey);
             }
             session()?.removeItem(PLAN_KEY);
-            root?.dispatchEvent?.(new CustomEvent("smurdy:weakspotschange"));
+            dispatchChange();
             return true;
         } catch (_) {
             return false;
