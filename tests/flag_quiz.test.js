@@ -69,6 +69,16 @@ test("curated regional flag sets match their advertised counts", () => {
     }
 });
 
+test("Weak Spots flag practice filters to only the requested flags", () => {
+    const world = api.selectFlags(sources, "world", flagGroups, countryGroups, countryAliases);
+    const retry = api.filterFlagsByNames(world, ["France", "Germany"]);
+
+    assert.deepEqual(
+        retry.map(flag => flag.name).sort(),
+        ["France", "Germany"]
+    );
+});
+
 test("flag routes load the shared runner and declare the correct set", () => {
     const routes = {
         world: "quizzes/type-flag/world/index.html",
