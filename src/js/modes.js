@@ -22,6 +22,11 @@
             usesTinyPoints: true,
 
             getCanonicalFeatureName(feature) {
+                const quizEntities = window.SmurdyQuizEntities;
+                if (quizEntities && typeof quizEntities.getCanonicalCountryName === "function") {
+                    return quizEntities.getCanonicalCountryName(feature);
+                }
+
                 const p = (feature && feature.properties) ? feature.properties : {};
                 const candidates = [
                     p.SOVEREIGNT,

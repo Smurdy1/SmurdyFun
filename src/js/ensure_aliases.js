@@ -1,6 +1,7 @@
 // fix_alias_keys_from_canonicals.js
 const fs = require("fs");
 const path = require("path");
+const { getCanonicalCountryName } = require("./quiz_entities.js");
 
 const countriesPath = path.join(__dirname, "countries.json");
 const aliasesPath = path.join(__dirname, "aliases.json");
@@ -27,6 +28,11 @@ function stripLeadingArticle(text) {
 
 function getCanonicalFeatureName(feature) {
     if (!feature || !feature.properties) return "Unknown";
+
+    const explicitQuizEntity = getCanonicalCountryName(feature);
+    if (explicitQuizEntity !== feature.properties.SOVEREIGNT) {
+        return explicitQuizEntity;
+    }
 
     const p = feature.properties;
 

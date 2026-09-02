@@ -31,6 +31,17 @@ test("trust-page copy keeps the creator's direct voice", () => {
     assert.doesNotMatch(copy, /not just|—/i);
 });
 
+test("About explains the neutral quiz-entity policy", () => {
+    const about = fs.readFileSync(
+        path.join(root, "about/index.html"),
+        "utf8"
+    );
+
+    assert.match(about, /How places are counted/);
+    assert.match(about, /UN member and observer states/);
+    assert.match(about, /do not represent Smurdy's position/);
+});
+
 test("trust-page navigation is available from core site pages", () => {
     for (const relativePath of [
         "index.html",

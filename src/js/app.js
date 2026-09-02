@@ -1,7 +1,7 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260828-quiz-library-1";
+    const ASSET_VERSION = "20260902-quiz-entities-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
@@ -131,9 +131,11 @@
      * independent menu map, so its control is configured inside
      * showMainMenuMap() in app_core.js.
      */
-    loadScript("/src/js/modes.js", function() {
-        loadScript("/src/js/app_core.js", function() {
-            console.log("smurdy: bootstrap loaded modes + app_core");
+    loadScript("/src/js/quiz_entities.js", function() {
+        loadScript("/src/js/modes.js", function() {
+            loadScript("/src/js/app_core.js", function() {
+                console.log("smurdy: bootstrap loaded quiz entities + modes + app_core");
+            });
         });
     });
 })();

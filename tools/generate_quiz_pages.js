@@ -1,6 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 const vm = require("vm");
+const { getCanonicalCountryName } = require("../src/js/quiz_entities.js");
 
 (async function main() {
     const repoRoot = path.resolve(__dirname, "..");
@@ -643,14 +644,7 @@ function getWorldQuizNames(features) {
             continue;
         }
 
-        const name = String(
-            properties.sovereignt ||
-            properties.SOVEREIGNT ||
-            properties.sovereignty ||
-            properties.ADMIN ||
-            properties.admin ||
-            ""
-        ).trim();
+        const name = getCanonicalCountryName(feature);
         const key = normalize(name);
 
         if (key && !namesByKey.has(key)) {
