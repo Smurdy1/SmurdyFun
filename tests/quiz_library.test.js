@@ -115,9 +115,10 @@ test("quiz browser exposes library views and search filters", () => {
     assert.match(browse, /data-library-view=/);
     assert.match(browse, /id="qb-size-filter"/);
     assert.match(browse, /class="qb-favorite"/);
-    assert.match(browse, /tags\.add\("continent"\)/);
-    assert.match(browse, /tags\.add\("large set"\)/);
-    assert.match(browse, /Array\.from\(tags\)\.slice\(0, 2\)/);
+    assert.match(browse, /function memberCountForGroup/);
+    assert.match(browse, /memberCount >= 30/);
+    assert.match(browse, /memberCount > 0 && memberCount < 30/);
+    assert.match(browse, /Array\.from\(new Set\(tags\)\)\.slice\(0, 2\)/);
     assert.doesNotMatch(browse, /All Modes/);
     assert.doesNotMatch(browse, /All Types/);
     assert.match(
@@ -130,6 +131,33 @@ test("quiz browser exposes library views and search filters", () => {
         privacy,
         /favorite quizzes, recently played quizzes/
     );
+});
+
+test("saved flag cards are distinct and browser play links launch them directly", () => {
+    const browse = fs.readFileSync(
+        path.resolve(__dirname, "../src/js/browse.js"),
+        "utf8"
+    );
+    const flagRunner = fs.readFileSync(
+        path.resolve(__dirname, "../src/js/flag_quiz.js"),
+        "utf8"
+    );
+    const countryGroups = JSON.parse(fs.readFileSync(
+        path.resolve(__dirname, "../src/data/country_groups.json"),
+        "utf8"
+    ));
+    const flagGroups = JSON.parse(fs.readFileSync(
+        path.resolve(__dirname, "../src/data/flag_groups.json"),
+        "utf8"
+    ));
+
+    assert.match(browse, /category === "flags"\s*\? "Flags"/);
+    assert.match(browse, /`\$\{card\.label\} Flags`/);
+    assert.match(browse, /quizId === "type-flag" \? `\$\{path\}\?play=1`/);
+    assert.match(browse, /ready \|\| isFlagQuiz/);
+    assert.match(flagRunner, /URLSearchParams[\s\S]*get\("play"\) === "1"/);
+    assert.equal(countryGroups.world.memberCount, 200);
+    assert.ok(Object.values(flagGroups).every(group => !("tags" in group)));
 });
 
 test("quiz directories share one design and flags expose the planned taxonomy", () => {

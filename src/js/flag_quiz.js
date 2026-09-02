@@ -375,6 +375,12 @@
         });
         updateFavoriteButton();
 
+        try {
+            if (new URLSearchParams(root.location?.search || "").get("play") === "1") {
+                void launchQuiz();
+            }
+        } catch (_) {}
+
         return { launchQuiz, restartQuiz: () => startRun(allFlags, "restart") };
     }
 
