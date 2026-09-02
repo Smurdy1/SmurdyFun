@@ -419,8 +419,12 @@ button:disabled {
 .weak-spots-list{margin:0;padding:8px 20px;overflow:auto;list-style:none}
 .weak-spot-item{padding:12px 0;border-bottom:1px solid var(--smurdy-line)}
 .weak-spot-item:last-child{border-bottom:0}
+.weak-spot-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
 .weak-spot-name{font-weight:750;line-height:1.3}
-.weak-spot-meta{margin-top:3px;color:var(--smurdy-muted);font-size:13px;line-height:1.4}
+.weak-spot-group,.weak-spot-mode{display:inline-flex;min-height:24px;padding:3px 8px;align-items:center;border-radius:6px;font-size:12px;font-weight:650;line-height:1.2}
+.weak-spot-group{background:#f1f3f5;color:#4c5157}
+.weak-spot-mode{border:1px solid rgba(0,119,204,.22);background:rgba(0,119,204,.07);color:#075f9e}
+.weak-spot-meta{margin-top:4px;color:var(--smurdy-muted);font-size:13px;line-height:1.4}
 .weak-spots-empty{display:flex;min-height:150px;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:var(--smurdy-muted);text-align:center}
 .weak-spots-empty strong{color:var(--smurdy-text)}
 .weak-spots-dialog-footer{display:flex;padding:13px 20px;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--smurdy-line);color:var(--smurdy-muted);font-size:12px}
@@ -585,3 +589,14 @@ button:disabled {
         border-top: 1px solid var(--smurdy-line);
     }
 }
+
+
+/* Weak Spots visual hierarchy */
+#weak-spots-dialog .weak-spot-item{display:block}
+#weak-spots-dialog .weak-spot-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+#weak-spots-dialog .weak-spot-name{min-width:0;font-weight:750;line-height:1.3}
+#weak-spots-dialog .weak-spot-group,#weak-spots-dialog .weak-spot-mode{display:inline-flex;min-height:24px;padding:3px 8px;align-items:center;border-radius:6px;font-size:12px;font-weight:650;line-height:1.2;white-space:nowrap}
+#weak-spots-dialog .weak-spot-group{background:#f1f3f5;color:#4c5157}
+#weak-spots-dialog .weak-spot-mode{border:1px solid rgba(0,119,204,.22);background:rgba(0,119,204,.07);color:#075f9e}
+#weak-spots-dialog .weak-spot-meta{min-width:0;margin-top:4px;padding:0;background:transparent;color:var(--smurdy-muted);font-size:13px;font-weight:400;line-height:1.4;text-align:left}
+#weak-spots-dialog .weak-spots-dialog-header h2{margin-bottom:0}

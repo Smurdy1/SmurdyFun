@@ -457,8 +457,10 @@
         } else {
             list.innerHTML = entries.slice(0, MAX_VISIBLE).map(entry => (
                 '<li class="weak-spot-item">' +
-                    '<div class="weak-spot-name">' +
-                        escapeHtml(entry.name) + " · " + escapeHtml(modeLabel(entry.mode)) +
+                    '<div class="weak-spot-main">' +
+                        '<span class="weak-spot-name">' + escapeHtml(entry.name) + "</span>" +
+                        '<span class="weak-spot-group">' + escapeHtml(humanizeGroup(entry.group)) + "</span>" +
+                        '<span class="weak-spot-mode">' + escapeHtml(modeLabel(entry.mode)) + "</span>" +
                     "</div>" +
                     '<div class="weak-spot-meta">' +
                         Number(entry.misses || 0) + " " +
@@ -488,8 +490,7 @@
         dialog.innerHTML =
             '<div class="weak-spots-dialog-card">' +
                 '<header class="weak-spots-dialog-header">' +
-                    '<div><h2 id="weak-spots-title">Weak Spots</h2>' +
-                    "<p>Each quiz type is tracked separately. Retry Missed uses the same kind of question, and one clean answer clears that weak spot.</p></div>" +
+                    '<div><h2 id="weak-spots-title">Weak Spots</h2></div>' +
                     '<button id="weak-spots-close" type="button" aria-label="Close Weak Spots">×</button>' +
                 "</header>" +
                 '<ol id="weak-spots-list" class="weak-spots-list"></ol>' +
