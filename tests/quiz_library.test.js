@@ -156,7 +156,7 @@ test("saved flag cards are distinct and browser play links launch them directly"
     assert.match(browse, /quizId === "type-flag" \? `\$\{path\}\?play=1`/);
     assert.match(browse, /ready \|\| isFlagQuiz/);
     assert.match(flagRunner, /URLSearchParams[\s\S]*get\("play"\) === "1"/);
-    assert.equal(countryGroups.world.memberCount, 200);
+    assert.equal(countryGroups.world.memberCount, 201);
     assert.ok(Object.values(flagGroups).every(group => !("tags" in group)));
 });
 
