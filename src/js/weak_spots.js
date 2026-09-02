@@ -457,9 +457,10 @@
         } else {
             list.innerHTML = entries.slice(0, MAX_VISIBLE).map(entry => (
                 '<li class="weak-spot-item">' +
-                    '<div class="weak-spot-name">' + escapeHtml(entry.name) + "</div>" +
+                    '<div class="weak-spot-name">' +
+                        escapeHtml(entry.name) + " · " + escapeHtml(modeLabel(entry.mode)) +
+                    "</div>" +
                     '<div class="weak-spot-meta">' +
-                        escapeHtml(modeLabel(entry.mode)) + " · " +
                         Number(entry.misses || 0) + " " +
                         (Number(entry.misses) === 1 ? "miss" : "misses") +
                     "</div>" +
