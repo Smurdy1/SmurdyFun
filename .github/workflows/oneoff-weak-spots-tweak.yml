@@ -23,24 +23,26 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           weak = Path('src/js/weak_spots.js')
           text = weak.read_text()
-          old = '''                '<li class="weak-spot-item">' +
-                    '<div class="weak-spot-name">' + escapeHtml(entry.name) + "</div>" +
-                    '<div class="weak-spot-meta">' +
-                        escapeHtml(modeLabel(entry.mode)) + " · " +
-                        Number(entry.misses || 0) + " " +
-                        (Number(entry.misses) === 1 ? "miss" : "misses") +
-                    "</div>" +
-                "</li>"'''
-          new = '''                '<li class="weak-spot-item">' +
-                    '<div class="weak-spot-name">' + escapeHtml(entry.name) + "</div>" +
-                    '<div class="weak-spot-meta">' + escapeHtml(modeLabel(entry.mode)) + "</div>" +
-                "</li>"'''
-          if old not in text:
-              raise SystemExit('Weak Spots render block not found')
-          weak.write_text(text.replace(old, new, 1))
+          pattern = re.compile(
+              r"('<div class=\"weak-spot-name\">' \+ escapeHtml\(entry\.name\) \+ \"</div>\" \+\s*)"
+              r"'<div class=\"weak-spot-meta\">' \+\s*"
+              r"escapeHtml\(modeLabel\(entry\.mode\)\) \+ \" · \" \+\s*"
+              r"Number\(entry\.misses \|\| 0\) \+ \" \" \+\s*"
+              r"\(Number\(entry\.misses\) === 1 \? \"miss\" : \"misses\"\) \+\s*"
+              r"\"</div>\" \+"
+          )
+          replacement = (
+              r"\1"
+              "'<div class=\"weak-spot-meta\">' + escapeHtml(modeLabel(entry.mode)) + \"</div>\" +"
+          )
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit(f'Weak Spots render block replacements: {count}')
+          weak.write_text(text)
 
           core = Path('src/js/app_core.js')
           text = core.read_text()
