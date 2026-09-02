@@ -79,6 +79,7 @@ test("flag routes load the shared runner and declare the correct set", () => {
         const html = fs.readFileSync(path.join(root, relativePath), "utf8");
         assert.match(html, new RegExp(`data-flag-set=["']${setId}["']`));
         assert.match(html, /src\/js\/flag_quiz\.js/);
+        assert.match(html, /flag_quiz\.js\?v=20260902-flag-quiz-4/);
     }
 });
 

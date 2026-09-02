@@ -167,7 +167,9 @@
                 manifestItemOrId?.title ||
                 "quiz"
             );
-        return `/quizzes/${slug(rawQuizId)}/${slug(groupId || "world")}/`;
+        const quizId = slug(rawQuizId);
+        const path = `/quizzes/${quizId}/${slug(groupId || "world")}/`;
+        return quizId === "type-flag" ? `${path}?play=1` : path;
     }
 
     function isPlainLeftClick(e) {
@@ -1406,13 +1408,7 @@
         return `Practice the countries and locations of ${label} on an interactive map.`;
     }
 
-    function tagsForGroup(id, group, family) {
-        const tags = new Set(
-            (group?.tags || []).map(
-                tag => String(tag).toLowerCase()
-            )
-        );
-
+    function memberCountForGroup(group) {
         const members = Array.isArray(group?.members)
             ? group.members
             : (
@@ -1420,43 +1416,39 @@
                     ? group.countries
                     : []
             );
+        const declaredCount = Number(group?.memberCount);
+        return Number.isFinite(declaredCount) && declaredCount > 0
+            ? declaredCount
+            : members.length;
+    }
 
-        if (members.length > 0 && members.length < 30) {
-            tags.add("small set");
+    function tagsForGroup(id, group, family) {
+        const tags = [];
+        const memberCount = memberCountForGroup(group);
+
+        if (family === "subdivisions") {
+            tags.push("subdivisions");
         }
 
-        if (id.match(/island|pacific|caribbean|tiny/)) {
-            tags.add("islands");
-        }
-
-        if ([
-            "europe",
-            "asia",
-            "africa",
-            "south_america",
-            "north_america",
-            "oceania"
-        ].includes(id)) {
-            tags.add("continent");
+        if (/island|pacific|caribbean|tiny/.test(id) || id === "oceania") {
+            tags.push("islands");
         }
 
         if (id === "european_union") {
-            tags.add("organization");
+            tags.push("organization");
         }
 
         if (id === "former_soviet_union") {
-            tags.add("historical");
+            tags.push("historical");
         }
 
-        if (members.length >= 50) {
-            tags.add("large set");
+        if (memberCount > 0 && memberCount < 30) {
+            tags.push("small set");
+        } else if (memberCount >= 30) {
+            tags.push("large set");
         }
 
-        if (family === "subdivisions") {
-            tags.add("subdivisions");
-        }
-
-        return Array.from(tags).slice(0, 2);
+        return Array.from(new Set(tags)).slice(0, 2);
     }
 
     function buildCardsForManifest(
@@ -1491,13 +1483,6 @@
                 continue;
             }
 
-            const members = Array.isArray(group?.members)
-                ? group.members
-                : (
-                    Array.isArray(group?.countries)
-                        ? group.countries
-                        : []
-                );
             const family =
                 group.family ||
                 selectedFamily ||
@@ -1515,9 +1500,7 @@
                 tags: tagsForGroup(id, group, family),
                 meta: group,
                 manifest: manifestItem,
-                memberCount: Number.isFinite(Number(group?.memberCount))
-                    ? Number(group.memberCount)
-                    : members.length,
+                memberCount: memberCountForGroup(group),
                 featured:
                     family === "countries" &&
                     id === "world"
@@ -1902,10 +1885,18 @@
             MODE_PRESENTATION[
                 interactionKeyForManifest(card.manifest)
             ]?.title || card.manifest.title;
-        const family =
-            FAMILY_PRESENTATION[
-                familyKeyForManifest(card.manifest)
-            ]?.title || "Quiz";
+        const category = categoryKeyForManifest(card.manifest);
+        const family = category === "flags"
+            ? "Flags"
+            : (
+                FAMILY_PRESENTATION[
+                    familyKeyForManifest(card.manifest)
+                ]?.title || "Quiz"
+            );
+        const displayLabel =
+            showContext && category === "flags"
+                ? `${card.label} Flags`
+                : card.label;
 
         return `
             <div
@@ -1915,7 +1906,7 @@
                 <div class="qb-card-layout">
                     <div class="qb-card-copy">
                         <div class="qb-title">
-                            ${escapeHtml(card.label)}
+                            ${escapeHtml(displayLabel)}
                             ${showSuggested && card.featured
                                 ? `<span class="qb-main-badge">Suggested</span>`
                                 : ""}
@@ -1945,7 +1936,7 @@
                             data-favorite-group="${escapeHtml(card.id)}"
                             data-favorite-manifest="${escapeHtml(card.manifest.id)}"
                             aria-pressed="${favorite ? "true" : "false"}"
-                            aria-label="${favorite ? "Remove" : "Add"} ${escapeHtml(card.label)} ${favorite ? "from" : "to"} favorites"
+                            aria-label="${favorite ? "Remove" : "Add"} ${escapeHtml(displayLabel)} ${favorite ? "from" : "to"} favorites"
                             title="${favorite ? "Remove from favorites" : "Add to favorites"}"
                         >${favorite ? "★" : "☆"}</button>
                         <a
@@ -2230,12 +2221,18 @@
         );
 
         for (const link of links) {
+            const manifestItem = (baseManifest || []).find(
+                item => item.id === link.dataset.manifestId
+            );
+            const isFlagQuiz = manifestItem &&
+                categoryKeyForManifest(manifestItem) === "flags";
+
             if (!link.dataset.readyText) {
                 link.dataset.readyText =
                     link.textContent.trim() || "Play";
             }
 
-            if (ready) {
+            if (ready || isFlagQuiz) {
                 link.removeAttribute("aria-disabled");
                 link.removeAttribute("tabindex");
                 link.style.removeProperty("pointer-events");
@@ -2309,8 +2306,6 @@
                         return;
                     }
 
-                    await waitForMainMenuMapReady();
-
                     const manifestItem =
                         (baseManifest || []).find(
                             item =>
@@ -2326,6 +2321,8 @@
                         window.location.assign(link.href);
                         return;
                     }
+
+                    await waitForMainMenuMapReady();
 
                     await startQuizForManifest(
                         manifestItem,

@@ -7,8 +7,7 @@
     "overview": "This complete set mixes flags from every part of the world, including countries, territories, and the other places used by Smurdy's world map quiz.",
     "challenge": "Similar color patterns repeat across continents, and several flags differ only by a symbol, stripe order, or shade.",
     "studyTip": "Learn one continent at a time, then return to the world set once the regional patterns feel familiar.",
-    "notable": ["United States of America", "China", "Brazil", "South Africa", "New Zealand"],
-    "tags": ["large set"]
+    "notable": ["United States of America", "China", "Brazil", "South Africa", "New Zealand"]
   },
   "us_states": {
     "label": "US States", "shortLabel": "US States", "family": "subdivisions", "allowedTypes": ["type"],
@@ -18,8 +17,7 @@
     "overview": "The set includes every current state flag, from Alabama through Wyoming, including Mississippi's current magnolia flag.",
     "challenge": "Many state flags use a seal on a blue field, so small details and lettering matter more than broad color patterns.",
     "studyTip": "Learn the most distinctive designs first, then compare the similar blue-and-seal flags side by side.",
-    "notable": ["California", "Maryland", "New Mexico", "Ohio", "Mississippi"],
-    "tags": ["US states", "large set"]
+    "notable": ["California", "Maryland", "New Mexico", "Ohio", "Mississippi"]
   },
   "europe": {
     "label": "Europe", "shortLabel": "Europe", "family": "countries", "allowedTypes": ["type"],
@@ -29,8 +27,7 @@
     "overview": "This set covers the full Smurdy Europe group, from the Nordic countries and British Isles to the Balkans and European microstates.",
     "challenge": "European flags contain many similar tricolors and crosses, so stripe direction, color order, and small emblems are important.",
     "studyTip": "Group the Nordic crosses, horizontal tricolors, vertical tricolors, and emblem flags before mixing the full set.",
-    "notable": ["France", "Germany", "United Kingdom", "Italy", "Spain"],
-    "tags": ["continent", "large set"]
+    "notable": ["France", "Germany", "United Kingdom", "Italy", "Spain"]
   },
   "asia": {
     "label": "Asia", "shortLabel": "Asia", "family": "countries", "allowedTypes": ["type"],
@@ -40,8 +37,7 @@
     "overview": "This set spans the Middle East, Central Asia, South Asia, East Asia, and Southeast Asia. It uses every flag available from Smurdy's Asia map group.",
     "challenge": "The set is large and includes several flags built from red, white, green, and black, especially in western Asia.",
     "studyTip": "Split Asia into subregions, then use symbols such as crescents, suns, stars, and scripts to separate similar color schemes.",
-    "notable": ["China", "India", "Japan", "Indonesia", "Saudi Arabia"],
-    "tags": ["continent", "large set"]
+    "notable": ["China", "India", "Japan", "Indonesia", "Saudi Arabia"]
   },
   "africa": {
     "label": "Africa", "shortLabel": "Africa", "family": "countries", "allowedTypes": ["type"],
@@ -51,8 +47,7 @@
     "overview": "This set covers North, West, Central, East, and Southern Africa along with the continent's island countries and the other places in Smurdy's Africa map group.",
     "challenge": "Red, yellow, and green appear across many African flags, making stripe order and central symbols especially useful clues.",
     "studyTip": "Study neighboring countries together and note which Pan-African designs add a star, crest, or different stripe direction.",
-    "notable": ["Nigeria", "South Africa", "Egypt", "Kenya", "Ethiopia"],
-    "tags": ["continent", "large set"]
+    "notable": ["Nigeria", "South Africa", "Egypt", "Kenya", "Ethiopia"]
   },
   "north_america": {
     "label": "North America", "shortLabel": "North America", "family": "countries", "allowedTypes": ["type"],
@@ -62,8 +57,7 @@
     "overview": "This set combines Canada, the United States, Mexico, Central America, and the sovereign Caribbean countries included in Smurdy's North America group.",
     "challenge": "The Caribbean contributes many smaller countries whose flag designs may be less familiar than the three large mainland countries.",
     "studyTip": "Learn the mainland and Central America first, then study the Caribbean flags as a separate cluster.",
-    "notable": ["Canada", "United States of America", "Mexico", "Cuba", "Jamaica"],
-    "tags": ["continent", "small set"]
+    "notable": ["Canada", "United States of America", "Mexico", "Cuba", "Jamaica"]
   },
   "south_america": {
     "label": "South America", "shortLabel": "South America", "family": "countries", "allowedTypes": ["type"],
@@ -73,8 +67,7 @@
     "overview": "This compact set includes every sovereign country in South America, making it a useful first regional flag quiz.",
     "challenge": "Colombia, Ecuador, and Venezuela share closely related tricolors, while several other flags also use red, white, and blue.",
     "studyTip": "Compare Colombia, Ecuador, and Venezuela directly, then learn the remaining nine as distinct designs.",
-    "notable": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"],
-    "tags": ["continent", "small set"]
+    "notable": ["Brazil", "Argentina", "Colombia", "Chile", "Peru"]
   },
   "oceania": {
     "label": "Oceania", "shortLabel": "Oceania", "family": "countries", "allowedTypes": ["type"],
@@ -84,7 +77,6 @@
     "overview": "This set covers Australia, New Zealand, Papua New Guinea, and the independent island countries spread across the Pacific.",
     "challenge": "Several flags share blue fields, Union Jacks, or Southern Cross stars, while the smaller Pacific nations may be less familiar.",
     "studyTip": "Compare Australia and New Zealand first, then group the Pacific designs by shared symbols and colors.",
-    "notable": ["Australia", "New Zealand", "Papua New Guinea", "Fiji", "Samoa"],
-    "tags": ["continent", "islands", "small set"]
+    "notable": ["Australia", "New Zealand", "Papua New Guinea", "Fiji", "Samoa"]
   }
 }

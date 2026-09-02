@@ -9,6 +9,7 @@
         ],
         "borderset": "countries",
         "unitName": "country",
+        "memberCount": 200,
         "notable": [
             "United States of America",
             "China",
