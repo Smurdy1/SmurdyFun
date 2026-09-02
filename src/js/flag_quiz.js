@@ -69,6 +69,12 @@
         }));
     }
 
+    function filterFlagsByNames(flags, names) {
+        const wanted = new Set((names || []).map(normalizeAnswer).filter(Boolean));
+        if (!wanted.size) return [];
+        return (flags || []).filter(flag => wanted.has(normalizeAnswer(flag?.name)));
+    }
+
     function shuffle(items, random = Math.random) {
         const result = items.slice();
         for (let index = result.length - 1; index > 0; index--) {
@@ -132,6 +138,54 @@
         let timerInterval = null;
         let advanceTimeout = null;
         let loadPromise = null;
+        let retryWeakSpots = false;
+        let weakSpotsPracticeStage = null;
+
+        function weakSpotMode() {
+            return setId === "us_states" ? "type-flag-subdivision" : "type-flag";
+        }
+
+        function getWeakSpotsPracticeStage() {
+            try {
+                const requested = new URLSearchParams(root.location?.search || "")
+                    .get("weakSpotsPractice") === "1";
+                if (!requested) return null;
+                const stage = root.SmurdyWeakSpots?.getActivePracticeStage?.() || null;
+                if (!stage || stage.quizId !== "type-flag") return null;
+                if (String(stage.group || "") !== String(setId)) return null;
+                return stage;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function clearWeakSpot(current) {
+            try {
+                root.SmurdyWeakSpots?.recordRetrySuccess?.({
+                    name: current.name,
+                    mode: weakSpotMode(),
+                    group: setId
+                });
+            } catch (_) {}
+        }
+
+        function removePracticeContinuation() {
+            afterActions?.querySelector?.("[data-weak-spots-next]")?.remove();
+        }
+
+        function showPracticeContinuation(stage) {
+            removePracticeContinuation();
+            if (!stage || !afterActions) return;
+            const button = document.createElement("button");
+            button.className = "flag-button";
+            button.type = "button";
+            button.dataset.weakSpotsNext = "";
+            button.textContent = `Continue: ${stage.label}`;
+            button.addEventListener("click", () => {
+                root.SmurdyWeakSpots?.openPracticeStage?.(stage);
+            });
+            afterActions.prepend(button);
+        }
 
         function analyticsSnapshot(answerCorrect) {
             return {
@@ -221,6 +275,15 @@
             renderReview();
             updateStats();
             root.SmurdyAnalytics?.completeQuiz?.(analyticsSnapshot());
+
+            if (weakSpotsPracticeStage) {
+                let nextStage = null;
+                try {
+                    nextStage = root.SmurdyWeakSpots?.advancePracticeStage?.() || null;
+                } catch (_) {}
+                weakSpotsPracticeStage = null;
+                showPracticeContinuation(nextStage);
+            }
         }
 
         function showQuestion() {
@@ -256,7 +319,7 @@
             try {
                 root.SmurdyWeakSpots?.recordMiss?.({
                     name: current.name,
-                    mode: setId === "us_states" ? "type-flag-subdivision" : "type-flag",
+                    mode: weakSpotMode(),
                     group: setId,
                     guess: gaveUp ? "" : String(guess || "")
                 });
@@ -271,6 +334,7 @@
             const current = flags[index];
             if (wasCorrect) {
                 correct++;
+                if (retryWeakSpots) clearWeakSpot(current);
                 result.textContent = "Correct!";
                 result.classList.add("is-correct");
             } else {
@@ -296,7 +360,7 @@
             finishQuestion(acceptedAnswers(flags[index].name, aliases).has(guess), input.value);
         }
 
-        function startRun(items, reason = "start") {
+        function startRun(items, reason = "start", isWeakSpotsRetry = false) {
             if (advanceTimeout) root.clearTimeout(advanceTimeout);
             advanceTimeout = null;
             flags = shuffle(items);
@@ -305,6 +369,8 @@
             correct = 0;
             misses = [];
             locked = false;
+            retryWeakSpots = Boolean(isWeakSpotsRetry);
+            removePracticeContinuation();
             if (review) { review.hidden = true; review.innerHTML = ""; }
             if (afterActions) afterActions.hidden = true;
             root.SmurdyAnalytics?.beginQuiz?.({
@@ -348,11 +414,23 @@
                     throw new Error(`Expected ${expected || "some"} flags for ${setId}, found ${allFlags.length}`);
                 }
 
+                weakSpotsPracticeStage = getWeakSpotsPracticeStage();
+                const runFlags = weakSpotsPracticeStage
+                    ? filterFlagsByNames(allFlags, weakSpotsPracticeStage.names)
+                    : allFlags;
+                if (!runFlags.length) {
+                    throw new Error(`Weak Spots practice has no matching flags for ${setId}`);
+                }
+
                 landing.hidden = true;
                 game.hidden = false;
                 body.classList.add("flag-quiz-running");
                 try { root.SmurdyQuizLibrary?.recordPlayed?.("type-flag", setId); } catch (_) {}
-                startRun(allFlags);
+                startRun(
+                    runFlags,
+                    weakSpotsPracticeStage ? "weak_spots" : "start",
+                    Boolean(weakSpotsPracticeStage)
+                );
             } catch (error) {
                 console.error("Could not start flag quiz", error);
                 launch.disabled = false;
@@ -361,13 +439,18 @@
             }
         }
 
+        function restartCurrentRun() {
+            const restartFlags = retryWeakSpots ? flags.slice() : allFlags;
+            if (restartFlags.length) startRun(restartFlags, "restart", retryWeakSpots);
+        }
+
         launch.addEventListener("click", launchQuiz);
         form.addEventListener("submit", submitAnswer);
         giveUp?.addEventListener("click", () => finishQuestion(false, "", true));
-        restart?.addEventListener("click", () => startRun(allFlags, "restart"));
+        restart?.addEventListener("click", restartCurrentRun);
         retry?.addEventListener("click", () => {
             const missedFlags = misses.slice();
-            if (missedFlags.length) startRun(missedFlags, "retry_missed");
+            if (missedFlags.length) startRun(missedFlags, "retry_missed", true);
         });
         favorite?.addEventListener("click", () => {
             root.SmurdyQuizLibrary?.toggleFavorite?.("type-flag", setId);
@@ -376,13 +459,23 @@
         updateFavoriteButton();
 
         try {
-            if (new URLSearchParams(root.location?.search || "").get("play") === "1") {
+            const params = new URLSearchParams(root.location?.search || "");
+            if (params.get("play") === "1" || params.get("weakSpotsPractice") === "1") {
                 void launchQuiz();
             }
         } catch (_) {}
 
-        return { launchQuiz, restartQuiz: () => startRun(allFlags, "restart") };
+        return { launchQuiz, restartQuiz: restartCurrentRun };
     }
 
-    return { normalizeAnswer, acceptedAnswers, canonicalFlagName, selectFlags, shuffle, formatElapsed, mount };
+    return {
+        normalizeAnswer,
+        acceptedAnswers,
+        canonicalFlagName,
+        selectFlags,
+        filterFlagsByNames,
+        shuffle,
+        formatElapsed,
+        mount
+    };
 });
