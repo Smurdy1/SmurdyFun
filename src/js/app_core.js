@@ -1850,9 +1850,9 @@ map.on("load", async () => {
     }
  
     SmurdyQuiz.buildResolvedAliases();
-    // Now compute playableCount as unique canonical names (deduped) — this should match aliases keys (201)
+    // Now compute playableCount as unique canonical names (deduped).
     const nameIndexCount = Object.keys(SmurdyQuiz.nameIndex || {}).length || 0;
-    // Prefer aliases.json authoritative key count when available (keeps world = 201).
+    // Prefer aliases.json authoritative key count when available.
     SmurdyQuiz.playableCount = (SmurdyQuiz.aliasKeyCount && SmurdyQuiz.aliasKeyCount > 0) ? SmurdyQuiz.aliasKeyCount : nameIndexCount;
     console.info("smurdy: counts -> playable=", SmurdyQuiz.playableCount, " nameIndex=", nameIndexCount, " aliasKeys=", SmurdyQuiz.aliasKeyCount);
     writePlayableCountToDOM(SmurdyQuiz.playableCount);
@@ -2225,7 +2225,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.2";
+const APP_VERSION = "1.13.3";
 
 function injectVersionBadge() {
     try {

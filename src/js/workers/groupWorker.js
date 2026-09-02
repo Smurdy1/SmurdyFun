@@ -1,4 +1,5 @@
 // Worker: build group outline in batches and post them to main thread.
+importScripts("/src/js/quiz_entities.js");
 self.normalize = function (text) {
     return String(text || "")
         .toLowerCase()
@@ -13,6 +14,12 @@ self.normalize = function (text) {
 // simple canonical name extractor similar to MODE.getCanonicalFeatureName
 self.getCanonicalFromProps = function (p) {
     if (!p) return "Unknown";
+    if (
+        self.SmurdyQuizEntities &&
+        typeof self.SmurdyQuizEntities.getCanonicalCountryName === "function"
+    ) {
+        return self.SmurdyQuizEntities.getCanonicalCountryName(p);
+    }
     const cand = [
         p.SOVEREIGNT, p.BRK_NAME, p.NAME_LONG, p.NAME, p.admin, p.ADMIN, p.NAME_EN, p.NAME_AR
     ].filter(Boolean);
