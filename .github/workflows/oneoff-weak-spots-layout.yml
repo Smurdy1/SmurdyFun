@@ -1,0 +1,54 @@
+name: Place Weak Spots mode beside name
+
+on:
+  push:
+    branches:
+      - codex/mode-specific-weak-spots
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[weak-spots-layout]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/mode-specific-weak-spots
+          fetch-depth: 0
+
+      - name: Apply layout edit
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/js/weak_spots.js')
+          text = path.read_text()
+          old = '''                    '<div class="weak-spot-name">' + escapeHtml(entry.name) + "</div>" +
+                    '<div class="weak-spot-meta">' + escapeHtml(modeLabel(entry.mode)) + "</div>" +'''
+          new = '''                    '<div class="weak-spot-name">' +
+                        escapeHtml(entry.name) + " · " + escapeHtml(modeLabel(entry.mode)) +
+                    "</div>" +
+                    '<div class="weak-spot-meta">' +
+                        Number(entry.misses || 0) + " " +
+                        (Number(entry.misses) === 1 ? "miss" : "misses") +
+                    "</div>" +'''
+          if old not in text:
+              raise SystemExit('Current Weak Spots row markup not found')
+          path.write_text(text.replace(old, new, 1))
+
+          workflow = Path('.github/workflows/oneoff-weak-spots-layout.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Commit edit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Place Weak Spots mode beside name [weak-spots-layout]"
+          git push origin HEAD:codex/mode-specific-weak-spots
