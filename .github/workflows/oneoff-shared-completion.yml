@@ -18,6 +18,31 @@ jobs:
           ref: refactor/shared-quiz-completion
           fetch-depth: 0
 
+      - name: Patch migration anchor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/oneoff_shared_completion.py')
+          s = p.read_text()
+          old = '''replace_once(
+              "src/js/quiz_runner.js",
+              '            const share = document.getElementById("quiz-share-section");',
+              '            const share = panel.querySelector("[data-smurdy-share]");'
+          )'''
+          new = '''runner_text = read("src/js/quiz_runner.js")
+          old_share_lookup = '            const share = document.getElementById("quiz-share-section");'
+          if runner_text.count(old_share_lookup) != 2:
+              raise RuntimeError("quiz_runner.js: expected two legacy share lookups")
+          runner_text = runner_text.replace(
+              old_share_lookup,
+              '            const share = panel.querySelector("[data-smurdy-share]");'
+          )
+          write("src/js/quiz_runner.js", runner_text)'''
+          if old not in s:
+              raise SystemExit('migration share anchor not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
       - name: Apply shared completion migration
         run: python tools/oneoff_shared_completion.py
 
