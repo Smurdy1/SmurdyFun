@@ -79,6 +79,20 @@ test("Weak Spots flag practice filters to only the requested flags", () => {
     );
 });
 
+
+test("missed flags remain in the question pool until answered correctly", () => {
+    const flags = [
+        { id: "a", name: "A" },
+        { id: "b", name: "B" },
+        { id: "c", name: "C" }
+    ];
+    const completed = new Set(["a"]);
+
+    assert.deepEqual(api.remainingFlags(flags, completed).map(flag => flag.id), ["b", "c"]);
+    assert.equal(api.chooseNextFlag(flags, completed, "b", () => 0).id, "c");
+    assert.equal(api.chooseNextFlag(flags, new Set(["a", "b"]), "c", () => 0).id, "c");
+});
+
 test("flag routes load the shared runner and declare the correct set", () => {
     const routes = {
         world: "quizzes/type-flag/world/index.html",
@@ -89,7 +103,7 @@ test("flag routes load the shared runner and declare the correct set", () => {
         const html = fs.readFileSync(path.join(root, relativePath), "utf8");
         assert.match(html, new RegExp(`data-flag-set=["']${setId}["']`));
         assert.match(html, /src\/js\/flag_quiz\.js/);
-        assert.match(html, /flag_quiz\.js\?v=20260902-flag-quiz-4/);
+        assert.match(html, /flag_quiz\.js\?v=20260902-flag-quiz-5/);
     }
 });
 
@@ -119,6 +133,7 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(directory, /Coming soon!/);
     assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
     assert.match(html, /data-flag-restart>Restart/);
+    assert.match(html, /data-flag-retry hidden>Retry Missed/);
     assert.match(html, /data-flag-after-actions hidden/);
     assert.doesNotMatch(html, /flag-eyebrow|class="flag-exit"/);
     assert.match(sitemap, /quizzes\/type-flag\/oceania\//);
