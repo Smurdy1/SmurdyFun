@@ -259,12 +259,46 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
     } catch (_) {}
 
+    const quizLaunchIntent = (() => {
+        try {
+            return window.SmurdyQuizLaunchIntent?.consumeCurrent?.() || null;
+        } catch (_) {
+            return null;
+        }
+    })();
+
+    const legacyWeakSpotsRequested = (() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const requested = params.get("weakSpotsPractice") === "1";
+            if (requested) {
+                params.delete("weakSpotsPractice");
+                const query = params.toString();
+                history.replaceState(
+                    {},
+                    "",
+                    window.location.pathname + (query ? "?" + query : "") + window.location.hash
+                );
+            }
+            return requested;
+        } catch (_) {
+            return false;
+        }
+    })();
+
     const weakSpotsPracticeStage = (() => {
         try {
-            const requested = new URLSearchParams(window.location.search)
-                .get("weakSpotsPractice") === "1";
+            const requested = quizLaunchIntent?.reason === "weak_spots" || legacyWeakSpotsRequested;
             if (!requested) return null;
-            return window.SmurdyWeakSpots?.getActivePracticeStage?.() || null;
+            const stage = window.SmurdyWeakSpots?.getActivePracticeStage?.() || null;
+            if (!stage) return null;
+            const route = String(window.location.pathname || "")
+                .match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/);
+            if (route) {
+                if (stage.quizId && decodeURIComponent(route[1]) !== String(stage.quizId)) return null;
+                if (stage.group && decodeURIComponent(route[2]) !== String(stage.group)) return null;
+            }
+            return stage;
         } catch (_) {
             return null;
         }
@@ -1936,7 +1970,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     updateAccuracy();
     resetTimer();
     startTimer();
-    beginAnalyticsRun("initial");
+    beginAnalyticsRun(weakSpotsPracticeStage ? "weak_spots" : "initial");
 
     // Normal click quizzes frame their selected group. Review rounds deliberately
     // use the default unzoomed map so the target pool cannot reveal locations.

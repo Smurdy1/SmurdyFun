@@ -62,8 +62,21 @@
             throw new Error(`Invalid group-set data: ${safeId}`);
         }
 
-        groupSets[safeId] = data;
-        return data;
+        let resolvedData = data;
+        if (
+            safeId === "flag_groups" &&
+            window.SmurdyFlagCatalog?.expandFlagGroups
+        ) {
+            const countryGroups = groupSets.country_groups ||
+                await loadGroupSet("country_groups");
+            resolvedData = window.SmurdyFlagCatalog.expandFlagGroups(
+                data,
+                countryGroups
+            );
+        }
+
+        groupSets[safeId] = resolvedData;
+        return resolvedData;
     }
 
     // Wait until SmurdyQuiz.groups is populated (or timeout). Returns a Promise<boolean>.
@@ -2318,6 +2331,11 @@
                     // Flag quizzes use their own image-first game shell rather
                     // than the MapLibre app, so open the crawlable flag page.
                     if (categoryKeyForManifest(manifestItem) === "flags") {
+                        window.SmurdyQuizLaunchIntent?.store?.(
+                            manifestItem.id,
+                            link.dataset.group || "world",
+                            "browser"
+                        );
                         window.location.assign(link.href);
                         return;
                     }

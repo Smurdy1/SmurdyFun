@@ -2,11 +2,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const groups = readJson("src/data/flag_groups.json");
+const flagOverrides = readJson("src/data/flag_groups.json");
 const countryGroups = readJson("src/data/country_groups.json");
 const sources = readJson("src/data/flag_sources.json");
 const aliases = readJson("src/data/aliases.json");
 const flagApi = require(path.join(root, "src/js/flag_quiz.js"));
+const { expandFlagGroups } = require(path.join(root, "src/js/flag_catalog.js"));
+const { rebuildSitemaps } = require(path.join(root, "tools/rebuild_sitemaps.js"));
+const groups = expandFlagGroups(flagOverrides, countryGroups);
 const baseUrl = (process.env.BASE_URL || "https://smurdy.fun").replace(/\/+$/, "");
 const outputRoot = path.join(root, "quizzes/type-flag");
 
@@ -113,6 +116,8 @@ function quizPage(groupId, group) {
   <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260902-flag-quiz-4">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/favicon-48.png?v=20260825-logo-1">
+  <link rel="shortcut icon" href="/favicon.ico?v=20260825-logo-1">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
 </head>
 <body data-flag-set="${escapeHtml(groupId)}">
@@ -212,27 +217,40 @@ function quizPage(groupId, group) {
 
   <footer class="flag-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
-  <script src="/src/js/weak_spots.js?v=20260826-ui-polish-1" defer></script>
+  <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
+  <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
+  <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260902-flag-quiz-5" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260903-flag-parity-1" defer></script>
 </body>
 </html>`;
 }
 
 function directoryPage() {
-    const cardsForFamily = family => Object.entries(groups)
-        .filter(([, group]) => group.family === family)
-        .map(([id, group]) => `
+    const mainIds = new Set(["world", "europe", "asia", "africa", "north_america", "south_america", "oceania"]);
+    const specialtyIds = new Set(["european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands"]);
+    const countryEntries = Object.entries(groups).filter(([, group]) => group.family === "countries");
+    const subdivisionEntries = Object.entries(groups).filter(([, group]) => group.family === "subdivisions");
+    const main = countryEntries.filter(([id]) => mainIds.has(id));
+    const specialty = countryEntries.filter(([id]) => specialtyIds.has(id));
+    const regional = countryEntries.filter(([id]) => !mainIds.has(id) && !specialtyIds.has(id));
+
+    const cards = entries => entries.map(([id, group]) => `
           <a class="directory-card" href="/quizzes/type-flag/${id}/">
             <span class="directory-card-title">${escapeHtml(group.label)}</span>
             <span class="directory-card-description">${escapeHtml(group.description)}</span>
             <span class="directory-card-meta">${group.memberCount} flags</span>
           </a>`).join("");
+    const section = (heading, lead, entries) => entries.length
+        ? `<section class="directory-section"><h2>${heading}</h2><p class="directory-section-lead">${lead}</p><div class="directory-card-grid">${cards(entries)}</div></section>`
+        : "";
+    const total = Object.keys(groups).length;
+
     return `<!doctype html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Flag Quizzes - World, Continents, and US States | Smurdy</title>
-  <meta name="description" content="Choose from eight free flag quizzes covering the world, six continents, and all 50 US states.">
+  <title>Flag Quizzes - World, Regions, and US States | Smurdy</title>
+  <meta name="description" content="Choose from ${total} free flag quizzes covering the world, regions, specialty country sets, and US states.">
   <meta name="robots" content="index, follow"><link rel="canonical" href="${baseUrl}/quizzes/type-flag/">
   <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260901-directory-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
@@ -242,8 +260,10 @@ function directoryPage() {
     <nav class="directory-breadcrumbs" aria-label="Breadcrumb"><a href="/">Smurdy</a><span aria-hidden="true">›</span><a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span><span>Flags</span></nav>
     <h1 class="directory-title">Flag Quizzes</h1>
     <p class="directory-lead">Choose a flag set, then type the country, territory, or subdivision it represents.</p>
-    <section class="directory-section"><h2>Countries and territories</h2><p class="directory-section-lead">Practice the world at once or focus on one continent.</p><div class="directory-card-grid">${cardsForFamily("countries")}</div></section>
-    <section class="directory-section"><h2>Subdivisions</h2><p class="directory-section-lead">Practice flags for states, provinces, and other first-level subdivisions.</p><div class="directory-card-grid">${cardsForFamily("subdivisions")}</div></section>
+    ${section("Main sets", "Start with the world or one continent.", main)}
+    ${section("Regional sets", "Focus on the same regional groups available in the map quizzes.", regional)}
+    ${section("Specialty sets", "Practice political, historical, island, and size-based country groups.", specialty)}
+    ${section("Subdivisions", "Practice flags for states, provinces, and other first-level subdivisions.", subdivisionEntries)}
     <section class="directory-section"><h2>Flag modes</h2><div class="directory-mode-grid">
       <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a flag and type the place it represents.</span><span class="directory-card-meta">Available now</span></div>
       <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag, then locate its place on the map.</span><span class="directory-coming-soon">Coming soon!</span></div>
@@ -254,6 +274,7 @@ function directoryPage() {
 </body></html>`;
 }
 
+fs.rmSync(outputRoot, { recursive: true, force: true });
 fs.mkdirSync(outputRoot, { recursive: true });
 fs.writeFileSync(path.join(outputRoot, "index.html"), directoryPage());
 for (const [groupId, group] of Object.entries(groups)) {
@@ -261,4 +282,5 @@ for (const [groupId, group] of Object.entries(groups)) {
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(path.join(directory, "index.html"), quizPage(groupId, group));
 }
-console.log(`Generated ${Object.keys(groups).length} flag quiz pages and the flag directory.`);
+rebuildSitemaps({ repoRoot: root, publicRoot: baseUrl });
+console.log(`Generated ${Object.keys(groups).length} flag quiz pages, the flag directory, and refreshed both sitemaps.`);

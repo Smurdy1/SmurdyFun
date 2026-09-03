@@ -1867,6 +1867,17 @@
       "attributionRequired": false
     },
     {
+      "code": "ps",
+      "name": "Palestine",
+      "kind": "country",
+      "filename": "ps.svg",
+      "wikidataId": "Q219060",
+      "commonsFile": "Flag of Palestine.svg",
+      "commonsPage": "https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg",
+      "license": "Public domain",
+      "attributionRequired": false
+    },
+    {
       "code": "pt",
       "name": "Portugal",
       "kind": "country",

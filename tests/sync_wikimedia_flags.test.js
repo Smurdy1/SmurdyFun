@@ -19,7 +19,10 @@ test("keeps custom country filenames and uses codes for normal countries", () =>
 test("builds country and 50-state targets without including DC", () => {
   const countryFlags = [{ name: "Example", code: "ex", flag_1x1: "flags/1x1/ex.svg" }];
   const countries = {
-    features: [{ properties: { NAME: "Example", ISO_A2: "EX", WIKIDATAID: "Q1" } }],
+    features: [
+      { properties: { NAME: "Example", ISO_A2: "EX", WIKIDATAID: "Q1" } },
+      { properties: { NAME: "Palestine", ADMIN: "Palestine", ISO_A2: "PS", WIKIDATAID: "Q219060" } },
+    ],
   };
   const states = {
     features: [
@@ -45,6 +48,7 @@ test("builds country and 50-state targets without including DC", () => {
   };
   assert.deepEqual(buildTargets(countryFlags, countries, states), [
     { kind: "country", name: "Example", code: "ex", qid: "Q1", filename: "ex.svg" },
+    { kind: "country", name: "Palestine", code: "ps", qid: "Q219060", filename: "ps.svg" },
     {
       kind: "us-state",
       name: "Example State",
