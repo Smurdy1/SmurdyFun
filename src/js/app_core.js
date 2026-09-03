@@ -1122,9 +1122,36 @@ const SmurdyQuiz = {
             }
         }
 
+        if (!window.SmurdyQuizCompletion?.buildResult) {
+            try {
+                await new Promise((resolve, reject) => {
+                    let completionScript = document.getElementById("quiz-completion-script");
+                    if (completionScript) {
+                        if (window.SmurdyQuizCompletion?.buildResult) {
+                            resolve();
+                            return;
+                        }
+                        completionScript.addEventListener("load", resolve, { once: true });
+                        completionScript.addEventListener("error", reject, { once: true });
+                        return;
+                    }
+
+                    completionScript = document.createElement("script");
+                    completionScript.src = "/src/js/quiz_completion.js?v=20260903-completion-1";
+                    completionScript.id = "quiz-completion-script";
+                    completionScript.onload = resolve;
+                    completionScript.onerror = reject;
+                    document.head.appendChild(completionScript);
+                });
+            } catch (error) {
+                console.error("Could not load shared quiz completion flow", error);
+                return;
+            }
+        }
+
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260903-session-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260903-completion-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -2255,7 +2282,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.6";
+const APP_VERSION = "1.13.7";
 
 function injectVersionBadge() {
     try {

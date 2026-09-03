@@ -154,6 +154,18 @@
             console.error("SmurdyQuizSession must load before flag_quiz.js");
             return null;
         }
+        const completion = root.SmurdyQuizCompletion;
+        if (!completion?.buildResult) {
+            console.error("SmurdyQuizCompletion must load before flag_quiz.js");
+            return null;
+        }
+        const analyticsReporter = completion.createAnalyticsReporter({
+            root,
+            session: quizSession,
+            context: () => ({ quiz_mode: "type-flag", quiz_group: setId }),
+            total: () => flags.length
+        });
+        let lastCompletionResult = null;
         let advanceTimeout = null;
         let loadPromise = null;
         let retryWeakSpots = false;
@@ -204,18 +216,6 @@
             afterActions.prepend(button);
         }
 
-        function analyticsSnapshot(answerCorrect) {
-            const snapshot = quizSession.snapshot({ total: flags.length });
-            return {
-                correct: answerCorrect,
-                attempts: snapshot.attempts,
-                correctAnswers: snapshot.correctAnswers,
-                completedPlaces: snapshot.completedCount,
-                placesTotal: snapshot.total,
-                completionTimeSeconds: Math.round(snapshot.elapsedMs / 1000)
-            };
-        }
-
         function updateFavoriteButton() {
             if (!favorite) return;
             const saved = Boolean(root.SmurdyQuizLibrary?.isFavorite?.("type-flag", setId));
@@ -248,21 +248,44 @@
             timerInterval = root.setInterval(updateStats, 250);
         }
 
-        function renderReview() {
-            if (!review) return;
-            const misses = quizSession.getMisses();
-            review.hidden = misses.length === 0;
-            review.innerHTML = misses.length ? `
-                <h2>Flags to review</h2>
-                <ul class="flag-review-grid">${misses.map(item => `
-                    <li><img src="${escapeHtml(item.data?.src || "")}" alt=""><span>${escapeHtml(item.name)}</span></li>
-                `).join("")}</ul>` : "";
+        function renderReview(completionResult) {
+            if (!review || !completionResult) return;
+            completion.renderReview(review, completionResult, {
+                title: "Flags to review",
+                titleTag: "h2",
+                showRetry: false,
+                listTag: "ul",
+                listClass: "flag-review-grid",
+                renderItem(item, row, document) {
+                    const image = document.createElement("img");
+                    image.src = item.data?.src || "";
+                    image.alt = "";
+                    const name = document.createElement("span");
+                    name.textContent = item.name;
+                    row.append(image, name);
+                }
+            });
         }
 
         function finishQuiz() {
             stopTimer();
-            const misses = quizSession.getMisses();
-            const snapshot = quizSession.snapshot({ total: flags.length });
+            const groupLabel =
+                flagGroups?.[setId]?.shortLabel ||
+                flagGroups?.[setId]?.label ||
+                completion.humanizeSlug(setId);
+            lastCompletionResult = completion.buildResult({
+                session: quizSession,
+                total: flags.length,
+                quizId: "type-flag",
+                groupId: setId,
+                groupLabel,
+                modeLabel: "Flags",
+                itemSingular: "flag",
+                itemPlural: "flags",
+                shareHeadline: `I finished the ${groupLabel} flag quiz`
+            });
+            const misses = lastCompletionResult.misses;
+
             image.removeAttribute("src");
             image.alt = "";
             image.hidden = true;
@@ -278,18 +301,23 @@
             result.textContent = "Quiz complete";
             result.className = "flag-result is-finished";
             if (summary) {
-                summary.hidden = false;
-                summary.innerHTML = `
-                    <h2>Results</h2>
-                    <div class="flag-summary-grid">
-                        <div><strong>${snapshot.firstTryCorrect} / ${snapshot.total}</strong><span>Flags correct</span></div>
-                        <div><strong>${snapshot.accuracyPercent}%</strong><span>Accuracy</span></div>
-                        <div><strong>${formatElapsed(snapshot.elapsedMs)}</strong><span>Time</span></div>
-                    </div>`;
+                completion.renderSummary(summary, lastCompletionResult, {
+                    title: "Results",
+                    gridClass: "flag-summary-grid",
+                    stats: [
+                        {
+                            label: "Flags correct",
+                            value: `${lastCompletionResult.firstTryCorrect} / ${lastCompletionResult.total}`
+                        },
+                        { label: "Accuracy", value: lastCompletionResult.accuracyText },
+                        { label: "Time", value: lastCompletionResult.timeText }
+                    ]
+                });
             }
-            renderReview();
+            renderReview(lastCompletionResult);
+            completion.renderShare(game, lastCompletionResult, { before: afterActions });
             updateStats();
-            root.SmurdyAnalytics?.completeQuiz?.(analyticsSnapshot());
+            analyticsReporter.complete(lastCompletionResult);
 
             if (weakSpotsPracticeStage) {
                 let nextStage = null;
@@ -372,7 +400,7 @@
                 result.classList.add("is-wrong");
             }
 
-            root.SmurdyAnalytics?.recordAnswer?.(analyticsSnapshot(wasCorrect));
+            analyticsReporter.answer(wasCorrect);
             updateStats();
             advanceTimeout = root.setTimeout(() => {
                 advanceTimeout = null;
@@ -399,16 +427,13 @@
             currentFlag = null;
             locked = false;
             retryWeakSpots = Boolean(isWeakSpotsRetry);
+            lastCompletionResult = null;
             game.classList.remove("is-complete", "has-misses");
             removePracticeContinuation();
+            completion.hideShare(game);
             if (review) { review.hidden = true; review.innerHTML = ""; }
             if (afterActions) afterActions.hidden = true;
-            root.SmurdyAnalytics?.beginQuiz?.({
-                quiz_mode: "type-flag",
-                quiz_group: setId,
-                places_total: flags.length,
-                start_reason: reason
-            });
+            analyticsReporter.begin(reason);
             startTimer();
             showQuestion();
         }
@@ -483,8 +508,12 @@
         giveUp?.addEventListener("click", () => finishQuestion(false, "", true));
         restart?.addEventListener("click", restartCurrentRun);
         retry?.addEventListener("click", () => {
-            const missedFlags = quizSession.getMisses().map(item => item.item).filter(Boolean);
-            if (missedFlags.length) startRun(missedFlags, "retry_missed", true);
+            if (!lastCompletionResult) return;
+            completion.retryMissed(
+                lastCompletionResult,
+                missedFlags => startRun(missedFlags, "retry_missed", true),
+                { eventTarget: root }
+            );
         });
         favorite?.addEventListener("click", () => {
             root.SmurdyQuizLibrary?.toggleFavorite?.("type-flag", setId);
