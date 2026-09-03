@@ -24,15 +24,15 @@ jobs:
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
 
-      - name: Run source tests
-        run: npm test
+      - name: Run source-level parity tests
+        run: node --test tests/quiz_launch_intent.test.js tests/flag_catalog.test.js tests/sync_wikimedia_flags.test.js
 
       - name: Regenerate quiz pages
         env:
           SITEMAP_LASTMOD: '2026-09-03'
         run: npm run pages:generate
 
-      - name: Run generated-page tests
+      - name: Run full generated-page test suite
         run: npm test
 
       - name: Commit parity update
