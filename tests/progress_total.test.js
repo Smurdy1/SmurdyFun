@@ -53,8 +53,12 @@ test("last-answer test mode is analytics-free and opt-in", () => {
     assert.match(runner, /get\("smurdyTest"\)/);
     assert.match(runner, /smurdyTestMode === "last-answer"/);
     assert.match(runner, /const anyTestMode = Boolean\(smurdyTestMode\)/);
-    assert.match(runner, /function beginAnalyticsRun[\s\S]*?if \(anyTestMode\) return;/);
-    assert.match(runner, /function recordAnalyticsAnswer[\s\S]*?if \(anyTestMode\) return;/);
-    assert.match(runner, /function completeAnalyticsRun[\s\S]*?if \(anyTestMode\) return;/);
+    assert.match(
+        runner,
+        /createAnalyticsReporter\([\s\S]*?disabled:\s*\(\)\s*=>\s*anyTestMode/
+    );
+    assert.match(runner, /function beginAnalyticsRun[\s\S]*?analyticsReporter\.begin\(startReason\)/);
+    assert.match(runner, /function recordAnalyticsAnswer[\s\S]*?analyticsReporter\.answer\(correct\)/);
+    assert.match(runner, /function completeAnalyticsRun[\s\S]*?analyticsReporter\.complete\(completionResult\)/);
     assert.match(runner, /Test mode: answer this final place\./);
 });
