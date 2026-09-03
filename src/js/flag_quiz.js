@@ -275,6 +275,8 @@
             giveUp.hidden = true;
             restart.hidden = false;
             if (retry) retry.hidden = misses.length === 0;
+            game.classList.add("is-complete");
+            game.classList.toggle("has-misses", misses.length > 0);
             if (afterActions) afterActions.hidden = false;
 
             const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
@@ -402,6 +404,7 @@
             lastFlagId = null;
             locked = false;
             retryWeakSpots = Boolean(isWeakSpotsRetry);
+            game.classList.remove("is-complete", "has-misses");
             removePracticeContinuation();
             if (review) { review.hidden = true; review.innerHTML = ""; }
             if (afterActions) afterActions.hidden = true;
