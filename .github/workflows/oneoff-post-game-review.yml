@@ -1,0 +1,57 @@
+name: One-off post-game review pagination
+
+on:
+  push:
+    branches:
+      - fix/post-game-review-pagination-final
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/post-game-review-pagination-final
+          fetch-depth: 0
+
+      - name: Apply review pagination changes
+        run: python tools/oneoff_post_game_review.py
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate pages
+        env:
+          SITEMAP_LASTMOD: 2026-09-03
+        run: npm run pages:generate
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/quiz_completion.js
+          node --check src/js/flag_quiz.js
+          node --check src/js/app_core.js
+          node --check tools/generate_flag_pages.js
+
+      - name: Run focused tests
+        run: node --test tests/quiz_completion.test.js tests/flag_quiz.test.js tests/quiz_session.test.js tests/weak_spots.test.js
+
+      - name: Run full suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit changes
+        run: |
+          rm -rf node_modules
+          rm -f tools/oneoff_post_game_review.py
+          rm -f .github/workflows/oneoff-post-game-review.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/js/quiz_completion.js src/js/flag_quiz.js src/js/app_core.js styles/flag_quiz.css tools/generate_flag_pages.js tests/quiz_completion.test.js tests/flag_quiz.test.js quizzes/type-flag .github/workflows tools
+          git diff --cached --check
+          git commit -m "Limit and sort post-game review lists"
+          git push origin HEAD:fix/post-game-review-pagination-final
