@@ -75,6 +75,20 @@
         return (flags || []).filter(flag => wanted.has(normalizeAnswer(flag?.name)));
     }
 
+    function remainingFlags(flags, completedIds) {
+        const completed = completedIds instanceof Set ? completedIds : new Set(completedIds || []);
+        return (flags || []).filter(flag => !completed.has(flag.id));
+    }
+
+    function chooseNextFlag(flags, completedIds, lastId, random = Math.random) {
+        const remaining = remainingFlags(flags, completedIds);
+        if (!remaining.length) return null;
+        const candidates = remaining.length > 1 && lastId
+            ? remaining.filter(flag => flag.id !== lastId)
+            : remaining;
+        return candidates[Math.floor(random() * candidates.length)] || remaining[0];
+    }
+
     function shuffle(items, random = Math.random) {
         const result = items.slice();
         for (let index = result.length - 1; index > 0; index--) {
@@ -107,6 +121,7 @@
         const landing = document.querySelector("[data-flag-landing]");
         const game = document.querySelector("[data-flag-game]");
         const image = document.querySelector("[data-flag-image]");
+        const stage = image?.closest?.(".flag-stage") || null;
         const form = document.querySelector("[data-flag-form]");
         const input = document.querySelector("[data-flag-input]");
         const result = document.querySelector("[data-flag-result]");
@@ -128,11 +143,14 @@
         let flags = [];
         let aliases = {};
         let flagGroups = {};
-        let index = 0;
         let attempts = 0;
         let correct = 0;
+        let firstTryCorrect = 0;
         let locked = false;
         let misses = [];
+        let completed = new Set();
+        let currentFlag = null;
+        let lastFlagId = null;
         let startedAt = 0;
         let elapsed = 0;
         let timerInterval = null;
@@ -192,7 +210,7 @@
                 correct: answerCorrect,
                 attempts,
                 correctAnswers: correct,
-                completedPlaces: index + (locked ? 1 : 0),
+                completedPlaces: completed.size,
                 placesTotal: flags.length,
                 completionTimeSeconds: Math.round(elapsed / 1000)
             };
@@ -206,11 +224,11 @@
         }
 
         function updateStats() {
-            const completed = Math.min(index, flags.length);
-            if (progress) progress.textContent = `${completed} / ${flags.length} completed`;
+            const completedCount = completed.size;
+            if (progress) progress.textContent = `${completedCount} / ${flags.length} completed`;
             if (progressBar) {
-                progressBar.style.width = `${flags.length ? (completed / flags.length) * 100 : 0}%`;
-                progressBar.parentElement?.setAttribute("aria-valuenow", String(completed));
+                progressBar.style.width = `${flags.length ? (completedCount / flags.length) * 100 : 0}%`;
+                progressBar.parentElement?.setAttribute("aria-valuenow", String(completedCount));
                 progressBar.parentElement?.setAttribute("aria-valuemax", String(flags.length));
             }
             if (accuracy) {
@@ -242,7 +260,6 @@
             review.hidden = misses.length === 0;
             review.innerHTML = misses.length ? `
                 <h2>Flags to review</h2>
-                <p>These were answered incorrectly or given up.</p>
                 <ul class="flag-review-grid">${misses.map(flag => `
                     <li><img src="${escapeHtml(flag.src)}" alt=""><span>${escapeHtml(flag.name)}</span></li>
                 `).join("")}</ul>` : "";
@@ -253,6 +270,7 @@
             image.removeAttribute("src");
             image.alt = "";
             image.hidden = true;
+            if (stage) stage.hidden = true;
             form.hidden = true;
             giveUp.hidden = true;
             restart.hidden = false;
@@ -267,7 +285,7 @@
                 summary.innerHTML = `
                     <h2>Results</h2>
                     <div class="flag-summary-grid">
-                        <div><strong>${correct} / ${flags.length}</strong><span>Flags correct</span></div>
+                        <div><strong>${firstTryCorrect} / ${flags.length}</strong><span>Flags correct</span></div>
                         <div><strong>${percent}%</strong><span>Accuracy</span></div>
                         <div><strong>${formatElapsed(elapsed)}</strong><span>Time</span></div>
                     </div>`;
@@ -292,15 +310,23 @@
             result.className = "flag-result";
             input.value = "";
 
-            if (index >= flags.length) {
+            if (completed.size >= flags.length) {
+                currentFlag = null;
                 finishQuiz();
                 return;
             }
 
-            const current = flags[index];
+            currentFlag = chooseNextFlag(flags, completed, lastFlagId);
+            if (!currentFlag) {
+                finishQuiz();
+                return;
+            }
+            lastFlagId = currentFlag.id;
+
+            if (stage) stage.hidden = false;
             image.hidden = false;
-            image.src = current.src;
-            image.alt = `Flag ${index + 1} of ${flags.length}`;
+            image.src = currentFlag.src;
+            image.alt = `Flag ${completed.size + 1} of ${flags.length}`;
             form.hidden = false;
             giveUp.hidden = false;
             restart.hidden = false;
@@ -310,7 +336,8 @@
             updateStats();
             input.focus({ preventScroll: true });
 
-            const next = flags[index + 1];
+            const remaining = remainingFlags(flags, completed).filter(flag => flag.id !== currentFlag.id);
+            const next = remaining[0];
             if (next) new Image().src = next.src;
         }
 
@@ -327,14 +354,17 @@
         }
 
         function finishQuestion(wasCorrect, guess, gaveUp = false) {
-            if (locked || !flags[index]) return;
+            if (locked || !currentFlag) return;
             locked = true;
             attempts++;
 
-            const current = flags[index];
+            const current = currentFlag;
+            const hadMiss = misses.some(flag => flag.id === current.id);
             if (wasCorrect) {
                 correct++;
-                if (retryWeakSpots) clearWeakSpot(current);
+                completed.add(current.id);
+                if (!hadMiss) firstTryCorrect++;
+                if (retryWeakSpots && !hadMiss) clearWeakSpot(current);
                 result.textContent = "Correct!";
                 result.classList.add("is-correct");
             } else {
@@ -347,27 +377,29 @@
             updateStats();
             advanceTimeout = root.setTimeout(() => {
                 advanceTimeout = null;
-                index++;
                 showQuestion();
             }, wasCorrect ? 650 : 1150);
         }
 
         function submitAnswer(event) {
             event.preventDefault();
-            if (locked || !flags[index]) return;
+            if (locked || !currentFlag) return;
             const guess = normalizeAnswer(input.value);
             if (!guess) return;
-            finishQuestion(acceptedAnswers(flags[index].name, aliases).has(guess), input.value);
+            finishQuestion(acceptedAnswers(currentFlag.name, aliases).has(guess), input.value);
         }
 
         function startRun(items, reason = "start", isWeakSpotsRetry = false) {
             if (advanceTimeout) root.clearTimeout(advanceTimeout);
             advanceTimeout = null;
             flags = shuffle(items);
-            index = 0;
             attempts = 0;
             correct = 0;
+            firstTryCorrect = 0;
             misses = [];
+            completed = new Set();
+            currentFlag = null;
+            lastFlagId = null;
             locked = false;
             retryWeakSpots = Boolean(isWeakSpotsRetry);
             removePracticeContinuation();
@@ -459,8 +491,9 @@
         updateFavoriteButton();
 
         try {
+            const path = String(root.location?.pathname || "");
             const params = new URLSearchParams(root.location?.search || "");
-            if (params.get("play") === "1" || params.get("weakSpotsPractice") === "1") {
+            if (/^\/quizzes\/type-flag\/[^/]+\/?$/.test(path) || params.get("weakSpotsPractice") === "1") {
                 void launchQuiz();
             }
         } catch (_) {}
@@ -474,6 +507,8 @@
         canonicalFlagName,
         selectFlags,
         filterFlagsByNames,
+        remainingFlags,
+        chooseNextFlag,
         shuffle,
         formatElapsed,
         mount

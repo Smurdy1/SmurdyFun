@@ -169,7 +169,7 @@
             );
         const quizId = slug(rawQuizId);
         const path = `/quizzes/${quizId}/${slug(groupId || "world")}/`;
-        return quizId === "type-flag" ? `${path}?play=1` : path;
+        return path;
     }
 
     function isPlainLeftClick(e) {
