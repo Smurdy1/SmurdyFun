@@ -414,11 +414,11 @@ ${JSON.stringify({
       <span aria-hidden="true">›</span>
       <a href="${publicRoot}/quizzes/">All quizzes</a>
       <span aria-hidden="true">›</span>
-      <span>${escapeHtml(groupLabel)} · ${escapeHtml(getModeDisplayName(manifestEntry))}</span>
+      <span>${escapeHtml(groupLabel)} / ${escapeHtml(getModeDisplayName(manifestEntry))}</span>
     </nav>
     <header>
       <h1>${escapeHtml(pageHeading)}</h1>
-      <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} · ${escapeHtml(groupLabel)} · ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
+      <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} / ${escapeHtml(groupLabel)} / ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
     </header>
 
     <p class="lead">${escapeHtml(lead)}</p>
@@ -944,7 +944,7 @@ function directoryBreadcrumbs(items, publicRoot) {
 }
 
 function directoryFooter(publicRoot) {
-    return `<footer class="directory-footer"><a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy</a></footer></body></html>`;
+    return `<footer class="directory-footer"><a href="${publicRoot}/">Home</a> / <a href="${publicRoot}/about/">About</a> / <a href="${publicRoot}/contact/">Contact</a> / <a href="${publicRoot}/privacy/">Privacy</a></footer></body></html>`;
 }
 
 function recordMeta(record) {
@@ -1146,7 +1146,7 @@ async function writeModeIndexes({ outDir, pageRecords, publicRoot }) {
       <div class="mode-links">${otherModes}</div>
     </nav>
   </main>
-  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> / <a href="${publicRoot}/contact/">Contact</a> / <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 
@@ -1242,7 +1242,7 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
       </section>`).join("\n")}
     </div>
   </main>
-  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
+  <footer class="site-footer"><a href="${publicRoot}/about/">About</a> / <a href="${publicRoot}/contact/">Contact</a> / <a href="${publicRoot}/privacy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 

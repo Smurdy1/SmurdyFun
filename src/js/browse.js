@@ -1950,7 +1950,7 @@
                         </div>
 
                         ${showContext
-                            ? `<div class="qb-card-context">${escapeHtml(interaction)} · ${escapeHtml(family)}</div>`
+                            ? `<div class="qb-card-context">${escapeHtml(interaction)} / ${escapeHtml(family)}</div>`
                             : ""}
 
                         <div class="qb-sub">

@@ -146,7 +146,7 @@ function quizPage(groupId, group) {
     <article data-flag-landing>
       <header>
         <h1>${escapeHtml(heading)}</h1>
-        <div class="flag-meta">Type the Flags · ${escapeHtml(group.shortLabel)} · ${flags.length} flags</div>
+        <div class="flag-meta">Type the Flags / ${escapeHtml(group.shortLabel)} / ${flags.length} flags</div>
         <p class="flag-lead">${escapeHtml(group.lead)}</p>
         ${actionsHtml}
       </header>
@@ -279,7 +279,7 @@ function directoryPage() {
     </div></section>
     <section class="directory-section"><h2>How to learn flags with Smurdy</h2><p class="directory-section-lead">Start with a smaller regional set, retry the flags you miss, and move to the world set once you can switch between regions comfortably.</p><div class="directory-related"><a class="directory-chip" href="/quizzes/">Browse all geography quizzes</a><a class="directory-chip" href="/">Back to home</a></div></section>
   </main>
-  <footer class="directory-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  <footer class="directory-footer">Smurdy geography quizzes. <a href="/">Home</a> / <a href="/about/">About</a> / <a href="/contact/">Contact</a> / <a href="/privacy/">Privacy</a></footer>
 </body></html>`;
 }
 
