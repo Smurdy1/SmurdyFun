@@ -90,11 +90,16 @@ function quizPage(groupId, group) {
     const heading = `${group.shortLabel} Flag Quiz`;
     const sharedStylesHtml = pageShell.renderSharedStyles();
     const brandHtml = pageShell.renderBrand({ className: "flag-brand" });
+    const launchHtml = pageShell.renderPrimaryLaunch({
+        className: "flag-actions",
+        buttonClass: "flag-button"
+    });
     const actionsHtml = pageShell.renderLandingActions({
         quizId: "type-flag",
         groupId,
         className: "flag-actions",
-        buttonClass: "flag-button"
+        buttonClass: "flag-button",
+        includeHome: true
     });
     const footerHtml = pageShell.renderFooter({ className: "flag-footer" });
     const landingScriptsHtml = pageShell.renderLandingScripts();
@@ -148,7 +153,7 @@ function quizPage(groupId, group) {
         <h1>${escapeHtml(heading)}</h1>
         <div class="flag-meta">Type the Flags / ${escapeHtml(group.shortLabel)} / ${flags.length} flags</div>
         <p class="flag-lead">${escapeHtml(group.lead)}</p>
-        ${actionsHtml}
+        ${launchHtml}
       </header>
 
       <section class="flag-info content-section">
@@ -184,6 +189,7 @@ function quizPage(groupId, group) {
         <summary>${escapeHtml(units[0].toUpperCase() + units.slice(1))} included in this quiz (${flags.length})</summary>
         <p>${flags.map(flag => escapeHtml(flag.name)).join(", ")}.</p>
       </details>
+      ${actionsHtml}
       <section class="flag-links" aria-labelledby="explore-more-heading">
         <h2 id="explore-more-heading">Explore more geography quizzes</h2>
         <h3>Practice the same region on a map</h3>

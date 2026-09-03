@@ -343,6 +343,10 @@ const entryListHtml = entries.length
 
             const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
             const brandHtml = pageShell.renderBrand({ root: publicRoot, className: "panel-brand" });
+            const launchHtml = pageShell.renderPrimaryLaunch({
+                className: "action-row",
+                buttonClass: "qb-btn"
+            });
             const actionsHtml = pageShell.renderLandingActions({
                 root: publicRoot,
                 quizId: manifestId,
@@ -422,6 +426,7 @@ ${JSON.stringify({
     </header>
 
     <p class="lead">${escapeHtml(lead)}</p>
+    ${launchHtml}
 
     <section class="content-section">
       <h2>${escapeHtml(overviewHeading)}</h2>
