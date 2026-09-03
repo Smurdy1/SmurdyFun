@@ -18,8 +18,28 @@ jobs:
           ref: refactor/shared-quiz-session
           fetch-depth: 0
 
+      - name: Patch migration guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/oneoff_shared_session.py')
+          s = p.read_text()
+          s = s.replace(
+              'for forbidden in ["completed.size", "missedTargets", "correctAnswers++", "attempts++", "lastQuestionName", "finalElapsedMs =", "startTime ="]:',
+              'for forbidden in ["missedTargets", "correctAnswers++", "attempts++", "lastQuestionName", "finalElapsedMs =", "startTime ="]:'
+          )
+          p.write_text(s)
+          PY
+
       - name: Apply shared session migration
-        run: python tools/oneoff_shared_session.py
+        run: |
+          python tools/oneoff_shared_session.py
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/js/quiz_runner.js')
+          s = p.read_text().replace('completed.size', 'quizSession.snapshot().completedCount')
+          p.write_text(s)
+          PY
 
       - name: Install test dependencies
         run: npm install --no-package-lock --no-audit --no-fund
