@@ -55,15 +55,10 @@ jobs:
           from pathlib import Path
           p = Path('tests/flag_quiz.test.js')
           s = p.read_text()
-          old = '''        assert.match(html, /src\\/js\\/flag_quiz\\.js/);
-          assert.match(html, /flag_quiz\\.js\\?v=20260903-flag-parity-1/);
-          assert.match(html, /quiz_launch_intent\\.js/);'''
-          new = '''        assert.match(html, /src\\/js\\/flag_quiz\\.js/);
-          assert.match(html, /flag_quiz\\.js\\?v=20260903-session-1/);
-          assert.match(html, /quiz_session\\.js\\?v=20260903-session-1/);
-          assert.match(html, /quiz_launch_intent\\.js/);'''
+          old = '        assert.match(html, /flag_quiz\\.js\\?v=20260903-flag-parity-1/);'
+          new = '        assert.match(html, /flag_quiz\\.js\\?v=20260903-session-1/);\n        assert.match(html, /quiz_session\\.js\\?v=20260903-session-1/);'
           if s.count(old) != 1:
-              raise SystemExit('flag route regression anchor not found exactly once')
+              raise SystemExit(f'expected one old flag runner assertion, found {s.count(old)}')
           p.write_text(s.replace(old, new, 1))
           PY
 
