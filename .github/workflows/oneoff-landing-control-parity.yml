@@ -1,0 +1,52 @@
+name: One-off landing control parity
+
+on:
+  push:
+    branches:
+      - feature/landing-control-parity
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/landing-control-parity
+          fetch-depth: 0
+
+      - name: Apply landing control parity migration
+        run: python tools/oneoff_landing_control_parity.py
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate quiz pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-03'
+        run: npm run pages:generate
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/quiz_landing.js
+          node --check tools/quiz_page_shell.js
+          node --check tools/generate_quiz_pages.js
+          node --check tools/generate_flag_pages.js
+
+      - name: Run full test suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit landing control parity
+        run: |
+          rm -f .github/workflows/oneoff-landing-control-parity.yml tools/oneoff_landing_control_parity.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unify quiz landing page controls"
+          git push origin HEAD:feature/landing-control-parity
