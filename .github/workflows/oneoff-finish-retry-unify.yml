@@ -1,0 +1,118 @@
+name: One-off finish shared retry unification
+
+on:
+  push:
+    branches:
+      - refactor/shared-quiz-completion
+
+permissions:
+  contents: write
+
+jobs:
+  finish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/shared-quiz-completion
+          fetch-depth: 0
+
+      - name: Remove retry interception and preserve map mode
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          runner_path = Path('src/js/quiz_runner.js')
+          runner = runner_path.read_text()
+          pattern = r'''    function startMissedRetry\(names\) \{.*?\n    \}\n\n    function buildCompletionResult'''
+          replacement = '''    function startMissedRetry(names) {
+              names = (Array.isArray(names) ? names : [])
+                  .map(name => getCanonicalDisplayName(name))
+                  .filter(Boolean);
+              if (!names.length || typeof window.runNameQuiz !== "function") return;
+
+              hidePostQuizReview();
+              window.runNameQuiz({
+                  ...config,
+                  includeNames: names,
+                  retryWeakSpots: true
+              });
+          }
+
+          function buildCompletionResult'''
+          runner, count = re.subn(pattern, replacement, runner, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('map retry block not found exactly once')
+          runner_path.write_text(runner)
+
+          weak_path = Path('src/js/weak_spots.js')
+          weak = weak_path.read_text()
+          weak = weak.replace(
+              '            label: definition.label + " · " + humanizeGroup(group),',
+              '            label: definition.label + ": " + humanizeGroup(group),'
+          )
+          pattern = r'''\n    function reviewNamesFromButton\(button\) \{.*?\n    \}\n\n    function installRetryInterception\(\) \{.*?\n    \}\n'''
+          weak, count = re.subn(pattern, '\n', weak, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Weak Spots retry interception block not found exactly once')
+          if weak.count('        installRetryInterception();') != 1:
+              raise SystemExit('Weak Spots retry interception install call not found exactly once')
+          weak = weak.replace('        installRetryInterception();\n', '', 1)
+          weak_path.write_text(weak)
+
+          test_path = Path('tests/quiz_completion.test.js')
+          test = test_path.read_text()
+          test += '''\n
+test("Retry Missed has one owner and map retries preserve their current mode", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.join(__dirname, "..");
+    const mapRunner = fs.readFileSync(path.join(root, "src/js/quiz_runner.js"), "utf8");
+    const weakSpotsSource = fs.readFileSync(path.join(root, "src/js/weak_spots.js"), "utf8");
+
+    assert.match(
+        mapRunner,
+        /window\\.runNameQuiz\\(\\{[\\s\\S]*?\\.\\.\\.config,[\\s\\S]*?includeNames: names,[\\s\\S]*?retryWeakSpots: true/
+    );
+    assert.doesNotMatch(mapRunner, /retryQuizId|history\\.pushState\\(\\{\\}, "", path\\)/);
+    assert.doesNotMatch(weakSpotsSource, /installRetryInterception|weakSpotsRetryDelegated/);
+    assert.doesNotMatch(weakSpotsSource, /#quiz-review-retry, \\[data-flag-retry\\]/);
+});
+'''
+          test_path.write_text(test)
+
+          weak_test_path = Path('tests/weak_spots.test.js')
+          weak_test = weak_test_path.read_text()
+          old = '    assert.equal(flags.group, "europe");\n    assert.deepEqual(Array.from(flags.names), ["France", "Germany"]);'
+          new = '    assert.equal(flags.group, "europe");\n    assert.equal(flags.label, "Flags: Europe");\n    assert.deepEqual(Array.from(flags.names), ["France", "Germany"]);'
+          if weak_test.count(old) != 1:
+              raise SystemExit('Weak Spots label test anchor not found exactly once')
+          weak_test_path.write_text(weak_test.replace(old, new, 1))
+          PY
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/quiz_runner.js
+          node --check src/js/weak_spots.js
+          node --check src/js/quiz_completion.js
+          node --check src/js/flag_quiz.js
+
+      - name: Run focused tests
+        run: node --test tests/quiz_completion.test.js tests/quiz_session.test.js tests/flag_quiz.test.js tests/progress_total.test.js tests/weak_spots.test.js
+
+      - name: Run full suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit final retry cleanup
+        run: |
+          rm -f .github/workflows/oneoff-finish-retry-unify.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finish shared Retry Missed ownership"
+          git push origin HEAD:refactor/shared-quiz-completion
