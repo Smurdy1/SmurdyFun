@@ -19,7 +19,18 @@ jobs:
           fetch-depth: 0
 
       - name: Apply parity source migration
-        run: python tools/oneoff_flag_parity.py
+        run: |
+          python tools/oneoff_flag_parity.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("tests/flag_quiz.test.js")
+          text = path.read_text()
+          old = '    assert.match(directory, /Countries and territories/);\n'
+          new = '    assert.match(directory, /<h2>Main sets<\\/h2>/);\n'
+          if old not in text:
+              raise SystemExit("stale flag-directory assertion was not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
 
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
