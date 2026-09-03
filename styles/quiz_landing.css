@@ -1,73 +1,22 @@
-:root {
-    --smurdy-blue: #0077cc;
-    --smurdy-blue-dark: #005fa3;
-    --smurdy-text: #161616;
-    --smurdy-muted: #555;
-    --smurdy-line: rgba(0, 0, 0, 0.12);
-    --smurdy-radius-sm: 8px;
-    --smurdy-radius-md: 10px;
-    --smurdy-radius-lg: 12px;
-    --smurdy-shadow-panel: 0 8px 26px rgba(0, 0, 0, 0.10);
+body.smurdy-quiz-landing .content-section + .content-section {
+    padding-top: 2px;
 }
 
-body.smurdy-quiz-landing {
-    background: #f3f6f8;
+body.smurdy-quiz-landing .examples ul {
+    margin: 8px 0;
+    padding-left: 22px;
 }
 
-body.smurdy-quiz-landing .panel-brand {
-    background: rgba(255, 255, 255, 0.96);
-    border-bottom-color: rgba(0, 0, 0, 0.09);
+body.smurdy-quiz-landing .mode-specific {
+    padding: 0;
+    background: transparent;
 }
 
-body.smurdy-quiz-landing main {
-    max-width: 980px;
-    margin: 24px auto 0;
-    padding: 30px 32px 18px;
-    border: 1px solid rgba(0, 0, 0, 0.09);
-    border-radius: var(--smurdy-radius-lg);
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: var(--smurdy-shadow-panel);
+body.smurdy-quiz-landing .link-block {
+    margin: 20px 0;
 }
 
-body.smurdy-quiz-landing .lead,
-body.smurdy-quiz-landing .content-section,
-body.smurdy-quiz-landing .examples {
-    max-width: none;
-}
-
-body.smurdy-quiz-landing .tip,
-body.smurdy-quiz-landing .included-list,
-body.smurdy-quiz-landing .chip,
-body.smurdy-quiz-landing .qb-btn {
-    border-radius: var(--smurdy-radius-sm);
-}
-
-body.smurdy-quiz-landing .qb-btn.primary {
-    border-color: var(--smurdy-blue);
-    background: var(--smurdy-blue);
-    color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 119, 204, 0.18);
-}
-
-body.smurdy-quiz-landing .qb-btn.primary:hover {
-    border-color: var(--smurdy-blue-dark);
-    background: var(--smurdy-blue-dark);
-}
-
-body.smurdy-quiz-landing footer {
-    border-top: 0;
-}
-
-@media (max-width: 700px) {
-    body.smurdy-quiz-landing {
-        background: #fff;
-    }
-
-    body.smurdy-quiz-landing main {
-        margin: 0;
-        padding: 22px 18px 8px;
-        border: 0;
-        border-radius: 0;
-        box-shadow: none;
-    }
+body.smurdy-quiz-landing .link-block h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
 }

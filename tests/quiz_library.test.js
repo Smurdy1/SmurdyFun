@@ -155,7 +155,7 @@ test("saved flag cards are distinct and browser play links launch them directly"
     assert.match(browse, /`\$\{card\.label\} Flags`/);
     assert.doesNotMatch(browse, /\?play=1/);
     assert.match(browse, /SmurdyQuizLaunchIntent\?\.store/);
-    assert.match(browse, /ready \|\| isFlagQuiz/);
+    assert.match(browse, /definition\.adapter\.requiresMenuMap/);
     assert.doesNotMatch(flagRunner, /get\("play"\)/);
     assert.equal(countryGroups.world.memberCount, 201);
     assert.equal(flagGroups.world.memberCount, 201);
