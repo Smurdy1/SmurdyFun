@@ -1,0 +1,56 @@
+name: One-off shared quiz completion
+
+on:
+  push:
+    branches:
+      - refactor/shared-quiz-completion
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/shared-quiz-completion
+          fetch-depth: 0
+
+      - name: Apply shared completion migration
+        run: python tools/oneoff_shared_completion.py
+
+      - name: Install test dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate flag pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-03'
+        run: node tools/generate_flag_pages.js
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/quiz_completion.js
+          node --check src/js/quiz_runner.js
+          node --check src/js/flag_quiz.js
+          node --check src/js/app_core.js
+          node --check tools/generate_flag_pages.js
+
+      - name: Run completion and runner tests
+        run: node --test tests/quiz_completion.test.js tests/quiz_session.test.js tests/flag_quiz.test.js tests/progress_total.test.js tests/weak_spots.test.js
+
+      - name: Run full suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit migration
+        run: |
+          rm -f .github/workflows/oneoff-shared-completion.yml tools/oneoff_shared_completion.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unify quiz completion review retry and sharing"
+          git push origin HEAD:refactor/shared-quiz-completion
