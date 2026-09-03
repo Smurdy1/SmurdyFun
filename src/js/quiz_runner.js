@@ -73,7 +73,6 @@ window.runNameQuiz = function runNameQuiz(config) {
                 if (!currentName || locked) return;
 
                 locked = true;
-                attempts++;
                 finishWrong(currentName, true);
             } catch (e) { /* tolerate any errors */ }
         };
@@ -340,20 +339,20 @@ window.runNameQuiz = function runNameQuiz(config) {
     const FIND_POINT_LAYER = "find-point-layer";
 
     let currentName = null;
-    let lastQuestionName = null;
-    let currentFeature = null;               // <-- new: store feature object for current question
-    let currentCanonicalNormalized = null;   // <-- new: normalized canonical key for comparisons
+    let currentFeature = null;
+    let currentCanonicalNormalized = null;
     let locked = false;
-    let completed = new Set();
     let currentPoint = null; // {lng, lat}
 
-    let attempts = 0;
-    let correctAnswers = 0;
-    let missedTargets = new Map();
+    const quizSession = window.SmurdyQuizSession?.createSession?.({
+        keyOf: name => normalizeName(getCanonicalDisplayName(name)),
+        nameOf: name => getCanonicalDisplayName(name)
+    });
+    if (!quizSession) {
+        throw new Error("SmurdyQuizSession must load before quiz_runner.js");
+    }
 
     let timerInterval = null;
-    let startTime = null;
-    let finalElapsedMs = 0;
 
     function getAnalyticsContext() {
         const pathMatch = window.location.pathname.match(
@@ -396,13 +395,14 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function getAnalyticsSnapshot(correct) {
+        const snapshot = quizSession.snapshot({ total: getNames().length });
         return {
             ...getAnalyticsContext(),
             correct,
-            attempts,
-            correctAnswers,
-            completedPlaces: completed.size,
-            placesTotal: getNames().length
+            attempts: snapshot.attempts,
+            correctAnswers: snapshot.correctAnswers,
+            completedPlaces: snapshot.completedCount,
+            placesTotal: snapshot.total
         };
     }
 
@@ -431,7 +431,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         try {
             window.SmurdyAnalytics?.completeQuiz({
                 ...getAnalyticsSnapshot(true),
-                completionTimeSeconds: finalElapsedMs / 1000
+                completionTimeSeconds: quizSession.getElapsedMs() / 1000
             });
         } catch (_) {}
     }
@@ -772,34 +772,26 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function getRemaining() {
-        return getNames().filter(name => !completed.has(name));
+        return quizSession.getRemaining(getNames());
     }
 
-    // Avoid immediately repeating the previous target when another option exists.
-    // This applies after a wrong answer, Give Up, and Restart.
+    // Anti-repeat behavior is shared across quiz renderers.
     function getQuestionCandidates(remaining) {
-        const source = Array.isArray(remaining) ? remaining : [];
-        if (source.length <= 1 || !lastQuestionName) return source;
-
-        const previous = normalizeName(lastQuestionName);
-        const filtered = source.filter(name => normalizeName(name) !== previous);
-        return filtered.length ? filtered : source;
+        return quizSession.getQuestionCandidates(remaining);
     }
 
     function updateCounter() {
-        const total = getNames().length;
-        SQ.setProgressText(`${completed.size} / ${total} completed`);
-        const compact = `${completed.size} / ${total}`;
+        const snapshot = quizSession.snapshot({ total: getNames().length });
+        SQ.setProgressText(`${snapshot.completedCount} / ${snapshot.total} completed`);
+        const compact = `${snapshot.completedCount} / ${snapshot.total}`;
         const s = document.getElementById("stats-count");
         if (s) s.textContent = compact;
         const p = document.getElementById("quiz-progress");
-        if (p) p.textContent = `${completed.size} / ${total} completed`;
+        if (p) p.textContent = `${snapshot.completedCount} / ${snapshot.total} completed`;
     }
 
     function updateAccuracy() {
-        const percent = attempts === 0
-            ? 100
-            : Math.round((correctAnswers / attempts) * 100);
+        const percent = quizSession.snapshot().accuracyPercent;
 
         SQ.setAccuracyText(`${percent}% correct`);
         const s = document.getElementById("stats-accuracy");
@@ -811,34 +803,20 @@ window.runNameQuiz = function runNameQuiz(config) {
     function repaintCompleted() {
         if (!persistCompletedHighlights) return;
 
-        for (const name of completed) {
+        for (const name of quizSession.getCompletedItems()) {
             setState(name, "correct");
         }
     }
 
     function recordMissedTarget(clickedOrGuess, gaveUp) {
-        if (!currentName) return;
+        if (!currentName) return null;
 
         const displayName = getCanonicalDisplayName(currentName);
-        const key = normalizeName(displayName);
-        const existing = missedTargets.get(key) || {
-            key,
-            name: displayName,
-            count: 0,
-            guesses: [],
-            gaveUp: 0
-        };
-
-        existing.count++;
-        if (gaveUp) {
-            existing.gaveUp++;
-        } else {
-            const guess = String(clickedOrGuess || "").trim();
-            if (guess && !existing.guesses.includes(guess) && existing.guesses.length < 4) {
-                existing.guesses.push(guess);
-            }
-        }
-        missedTargets.set(key, existing);
+        const outcome = quizSession.recordAnswer(currentName, {
+            correct: false,
+            guess: gaveUp ? "" : String(clickedOrGuess || ""),
+            gaveUp
+        });
 
         if (!reviewTestMode) {
             try {
@@ -850,15 +828,11 @@ window.runNameQuiz = function runNameQuiz(config) {
                 });
             } catch (_) {}
         }
+        return outcome;
     }
 
-    function reduceWeakSpotAfterRetry() {
-        if (!retryWeakSpots || anyTestMode || !currentName) return;
-
-        // A Weak Spot is cleared only by a clean replay. If this target was
-        // missed again during the retry, keep it for the next practice round.
-        const key = normalizeName(getCanonicalDisplayName(currentName));
-        if (missedTargets.has(key)) return;
+    function reduceWeakSpotAfterRetry(hadMiss) {
+        if (!retryWeakSpots || anyTestMode || !currentName || hadMiss) return;
 
         try {
             const context = getAnalyticsContext();
@@ -955,7 +929,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function showPostQuizReview() {
-        const items = Array.from(missedTargets.values())
+        const items = quizSession.getMisses()
             .sort((a, b) => a.name.localeCompare(b.name));
 
         if (!items.length) {
@@ -1205,13 +1179,11 @@ window.runNameQuiz = function runNameQuiz(config) {
  
     function startTimer() {
         stopTimer();
-        startTime = Date.now();
-        finalElapsedMs = 0;
+        quizSession.startClock();
         setTimerText(0);
  
         timerInterval = setInterval(() => {
-            finalElapsedMs = Date.now() - startTime;
-            setTimerText(finalElapsedMs);
+            setTimerText(quizSession.getElapsedMs());
         }, 100);
     }
  
@@ -1220,12 +1192,17 @@ window.runNameQuiz = function runNameQuiz(config) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
+        const elapsed = quizSession.stopClock();
+        setTimerText(elapsed);
+        return elapsed;
     }
 
     function resetTimer() {
-        stopTimer();
-        startTime = null;
-        finalElapsedMs = 0;
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        quizSession.resetClock();
         setTimerText(0);
     }
 
@@ -1553,11 +1530,10 @@ window.runNameQuiz = function runNameQuiz(config) {
             // Use this run's snapshotted canonical pool for both desktop and
             // compact mobile counters. The shared UI setter must not recalculate it.
             updateCounter();
-            if (startTime) finalElapsedMs = Date.now() - startTime;
+            const finalElapsedMs = stopTimer();
             SQ.setResultText(doneText(formatElapsed(finalElapsedMs)));
             currentName = null;
             locked = true;
-            stopTimer();
             completeAnalyticsRun();
             setInputEnabled(false);
 
@@ -1604,7 +1580,7 @@ window.runNameQuiz = function runNameQuiz(config) {
             currentName = randomChoice(candidates);
         }
 
-        lastQuestionName = currentName;
+        quizSession.setCurrent(currentName);
         locked = false;
 
         // Preserve the placed point for "findPoint" typing mode.
@@ -1680,37 +1656,41 @@ window.runNameQuiz = function runNameQuiz(config) {
         if (!lastAnswerTestMode && !reviewTestMode) return questionPromise;
 
         return Promise.resolve(questionPromise).then(() => {
-            if (!currentName || completed.size > 0) return;
+            if (!currentName || quizSession.snapshot().completedCount > 0) return;
 
             if (reviewTestMode) {
                 const names = getNames();
-                completed = new Set(names);
-                missedTargets = new Map(
-                    names.slice(0, Math.min(3, names.length)).map((name, index) => {
+                quizSession.seed({
+                    total: names.length,
+                    completedItems: names,
+                    misses: names.slice(0, Math.min(3, names.length)).map((name, index) => {
                         const displayName = getCanonicalDisplayName(name);
-                        const key = normalizeName(displayName);
-                        return [key, {
-                            key,
+                        return {
+                            key: normalizeName(displayName),
                             name: displayName,
                             count: index + 1,
                             guesses: [],
-                            gaveUp: index === 2 ? 1 : 0
-                        }];
-                    })
-                );
-                attempts = names.length + 3;
-                correctAnswers = names.length;
+                            gaveUp: index === 2 ? 1 : 0,
+                            item: name
+                        };
+                    }),
+                    attempts: names.length + 3,
+                    correctAnswers: names.length,
+                    firstTryCorrect: Math.max(0, names.length - 3)
+                });
                 updateCounter();
                 updateAccuracy();
                 return nextQuestion();
             }
 
             const currentKey = normalizeName(currentName);
-            completed = new Set(
-                getNames().filter(name => normalizeName(name) !== currentKey)
-            );
-            attempts = 0;
-            correctAnswers = 0;
+            quizSession.seed({
+                total: getNames().length,
+                completedItems: getNames().filter(name => normalizeName(name) !== currentKey),
+                attempts: 0,
+                correctAnswers: 0,
+                firstTryCorrect: 0
+            });
             repaintCompleted();
             updateCounter();
             updateAccuracy();
@@ -1723,10 +1703,10 @@ window.runNameQuiz = function runNameQuiz(config) {
     function restartQuiz() {
         currentName = null;
         locked = false;
-        completed = new Set();
-        attempts = 0;
-        correctAnswers = 0;
-        missedTargets = new Map();
+        quizSession.reset({
+            total: getNames().length,
+            preserveLastQuestion: true
+        });
         hidePostQuizReview();
  
         clearStates();
@@ -1766,9 +1746,8 @@ window.runNameQuiz = function runNameQuiz(config) {
      }
 
     function finishCorrect() {
-        correctAnswers++;
-        reduceWeakSpotAfterRetry();
-        completed.add(currentName);
+        const outcome = quizSession.recordAnswer(currentName, { correct: true });
+        reduceWeakSpotAfterRetry(Boolean(outcome?.hadMiss));
         recordAnalyticsAnswer(true);
 
         // Remove any temporary target state, then briefly reveal the answered
@@ -1875,17 +1854,12 @@ window.runNameQuiz = function runNameQuiz(config) {
 
             // Bordered click quizzes ignore already-completed places. In No
             // Borders, clicking one is a real wrong answer and must be counted.
-            for (const c of completed) {
-                if (
-                    normalizeName(c) === clickedCanon &&
-                    !completedCountryClicksCountAsWrong()
-                ) {
-                    return;
-                }
+            const clickedName = canonicalNameForFeature(clickedFeature) || SQ.getFeatureName(clickedFeature) || clickedCanon;
+            if (quizSession.isCompleted(clickedName) && !completedCountryClicksCountAsWrong()) {
+                return;
             }
 
             locked = true;
-            attempts++;
 
             const answerCorrect = clickedCanon === currentCanonicalNormalized;
 
@@ -1911,7 +1885,6 @@ window.runNameQuiz = function runNameQuiz(config) {
         if (!guess) return;
 
         locked = true;
-        attempts++;
 
         const answerCorrect = SQ.isAcceptedAnswer(currentName, guess);
 
@@ -1965,6 +1938,7 @@ window.runNameQuiz = function runNameQuiz(config) {
          } catch (e) { /* tolerate map readiness errors */ }
      }
  
+    quizSession.reset({ total: getNames().length });
     hidePostQuizReview();
     updateCounter();
     updateAccuracy();
