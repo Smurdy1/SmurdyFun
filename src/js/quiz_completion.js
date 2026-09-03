@@ -9,6 +9,7 @@
 
     const SHARE_STYLE_ID = "smurdy-quiz-completion-style-v1";
     const SHARE_SELECTOR = "[data-smurdy-share]";
+    const DEFAULT_REVIEW_PAGE_SIZE = 6;
 
     function formatElapsed(milliseconds) {
         const totalSeconds = Math.floor(Math.max(0, Number(milliseconds) || 0) / 1000);
@@ -201,15 +202,28 @@
         return { begin, answer, complete, answerPayload };
     }
 
+    function sortMissesForReview(misses) {
+        return (Array.isArray(misses) ? misses : [])
+            .slice()
+            .sort((a, b) =>
+                Math.max(0, Number(b?.count) || 0) - Math.max(0, Number(a?.count) || 0) ||
+                String(a?.name || "").localeCompare(String(b?.name || ""))
+            );
+    }
+
     function renderReview(container, result, options = {}) {
         if (!container) return null;
-        const misses = Array.isArray(result?.misses) ? result.misses : [];
+        const rawMisses = Array.isArray(result?.misses) ? result.misses : [];
+        const misses = options.sortMisses === false
+            ? rawMisses.slice()
+            : sortMissesForReview(rawMisses);
         container.replaceChildren();
         container.hidden = misses.length === 0;
         if (!misses.length) return container;
 
         const document = container.ownerDocument || root?.document;
         if (!document) return container;
+        injectShareStyles(document);
 
         if (options.ariaLabelledBy) {
             container.setAttribute("aria-labelledby", options.ariaLabelledBy);
@@ -250,18 +264,61 @@
 
         const list = document.createElement(options.listTag || "ol");
         if (options.listClass) list.className = options.listClass;
-        misses.forEach((item, index) => {
-            const row = document.createElement("li");
-            if (typeof options.renderItem === "function") {
-                options.renderItem(item, row, document, index);
-            } else {
-                const name = document.createElement("span");
-                name.textContent = item.name;
-                row.appendChild(name);
-            }
-            list.appendChild(row);
-        });
         container.appendChild(list);
+
+        const pageSize = Math.max(1, Number(options.pageSize) || DEFAULT_REVIEW_PAGE_SIZE);
+        const collapsedCount = Math.min(
+            misses.length,
+            Math.max(1, Number(options.initialVisible) || pageSize)
+        );
+        let visibleCount = collapsedCount;
+
+        function renderRows() {
+            list.replaceChildren();
+            misses.slice(0, visibleCount).forEach((item, index) => {
+                const row = document.createElement("li");
+                if (typeof options.renderItem === "function") {
+                    options.renderItem(item, row, document, index);
+                } else {
+                    const name = document.createElement("span");
+                    name.textContent = item.name;
+                    row.appendChild(name);
+                }
+                list.appendChild(row);
+            });
+        }
+
+        renderRows();
+
+        if (misses.length > collapsedCount) {
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = ["smurdy-review-toggle", options.toggleClass || ""]
+                .filter(Boolean)
+                .join(" ");
+            if (options.toggleId) toggle.id = options.toggleId;
+
+            function updateToggle() {
+                const allVisible = visibleCount >= misses.length;
+                toggle.textContent = allVisible
+                    ? (options.collapseLabel || "Collapse")
+                    : (options.showMoreLabel || "Show more");
+                toggle.setAttribute("aria-expanded", allVisible ? "true" : "false");
+            }
+
+            toggle.addEventListener("click", () => {
+                if (visibleCount >= misses.length) {
+                    visibleCount = collapsedCount;
+                } else {
+                    visibleCount = Math.min(misses.length, visibleCount + pageSize);
+                }
+                renderRows();
+                updateToggle();
+            });
+
+            updateToggle();
+            container.appendChild(toggle);
+        }
         return container;
     }
 
@@ -301,6 +358,25 @@
         const style = document.createElement("style");
         style.id = SHARE_STYLE_ID;
         style.textContent = `
+            .smurdy-review-toggle {
+                display: block;
+                margin: 12px auto 0;
+                padding: 9px 14px;
+                border: 1px solid rgba(0,0,0,.18);
+                border-radius: 9px;
+                background: rgba(255,255,255,.92);
+                color: #111;
+                font: inherit;
+                font-size: .9rem;
+                font-weight: 750;
+                line-height: 1.2;
+                cursor: pointer;
+            }
+            .smurdy-review-toggle:hover { background: rgba(0,0,0,.045); }
+            .smurdy-review-toggle:focus-visible {
+                outline: 3px solid rgba(0,119,204,.28);
+                outline-offset: 2px;
+            }
             [data-smurdy-share] {
                 width: 100%;
                 margin-top: 18px;
@@ -646,12 +722,14 @@
     }
 
     return {
+        DEFAULT_REVIEW_PAGE_SIZE,
         formatElapsed,
         humanizeSlug,
         modeLabelForQuiz,
         buildShareText,
         buildResult,
         describeMiss,
+        sortMissesForReview,
         retryMissed,
         createAnalyticsReporter,
         renderReview,

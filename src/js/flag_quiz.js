@@ -253,9 +253,17 @@
                     const image = document.createElement("img");
                     image.src = item.data?.src || "";
                     image.alt = "";
+                    const copy = document.createElement("div");
+                    copy.className = "flag-review-copy";
                     const name = document.createElement("span");
+                    name.className = "flag-review-name";
                     name.textContent = item.name;
-                    row.append(image, name);
+                    const missCount = document.createElement("span");
+                    missCount.className = "flag-review-miss-count";
+                    const count = Math.max(0, Number(item.count) || 0);
+                    missCount.textContent = `${count} ${count === 1 ? "miss" : "misses"}`;
+                    copy.append(name, missCount);
+                    row.append(image, copy);
                 }
             });
         }
