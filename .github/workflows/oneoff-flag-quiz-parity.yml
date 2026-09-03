@@ -1,0 +1,112 @@
+name: Apply flag quiz parity patch
+on:
+  push:
+    branches: [fix/flag-quiz-parity]
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/flag-quiz-parity
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply edits
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('src/js/flag_quiz.js')
+          s = p.read_text()
+
+          s = s.replace('''    function filterFlagsByNames(flags, names) {\n        const wanted = new Set((names || []).map(normalizeAnswer).filter(Boolean));\n        if (!wanted.size) return [];\n        return (flags || []).filter(flag => wanted.has(normalizeAnswer(flag?.name)));\n    }\n\n    function shuffle(items, random = Math.random) {''', '''    function filterFlagsByNames(flags, names) {\n        const wanted = new Set((names || []).map(normalizeAnswer).filter(Boolean));\n        if (!wanted.size) return [];\n        return (flags || []).filter(flag => wanted.has(normalizeAnswer(flag?.name)));\n    }\n\n    function remainingFlags(flags, completedIds) {\n        const completed = completedIds instanceof Set ? completedIds : new Set(completedIds || []);\n        return (flags || []).filter(flag => !completed.has(flag.id));\n    }\n\n    function chooseNextFlag(flags, completedIds, lastId, random = Math.random) {\n        const remaining = remainingFlags(flags, completedIds);\n        if (!remaining.length) return null;\n        const candidates = remaining.length > 1 && lastId\n            ? remaining.filter(flag => flag.id !== lastId)\n            : remaining;\n        return candidates[Math.floor(random() * candidates.length)] || remaining[0];\n    }\n\n    function shuffle(items, random = Math.random) {''')
+
+          s = s.replace('''        const image = document.querySelector("[data-flag-image]");\n        const form = document.querySelector("[data-flag-form]");''', '''        const image = document.querySelector("[data-flag-image]");\n        const stage = image?.closest?.(".flag-stage") || null;\n        const form = document.querySelector("[data-flag-form]");''')
+
+          s = s.replace('''        let index = 0;\n        let attempts = 0;\n        let correct = 0;\n        let locked = false;\n        let misses = [];''', '''        let attempts = 0;\n        let correct = 0;\n        let firstTryCorrect = 0;\n        let locked = false;\n        let misses = [];\n        let completed = new Set();\n        let currentFlag = null;\n        let lastFlagId = null;''')
+
+          s = s.replace('''                completedPlaces: index + (locked ? 1 : 0),\n                placesTotal: flags.length,''', '''                completedPlaces: completed.size,\n                placesTotal: flags.length,''')
+
+          s = s.replace('''            const completed = Math.min(index, flags.length);\n            if (progress) progress.textContent = `${completed} / ${flags.length} completed`;\n            if (progressBar) {\n                progressBar.style.width = `${flags.length ? (completed / flags.length) * 100 : 0}%`;\n                progressBar.parentElement?.setAttribute("aria-valuenow", String(completed));''', '''            const completedCount = completed.size;\n            if (progress) progress.textContent = `${completedCount} / ${flags.length} completed`;\n            if (progressBar) {\n                progressBar.style.width = `${flags.length ? (completedCount / flags.length) * 100 : 0}%`;\n                progressBar.parentElement?.setAttribute("aria-valuenow", String(completedCount));''')
+
+          s = s.replace('''            review.innerHTML = misses.length ? `\n                <h2>Flags to review</h2>\n                <p>These were answered incorrectly or given up.</p>\n                <ul class="flag-review-grid">${misses.map(flag => `''', '''            review.innerHTML = misses.length ? `\n                <h2>Flags to review</h2>\n                <ul class="flag-review-grid">${misses.map(flag => `''')
+
+          s = s.replace('''            image.removeAttribute("src");\n            image.alt = "";\n            image.hidden = true;\n            form.hidden = true;''', '''            image.removeAttribute("src");\n            image.alt = "";\n            image.hidden = true;\n            if (stage) stage.hidden = true;\n            form.hidden = true;''')
+
+          s = s.replace('''                        <div><strong>${correct} / ${flags.length}</strong><span>Flags correct</span></div>''', '''                        <div><strong>${firstTryCorrect} / ${flags.length}</strong><span>Flags correct</span></div>''')
+
+          start = s.index('        function showQuestion() {')
+          end = s.index('        function recordMiss(current, guess, gaveUp) {', start)
+          s = s[:start] + '''        function showQuestion() {\n            locked = false;\n            result.textContent = "";\n            result.className = "flag-result";\n            input.value = "";\n\n            if (completed.size >= flags.length) {\n                currentFlag = null;\n                finishQuiz();\n                return;\n            }\n\n            currentFlag = chooseNextFlag(flags, completed, lastFlagId);\n            if (!currentFlag) {\n                finishQuiz();\n                return;\n            }\n            lastFlagId = currentFlag.id;\n\n            if (stage) stage.hidden = false;\n            image.hidden = false;\n            image.src = currentFlag.src;\n            image.alt = `Flag ${completed.size + 1} of ${flags.length}`;\n            form.hidden = false;\n            giveUp.hidden = false;\n            restart.hidden = false;\n            if (retry) retry.hidden = true;\n            if (summary) summary.hidden = true;\n            if (afterActions) afterActions.hidden = true;\n            updateStats();\n            input.focus({ preventScroll: true });\n\n            const remaining = remainingFlags(flags, completed).filter(flag => flag.id !== currentFlag.id);\n            const next = remaining[0];\n            if (next) new Image().src = next.src;\n        }\n\n''' + s[end:]
+
+          start = s.index('        function finishQuestion(wasCorrect, guess, gaveUp = false) {')
+          end = s.index('        function submitAnswer(event) {', start)
+          s = s[:start] + '''        function finishQuestion(wasCorrect, guess, gaveUp = false) {\n            if (locked || !currentFlag) return;\n            locked = true;\n            attempts++;\n\n            const current = currentFlag;\n            const hadMiss = misses.some(flag => flag.id === current.id);\n            if (wasCorrect) {\n                correct++;\n                completed.add(current.id);\n                if (!hadMiss) firstTryCorrect++;\n                if (retryWeakSpots && !hadMiss) clearWeakSpot(current);\n                result.textContent = "Correct!";\n                result.classList.add("is-correct");\n            } else {\n                recordMiss(current, guess, gaveUp);\n                result.textContent = `Answer: ${current.name}`;\n                result.classList.add("is-wrong");\n            }\n\n            root.SmurdyAnalytics?.recordAnswer?.(analyticsSnapshot(wasCorrect));\n            updateStats();\n            advanceTimeout = root.setTimeout(() => {\n                advanceTimeout = null;\n                showQuestion();\n            }, wasCorrect ? 650 : 1150);\n        }\n\n''' + s[end:]
+
+          s = s.replace('''            if (locked || !flags[index]) return;\n            const guess = normalizeAnswer(input.value);\n            if (!guess) return;\n            finishQuestion(acceptedAnswers(flags[index].name, aliases).has(guess), input.value);''', '''            if (locked || !currentFlag) return;\n            const guess = normalizeAnswer(input.value);\n            if (!guess) return;\n            finishQuestion(acceptedAnswers(currentFlag.name, aliases).has(guess), input.value);''')
+
+          s = s.replace('''            flags = shuffle(items);\n            index = 0;\n            attempts = 0;\n            correct = 0;\n            misses = [];\n            locked = false;''', '''            flags = shuffle(items);\n            attempts = 0;\n            correct = 0;\n            firstTryCorrect = 0;\n            misses = [];\n            completed = new Set();\n            currentFlag = null;\n            lastFlagId = null;\n            locked = false;''')
+
+          s = s.replace('''        try {\n            const params = new URLSearchParams(root.location?.search || "");\n            if (params.get("play") === "1" || params.get("weakSpotsPractice") === "1") {\n                void launchQuiz();\n            }\n        } catch (_) {}''', '''        try {\n            const path = String(root.location?.pathname || "");\n            const params = new URLSearchParams(root.location?.search || "");\n            if (/^\\/quizzes\\/type-flag\\/[^/]+\\/?$/.test(path) || params.get("weakSpotsPractice") === "1") {\n                void launchQuiz();\n            }\n        } catch (_) {}''')
+
+          s = s.replace('''        filterFlagsByNames,\n        shuffle,''', '''        filterFlagsByNames,\n        remainingFlags,\n        chooseNextFlag,\n        shuffle,''')
+          p.write_text(s)
+
+          p = Path('src/js/browse.js')
+          s = p.read_text().replace('''        return quizId === "type-flag" ? `${path}?play=1` : path;''', '''        return path;''')
+          p.write_text(s)
+
+          p = Path('styles/flag_quiz.css')
+          s = p.read_text()
+          s = s.replace('''.flag-button { display: inline-flex; min-height: 44px; padding: 10px 15px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; background: #fff;''', '''.flag-button { display: inline-flex; min-height: 44px; padding: 10px 15px; align-items: center; justify-content: center; border: 1px solid #c9cdd1; border-radius: 8px; background: #f5f6f7;''')
+          s = s.replace('''.flag-button:hover { border-color: #aaa; }''', '''.flag-button:hover { border-color: #a8adb2; background: #eceeef; }''')
+          s = s.replace('''.flag-game-actions [data-flag-retry] { grid-column: 1 / -1; justify-self: center; }\n''', '')
+          s = s.replace('''.flag-quiz-running .flag-page { margin-top: 18px; padding-top: 24px; }''', '''.flag-quiz-running .flag-page { margin: 18px auto 34px; padding-top: 24px; }''')
+          p.write_text(s)
+
+          p = Path('tools/generate_flag_pages.js')
+          s = p.read_text()
+          s = s.replace('''<button class="flag-button" type="button" data-flag-retry hidden>Retry missed flags</button>''', '''<button class="flag-button" type="button" data-flag-retry hidden>Retry Missed</button>''')
+          s = s.replace('''/styles/flag_quiz.css?v=20260901-flag-quiz-3''', '''/styles/flag_quiz.css?v=20260902-flag-quiz-4''')
+          s = s.replace('''/src/js/flag_quiz.js?v=20260902-flag-quiz-4''', '''/src/js/flag_quiz.js?v=20260902-flag-quiz-5''')
+          p.write_text(s)
+
+          p = Path('tests/flag_quiz.test.js')
+          s = p.read_text()
+          insert = '''\ntest("missed flags remain in the question pool until answered correctly", () => {\n    const flags = [\n        { id: "a", name: "A" },\n        { id: "b", name: "B" },\n        { id: "c", name: "C" }\n    ];\n    const completed = new Set(["a"]);\n\n    assert.deepEqual(api.remainingFlags(flags, completed).map(flag => flag.id), ["b", "c"]);\n    assert.equal(api.chooseNextFlag(flags, completed, "b", () => 0).id, "c");\n    assert.equal(api.chooseNextFlag(flags, new Set(["a", "b"]), "c", () => 0).id, "c");\n});\n'''
+          marker = 'test("flag routes load the shared runner and declare the correct set", () => {'
+          s = s.replace(marker, insert + '\n' + marker)
+          s = s.replace('''flag_quiz\\.js\\?v=20260902-flag-quiz-4''', '''flag_quiz\\.js\\?v=20260902-flag-quiz-5''')
+          s = s.replace('''    assert.match(html, /data-flag-restart>Restart/);''', '''    assert.match(html, /data-flag-restart>Restart/);\n    assert.match(html, /data-flag-retry hidden>Retry Missed/);''')
+          p.write_text(s)
+
+          p = Path('tests/quiz_library.test.js')
+          s = p.read_text()
+          s = s.replace('''    assert.match(browse, /quizId === "type-flag" \\? `\\$\\{path\\}\\?play=1`/);\n    assert.match(browse, /ready \\|\\| isFlagQuiz/);\n    assert.match(flagRunner, /URLSearchParams[\\s\\S]*get\\("play"\\) === "1"/);''', '''    assert.doesNotMatch(browse, /\\?play=1/);\n    assert.match(browse, /ready \\|\\| isFlagQuiz/);\n    assert.doesNotMatch(flagRunner, /get\\("play"\\)/);''')
+          p.write_text(s)
+
+          p = Path('src/js/app_core.js')
+          s = p.read_text().replace('const APP_VERSION = "1.13.4";', 'const APP_VERSION = "1.13.5";')
+          p.write_text(s)
+          PY
+          node tools/generate_flag_pages.js
+      - name: Validate
+        run: |
+          node --check src/js/flag_quiz.js
+          node --check src/js/browse.js
+          node --check tools/generate_flag_pages.js
+          npm test
+          git diff --check
+      - name: Commit edits
+        shell: bash
+        run: |
+          rm .github/workflows/oneoff-flag-quiz-parity.yml
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git add -A
+          git commit -m "Bring flag quiz behavior in line with map quizzes"
+          git push origin HEAD:fix/flag-quiz-parity
