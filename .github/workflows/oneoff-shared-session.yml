@@ -1,0 +1,48 @@
+name: One-off shared quiz session
+
+on:
+  push:
+    branches:
+      - refactor/shared-quiz-session
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/shared-quiz-session
+          fetch-depth: 0
+
+      - name: Apply shared session migration
+        run: python tools/oneoff_shared_session.py
+
+      - name: Install test dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Run session and runner tests
+        run: node --test tests/quiz_session.test.js tests/flag_quiz.test.js tests/progress_total.test.js tests/weak_spots.test.js
+
+      - name: Regenerate flag pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-03'
+        run: node tools/generate_flag_pages.js
+
+      - name: Run full suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit migration
+        run: |
+          rm -f .github/workflows/oneoff-shared-session.yml tools/oneoff_shared_session.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Share quiz session state across runners"
+          git push origin HEAD:refactor/shared-quiz-session
