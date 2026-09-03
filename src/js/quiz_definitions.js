@@ -145,9 +145,11 @@
         return `/quizzes/${slug(id)}/${slug(groupId || "world")}/`;
     }
 
-    function createRegistry(getManifest = () => []) {
+    function createRegistry(manifestProvider = () => []) {
         function manifestList() {
-            const value = typeof getManifest === "function" ? getManifest() : getManifest;
+            const value = typeof manifestProvider === "function"
+                ? manifestProvider()
+                : manifestProvider;
             return Array.isArray(value) ? value : [];
         }
 
