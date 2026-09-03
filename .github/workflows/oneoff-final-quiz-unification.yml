@@ -1,0 +1,61 @@
+name: One-off final quiz unification
+
+on:
+  push:
+    branches:
+      - refactor/final-quiz-unification
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/final-quiz-unification
+          fetch-depth: 0
+
+      - name: Apply final quiz unification
+        run: python tools/oneoff_final_quiz_unification.py
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate quiz pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-03'
+        run: npm run pages:generate
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/quiz_definitions.js
+          node --check src/js/quiz_landing.js
+          node --check src/js/flag_quiz.js
+          node --check src/js/app.js
+          node --check src/js/app_core.js
+          node --check src/js/browse.js
+          node --check src/js/manifest.js
+          node --check tools/quiz_page_shell.js
+          node --check tools/generate_quiz_pages.js
+          node --check tools/generate_flag_pages.js
+
+      - name: Run focused architecture tests
+        run: node --test tests/quiz_definitions.test.js tests/quiz_library.test.js tests/flag_quiz.test.js tests/quiz_session.test.js tests/quiz_completion.test.js tests/weak_spots.test.js
+
+      - name: Run full suite
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit final architecture
+        run: |
+          rm -f .github/workflows/oneoff-final-quiz-unification.yml tools/oneoff_final_quiz_unification.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finish quiz architecture unification"
+          git push origin HEAD:refactor/final-quiz-unification
