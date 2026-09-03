@@ -44,13 +44,31 @@ jobs:
       - name: Install test dependencies
         run: npm install --no-package-lock --no-audit --no-fund
 
-      - name: Run session and runner tests
-        run: node --test tests/quiz_session.test.js tests/flag_quiz.test.js tests/progress_total.test.js tests/weak_spots.test.js
-
       - name: Regenerate flag pages
         env:
           SITEMAP_LASTMOD: '2026-09-03'
         run: node tools/generate_flag_pages.js
+
+      - name: Refresh flag route regression
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/flag_quiz.test.js')
+          s = p.read_text()
+          old = '''        assert.match(html, /src\\/js\\/flag_quiz\\.js/);
+          assert.match(html, /flag_quiz\\.js\\?v=20260903-flag-parity-1/);
+          assert.match(html, /quiz_launch_intent\\.js/);'''
+          new = '''        assert.match(html, /src\\/js\\/flag_quiz\\.js/);
+          assert.match(html, /flag_quiz\\.js\\?v=20260903-session-1/);
+          assert.match(html, /quiz_session\\.js\\?v=20260903-session-1/);
+          assert.match(html, /quiz_launch_intent\\.js/);'''
+          if s.count(old) != 1:
+              raise SystemExit('flag route regression anchor not found exactly once')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+      - name: Run session and runner tests
+        run: node --test tests/quiz_session.test.js tests/flag_quiz.test.js tests/progress_total.test.js tests/weak_spots.test.js
 
       - name: Run full suite
         run: npm test
