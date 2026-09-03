@@ -6,7 +6,7 @@
     if (!root || !root.document) return;
 
     root.SmurdyFlagQuiz = api;
-    const start = () => api.mount(root.document, root);
+    const start = () => { root.SmurdyFlagQuizController = api.mount(root.document, root); };
     if (root.document.readyState === "loading") {
         root.document.addEventListener("DOMContentLoaded", start, { once: true });
     } else {
@@ -117,7 +117,7 @@
     function mount(document, root) {
         const body = document.body;
         const setId = body?.dataset.flagSet || "world";
-        const launch = document.querySelector("[data-flag-launch]");
+        const launch = document.querySelector("[data-smurdy-quiz-launch], [data-flag-launch]");
         const landing = document.querySelector("[data-flag-landing]");
         const game = document.querySelector("[data-flag-game]");
         const image = document.querySelector("[data-flag-image]");
@@ -134,7 +134,6 @@
         const retry = document.querySelector("[data-flag-retry]");
         const review = document.querySelector("[data-flag-review]");
         const summary = document.querySelector("[data-flag-summary]");
-        const favorite = document.querySelector("[data-flag-favorite]");
         const afterActions = document.querySelector("[data-flag-after-actions]");
 
         if (!launch || !landing || !game || !image || !form || !input) return null;
@@ -216,12 +215,6 @@
             afterActions.prepend(button);
         }
 
-        function updateFavoriteButton() {
-            if (!favorite) return;
-            const saved = Boolean(root.SmurdyQuizLibrary?.isFavorite?.("type-flag", setId));
-            favorite.setAttribute("aria-pressed", String(saved));
-            favorite.textContent = saved ? "★ Favorited" : "☆ Add to favorites";
-        }
 
         function updateStats() {
             const snapshot = quizSession.snapshot({ total: flags.length });
@@ -454,8 +447,14 @@
             return loadPromise;
         }
 
-        async function launchQuiz() {
+        async function launchQuiz(options = {}) {
             if (launch.disabled) return;
+            try {
+                const consumed = root.SmurdyQuizLaunchIntent?.consumeCurrent?.() || null;
+                initialLaunchIntent = options.launchIntent || consumed || null;
+            } catch (_) {
+                initialLaunchIntent = options.launchIntent || null;
+            }
             launch.disabled = true;
             launch.textContent = "Loading flags...";
 
@@ -503,7 +502,6 @@
             if (restartFlags.length) startRun(restartFlags, "restart", retryWeakSpots);
         }
 
-        launch.addEventListener("click", launchQuiz);
         form.addEventListener("submit", submitAnswer);
         giveUp?.addEventListener("click", () => finishQuestion(false, "", true));
         restart?.addEventListener("click", restartCurrentRun);
@@ -515,47 +513,8 @@
                 { eventTarget: root }
             );
         });
-        favorite?.addEventListener("click", () => {
-            root.SmurdyQuizLibrary?.toggleFavorite?.("type-flag", setId);
-            updateFavoriteButton();
-        });
-        updateFavoriteButton();
 
-        try {
-            const params = new URLSearchParams(root.location?.search || "");
-            const legacyWeakSpots =
-                params.get("weakSpotsPractice") === "1" &&
-                Boolean(root.sessionStorage?.getItem?.("smurdy-weak-spots-practice-v1"));
 
-            if (legacyWeakSpots) {
-                root.SmurdyQuizLaunchIntent?.store?.("type-flag", setId, "weak_spots");
-                params.delete("weakSpotsPractice");
-                const query = params.toString();
-                root.history?.replaceState?.(
-                    {},
-                    "",
-                    (root.location?.pathname || "") +
-                        (query ? "?" + query : "") +
-                        (root.location?.hash || "")
-                );
-            }
-
-            initialLaunchIntent =
-                root.SmurdyQuizLaunchIntent?.consumeCurrent?.() ||
-                (legacyWeakSpots ? { reason: "weak_spots" } : null);
-
-            if (initialLaunchIntent) {
-                void launchQuiz();
-            } else {
-                root.SmurdyAnalytics?.trackLandingPageView?.({
-                    page_type: "quiz_landing"
-                });
-            }
-        } catch (_) {
-            root.SmurdyAnalytics?.trackLandingPageView?.({
-                page_type: "quiz_landing"
-            });
-        }
 
         return { launchQuiz, restartQuiz: restartCurrentRun };
     }

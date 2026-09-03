@@ -1,7 +1,7 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260902-quiz-entities-1";
+    const ASSET_VERSION = "20260903-final-unity-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
@@ -14,22 +14,17 @@
         ? decodeURIComponent(cleanPathMatch[2])
         : null;
 
-    const supportedQuizIds = new Set([
-        "click-country",
-        "type-country",
-        "find-country",
-        "find-point",
-        "click-subdivision",
-        "type-subdivision",
-        "find-subdivision",
-        "find-point-subdivision"
-    ]);
-    const subdivisionAliases = {
-        "click-country": "click-subdivision",
-        "type-country": "type-subdivision",
-        "find-country": "find-subdivision",
-        "find-point": "find-point-subdivision"
-    };
+    const quizDefinitions = window.SmurdyQuizDefinitions || null;
+    const supportedQuizIds = new Set(
+        quizDefinitions?.list?.()
+            .filter(definition => definition.playable && definition.modality === "map")
+            .map(definition => definition.id) ||
+        [
+            "click-country", "type-country", "find-country", "find-point",
+            "click-subdivision", "type-subdivision", "find-subdivision",
+            "find-point-subdivision"
+        ]
+    );
 
     function safeSlug(value) {
         return String(value || "")
@@ -50,18 +45,12 @@
             .replace(/^manifest:/i, "")
             .trim();
 
-        if (!supportedQuizIds.has(quizId)) return null;
-
-        const subdivisionRequest =
-            quizId.includes("subdivision") ||
-            urlParams.get("groupSet") === "subdivision_groups" ||
-            urlParams.get("mode") === "states";
-
-        if (subdivisionRequest && subdivisionAliases[quizId]) {
-            quizId = subdivisionAliases[quizId];
-        }
-
-        return quizId;
+        const sharedId = quizDefinitions?.resolveLegacyQuizId?.(quizId, {
+            groupSet: urlParams.get("groupSet"),
+            mode: urlParams.get("mode")
+        });
+        if (sharedId) return sharedId;
+        return supportedQuizIds.has(quizId) ? quizId : null;
     }
 
     const legacyQuizId = pathQuizId ? null : getLegacyQuizId();
@@ -70,8 +59,12 @@
         pathGroupId ||
         urlParams.get("group") ||
         "world";
+    const cleanDefinition = cleanQuizId
+        ? quizDefinitions?.get?.(cleanQuizId)
+        : null;
     const cleanUsesSubdivisions = Boolean(
-        cleanQuizId && cleanQuizId.includes("subdivision")
+        cleanDefinition?.family === "subdivisions" ||
+        (cleanQuizId && cleanQuizId.includes("subdivision"))
     );
 
     window.__SmurdyConfig = {

@@ -1,26 +1,27 @@
 (() => {
     "use strict";
 
-    document.body.classList.add("smurdy-quiz-landing");
+    const body = document.body;
+    if (!body) return;
+    body.classList.add("smurdy-quiz-landing");
 
-    if (!document.querySelector("link[data-smurdy-landing-polish]")) {
-        const stylesheet = document.createElement("link");
-        stylesheet.rel = "stylesheet";
-        stylesheet.href = "/styles/quiz_landing.css?v=20260827-landing-width-1";
-        stylesheet.setAttribute("data-smurdy-landing-polish", "true");
-        document.head.appendChild(stylesheet);
-    }
+    const route = String(location.pathname || "").match(
+        /^\/quizzes\/([a-z0-9_-]+)\/([a-z0-9_-]+)\/?$/i
+    );
+    const quizId = body.dataset.quizId || (route ? route[1] : "");
+    const groupId = body.dataset.quizGroup || body.dataset.flagSet || (route ? route[2] : "world");
+    const definition = window.SmurdyQuizDefinitions?.get?.(quizId) || null;
+    const modality = body.dataset.quizModality || definition?.modality || "map";
+    const launchButton = document.querySelector(
+        "[data-smurdy-quiz-launch], [data-flag-launch]"
+    );
+    const favoriteButton = document.querySelector(
+        "[data-smurdy-quiz-favorite], [data-flag-favorite]"
+    );
 
-    const launchButton = document.querySelector("[data-smurdy-quiz-launch]");
-    if (!launchButton) return;
-
-    function ensureScript(attribute, source) {
+    function ensureScript(attribute, source, ready) {
         return new Promise(resolve => {
-            if (attribute === "data-smurdy-launch-intent" && window.SmurdyQuizLaunchIntent) {
-                resolve();
-                return;
-            }
-            if (attribute === "data-smurdy-analytics" && window.SmurdyAnalytics) {
+            if (ready?.()) {
                 resolve();
                 return;
             }
@@ -33,43 +34,67 @@
                 script.setAttribute(attribute, "true");
                 document.head.appendChild(script);
             }
-            const finish = () => resolve();
-            script.addEventListener("load", finish, { once: true });
-            script.addEventListener("error", finish, { once: true });
+            script.addEventListener("load", resolve, { once: true });
+            script.addEventListener("error", resolve, { once: true });
         });
+    }
+
+    async function ensureLibrary() {
+        if (window.SmurdyQuizLibrary) return;
+        await ensureScript(
+            "data-smurdy-quiz-library",
+            "/src/js/quiz_library.js?v=20260903-final-unity-1",
+            () => Boolean(window.SmurdyQuizLibrary)
+        );
+    }
+
+    function syncFavorite() {
+        if (!favoriteButton || !quizId || !groupId) return;
+        const saved = Boolean(
+            window.SmurdyQuizLibrary?.isFavorite?.(quizId, groupId)
+        );
+        favoriteButton.setAttribute("aria-pressed", String(saved));
+        favoriteButton.textContent = saved ? "★ Favorited" : "☆ Add to favorites";
+    }
+
+    async function prepareFavorite() {
+        if (!favoriteButton) return;
+        await ensureLibrary();
+        syncFavorite();
+        favoriteButton.addEventListener("click", () => {
+            window.SmurdyQuizLibrary?.toggleFavorite?.(quizId, groupId);
+            syncFavorite();
+        });
+        window.addEventListener("smurdy:quiz-library-change", syncFavorite);
     }
 
     async function prepareInitialLaunchIntent() {
         await ensureScript(
             "data-smurdy-launch-intent",
-            "/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1"
+            "/src/js/quiz_launch_intent.js?v=20260903-final-unity-1",
+            () => Boolean(window.SmurdyQuizLaunchIntent)
         );
 
         try {
-            const params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(location.search);
             const legacyWeakSpots =
                 params.get("weakSpotsPractice") === "1" &&
                 Boolean(sessionStorage.getItem("smurdy-weak-spots-practice-v1"));
 
             if (legacyWeakSpots) {
-                const route = window.SmurdyQuizLaunchIntent?.parseQuizPath?.(
-                    window.location.pathname
+                window.SmurdyQuizLaunchIntent?.store?.(
+                    quizId,
+                    groupId,
+                    "weak_spots"
                 );
-                if (route) {
-                    window.SmurdyQuizLaunchIntent?.store?.(
-                        route.quizId,
-                        route.groupId,
-                        "weak_spots"
-                    );
-                }
                 params.delete("weakSpotsPractice");
                 const query = params.toString();
                 history.replaceState(
                     {},
                     "",
-                    window.location.pathname +
+                    location.pathname +
                         (query ? "?" + query : "") +
-                        window.location.hash
+                        location.hash
                 );
             }
             return window.SmurdyQuizLaunchIntent?.peekCurrent?.() || null;
@@ -81,19 +106,23 @@
     async function trackLandingView() {
         await ensureScript(
             "data-smurdy-analytics",
-            "/src/js/analytics.js?v=20260823-quiz-analytics-1"
+            "/src/js/analytics.js?v=20260823-quiz-analytics-1",
+            () => Boolean(window.SmurdyAnalytics)
         );
         window.SmurdyAnalytics?.trackLandingPageView?.({
-            page_type: "quiz_landing"
+            page_type: "quiz_landing",
+            quiz_mode: quizId,
+            quiz_group: groupId
         });
     }
 
-    async function launchQuiz() {
-        if (launchButton.disabled) return;
-
-        const originalText = launchButton.textContent;
-        launchButton.disabled = true;
-        launchButton.textContent = "Loading quiz...";
+    async function launchMapQuiz() {
+        const originalText = launchButton?.textContent || "Open quiz";
+        if (launchButton?.disabled) return;
+        if (launchButton) {
+            launchButton.disabled = true;
+            launchButton.textContent = "Loading quiz...";
+        }
         document.documentElement.setAttribute("aria-busy", "true");
 
         try {
@@ -116,36 +145,35 @@
         } catch (error) {
             console.error("Smurdy in-place quiz launch failed:", error);
             document.documentElement.removeAttribute("aria-busy");
-            launchButton.disabled = false;
-            launchButton.textContent = originalText;
+            if (launchButton) {
+                launchButton.disabled = false;
+                launchButton.textContent = originalText;
+            }
             window.alert("The quiz could not load. Please try again.");
         }
     }
 
-    launchButton.addEventListener("click", launchQuiz);
+    async function launchQuiz(intent = null) {
+        if (!launchButton) return;
+        if (modality === "flag") {
+            const controller = window.SmurdyFlagQuizController;
+            if (!controller?.launchQuiz) {
+                console.error("Flag quiz controller is not ready.");
+                return;
+            }
+            await controller.launchQuiz({ launchIntent: intent });
+            return;
+        }
+        await launchMapQuiz();
+    }
+
+    launchButton?.addEventListener("click", () => {
+        void launchQuiz(null);
+    });
+    void prepareFavorite();
 
     void prepareInitialLaunchIntent().then(intent => {
-        if (intent) requestAnimationFrame(launchQuiz);
+        if (intent) requestAnimationFrame(() => void launchQuiz(intent));
         else void trackLandingView();
     });
-})();
-
-// smurdy-privacy-footer-link-v1
-(() => {
-    function addPrivacyLink() {
-        const footer = document.querySelector("footer");
-        if (!footer || footer.querySelector('a[href="/privacy/"], a[href$="/privacy/"]')) return;
-
-        const separator = document.createTextNode(" · ");
-        const link = document.createElement("a");
-        link.href = "/privacy/";
-        link.textContent = "Privacy";
-        footer.append(separator, link);
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", addPrivacyLink, { once: true });
-    } else {
-        addPrivacyLink();
-    }
 })();

@@ -1021,7 +1021,19 @@ const SmurdyQuiz = {
             let manifestDef = null;
             if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) {
                 const id = quizRef.split(":")[1];
-                manifestDef = (window.SmurdyQuizManifest || []).find(m => m.id === id) || null;
+                manifestDef =
+                    window.SmurdyQuizDefinitions?.getManifest?.(id) ||
+                    (window.SmurdyQuizManifest || []).find(m => m.id === id) ||
+                    null;
+                const definition = window.SmurdyQuizDefinitions?.get?.(id) || null;
+                if (definition && definition.modality !== "map") {
+                    const path = window.SmurdyQuizDefinitions?.landingPath?.(
+                        id,
+                        this.currentGroupId || quizGroupId
+                    );
+                    if (path) location.assign(path);
+                    return;
+                }
             }
 
             const requestedGroupSet =
@@ -1173,7 +1185,9 @@ const SmurdyQuiz = {
                 if (typeof quizRef === "string" && quizRef.startsWith("manifest:")) {
                     const id = quizRef.split(":")[1];
                     // try existing manifest global first
-                    let def = (window.SmurdyQuizManifest || []).find(m => m.id === id);
+                    let def =
+                        window.SmurdyQuizDefinitions?.getManifest?.(id) ||
+                        (window.SmurdyQuizManifest || []).find(m => m.id === id);
 
                     // if not present, try to load manifest.js (it may not have been injected yet)
                     if (!def) {
@@ -2282,7 +2296,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.7";
+const APP_VERSION = "1.13.8";
 
 function injectVersionBadge() {
     try {

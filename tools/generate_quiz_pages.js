@@ -4,6 +4,7 @@ const vm = require("vm");
 const { getCanonicalCountryName } = require("../src/js/quiz_entities.js");
 const { expandFlagGroups } = require("../src/js/flag_catalog.js");
 const { rebuildSitemaps } = require("./rebuild_sitemaps.js");
+const pageShell = require("./quiz_page_shell.js");
 
 (async function main() {
     const repoRoot = path.resolve(__dirname, "..");
@@ -340,6 +341,19 @@ const entryListHtml = entries.length
                   </section>`
                 : "";
 
+            const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
+            const brandHtml = pageShell.renderBrand({ root: publicRoot, className: "panel-brand" });
+            const actionsHtml = pageShell.renderLandingActions({
+                root: publicRoot,
+                quizId: manifestId,
+                groupId,
+                className: "action-row",
+                buttonClass: "qb-btn",
+                includeHome: true
+            });
+            const footerHtml = pageShell.renderFooter({ root: publicRoot });
+            const landingScriptsHtml = pageShell.renderLandingScripts({ root: publicRoot });
+
             const pageHtml = `<!doctype html>
 <html lang="en">
 <head>
@@ -388,59 +402,11 @@ ${JSON.stringify({
     }
 }, null, 2)}
   </script>
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260827-landing-width-1"/>
-  <style>
-    :root{--brand:#0077cc;--brand-dark:#075f9e;--text:#171717;--muted:#626262;--line:#dedede;--soft:#f6f7f8}
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6;color:var(--text);margin:0;background:#fff}
-    a{color:var(--brand-dark)}
-    a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid rgba(0,119,204,.28);outline-offset:3px}
-    .panel-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;background:var(--soft);border-bottom:1px solid var(--line);padding:16px max(18px,calc((100vw - 980px)/2 + 18px))}
-    .panel-brand img{width:52px;height:52px;object-fit:contain}
-    .panel-brand .brand-text{font-weight:750;font-size:19px;letter-spacing:-.01em}
-    main{max-width:980px;margin:0 auto;padding:28px 22px 10px}
-    header h1{font-size:clamp(28px,4vw,40px);letter-spacing:-.025em;line-height:1.15;margin:0 0 8px}
-    .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
-    .lead{font-size:18px;margin:0 0 28px;color:#292929}
-    .content-section,.examples{margin:26px 0}
-    .content-section h2,.examples h2{font-size:21px;line-height:1.3;margin:0 0 8px}
-    .content-section p{margin:0}
-    .content-section+.content-section{padding-top:2px}
-    .tip{background:var(--soft);border:1px solid var(--line);padding:13px 15px;border-radius:8px;margin-top:14px}
-    .examples{margin:26px 0}
-    .examples ul{padding-left:22px;margin:8px 0}
-    .included-list{margin:28px 0;border:1px solid var(--line);border-radius:8px;padding:13px 15px;background:#fff}
-    .included-list summary{cursor:pointer;font-weight:700}
-    .included-list p{margin:12px 0 2px}
-    .action-row{display:flex;gap:10px;align-items:center;margin-top:26px;flex-wrap:wrap}
-    .qb-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border-radius:8px;text-decoration:none;border:1px solid var(--line);background:#fff;color:var(--text);font:inherit;font-weight:650;line-height:1.2;cursor:pointer}
-    .qb-btn:hover{text-decoration:underline;text-underline-offset:3px}
-    .qb-btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    .qb-btn.primary:hover{background:#0068b3}
-    .qb-btn.primary:disabled{cursor:wait;opacity:.72}
-    .other-quizzes{margin-top:30px;border-top:1px solid var(--line);padding-top:18px}
-    .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
-    .chip{display:inline-flex;align-items:center;min-height:40px;padding:8px 12px;border-radius:7px;background:var(--soft);color:var(--text);text-decoration:none;border:1px solid var(--line);font-size:14px}
-    .chip:hover{border-color:#a8a8a8;text-decoration:underline;text-underline-offset:3px}
-    .breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:0 0 22px}
-    .breadcrumbs a{text-decoration:none}
-    .breadcrumbs a:hover{text-decoration:underline}
-    .mode-specific{padding:0;background:transparent}
-    .link-section{margin-top:36px;border-top:2px solid var(--line);padding-top:22px}
-    .link-section>h2{font-size:23px;margin:0 0 16px}
-    .link-block{margin:20px 0}
-    .link-block h3{font-size:17px;margin:0 0 8px}
-    .browse-all-line{margin:22px 0 0;font-weight:700}
-    footer{max-width:980px;margin:22px auto;color:var(--muted);font-size:14px;padding:20px 22px 34px;border-top:1px solid var(--line)}
-    @media(max-width:600px){.panel-brand{padding:13px 18px}.panel-brand img{width:46px;height:46px}main{padding:22px 18px 8px}.lead{font-size:17px}.action-row{align-items:stretch}.qb-btn{flex:1 1 150px}footer{padding-left:18px;padding-right:18px}}
-    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-  </style>
+  ${sharedStylesHtml}
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260903-final-unity-1"/>
 </head>
-<body>
-  <a class="panel-brand" href="${publicRoot}/" title="Smurdy">
-    <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt="Smurdy logo"/>
-    <div class="brand-text">Smurdy</div>
-  </a>
+<body data-smurdy-quiz-page data-quiz-id="${escapeHtml(manifestId)}" data-quiz-group="${escapeHtml(groupId)}" data-quiz-modality="map">
+  ${brandHtml}
 
   <main>
     <nav class="breadcrumbs" aria-label="Breadcrumb">
@@ -485,17 +451,13 @@ ${pageSpecificSectionHtml}
     ${exampleListHtml}
     ${entryListHtml}
 
-    <div class="action-row">
-      <button class="qb-btn primary" type="button" data-smurdy-quiz-launch>Open quiz</button>
-      <a class="qb-btn secondary" href="${publicRoot}/quizzes/">Browse all quizzes</a>
-      <a class="qb-btn secondary" href="${publicRoot}/">Back to home</a>
-    </div>
+    ${actionsHtml}
 
     ${navigationHtml}
   </main>
 
-  <footer>Smurdy geography quizzes. <a href="${publicRoot}/">Home</a> · <a href="${publicRoot}/about/">About</a> · <a href="${publicRoot}/contact/">Contact</a> · <a href="${publicRoot}/privacy/">Privacy</a></footer>
-  <script src="/src/js/quiz_landing.js?v=20260827-landing-width-1" defer></script>
+  ${footerHtml}
+  ${landingScriptsHtml}
 </body>
 </html>`;
 

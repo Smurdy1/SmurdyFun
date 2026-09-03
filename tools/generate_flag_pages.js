@@ -9,6 +9,7 @@ const aliases = readJson("src/data/aliases.json");
 const flagApi = require(path.join(root, "src/js/flag_quiz.js"));
 const { expandFlagGroups } = require(path.join(root, "src/js/flag_catalog.js"));
 const { rebuildSitemaps } = require(path.join(root, "tools/rebuild_sitemaps.js"));
+const pageShell = require(path.join(root, "tools/quiz_page_shell.js"));
 const groups = expandFlagGroups(flagOverrides, countryGroups);
 const baseUrl = (process.env.BASE_URL || "https://smurdy.fun").replace(/\/+$/, "");
 const outputRoot = path.join(root, "quizzes/type-flag");
@@ -87,6 +88,16 @@ function quizPage(groupId, group) {
     const answerLabel = group.unitName === "state" ? "State name" : "Country or territory name";
     const placeholder = group.unitName === "state" ? "Enter the state name..." : "Enter the country or territory...";
     const heading = `${group.shortLabel} Flag Quiz`;
+    const sharedStylesHtml = pageShell.renderSharedStyles();
+    const brandHtml = pageShell.renderBrand({ className: "flag-brand" });
+    const actionsHtml = pageShell.renderLandingActions({
+        quizId: "type-flag",
+        groupId,
+        className: "flag-actions",
+        buttonClass: "flag-button"
+    });
+    const footerHtml = pageShell.renderFooter({ className: "flag-footer" });
+    const landingScriptsHtml = pageShell.renderLandingScripts();
 
     return `<!doctype html>
 <html lang="en">
@@ -113,17 +124,16 @@ function quizPage(groupId, group) {
         about: { "@type": "Thing", name: `${group.shortLabel} flags` },
         isPartOf: { "@type": "WebSite", name: "Smurdy", url: baseUrl }
     })}</script>
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260902-flag-quiz-4">
+  ${sharedStylesHtml}
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260903-final-unity-1">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/favicon-48.png?v=20260825-logo-1">
   <link rel="shortcut icon" href="/favicon.ico?v=20260825-logo-1">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
 </head>
-<body data-flag-set="${escapeHtml(groupId)}">
-  <a class="flag-brand" href="/" aria-label="Smurdy home">
-    <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span>
-  </a>
+<body data-smurdy-quiz-page data-quiz-id="type-flag" data-quiz-group="${escapeHtml(groupId)}" data-quiz-modality="flag" data-flag-set="${escapeHtml(groupId)}">
+  ${brandHtml}
 
   <main class="flag-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb">
@@ -138,11 +148,7 @@ function quizPage(groupId, group) {
         <h1>${escapeHtml(heading)}</h1>
         <div class="flag-meta">Type the Flags · ${escapeHtml(group.shortLabel)} · ${flags.length} flags</div>
         <p class="flag-lead">${escapeHtml(group.lead)}</p>
-        <div class="flag-actions">
-          <button class="flag-button primary" type="button" data-flag-launch>Open quiz</button>
-          <button class="flag-button favorite" type="button" data-flag-favorite aria-pressed="false">☆ Add to favorites</button>
-          <a class="flag-button" href="/quizzes/">Browse all quizzes</a>
-        </div>
+        ${actionsHtml}
       </header>
 
       <section class="flag-info content-section">
@@ -215,7 +221,7 @@ function quizPage(groupId, group) {
     </section>
   </main>
 
-  <footer class="flag-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  ${footerHtml}
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
   <script src="/src/js/quiz_completion.js?v=20260903-completion-1" defer></script>
@@ -223,7 +229,8 @@ function quizPage(groupId, group) {
   <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260903-completion-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260903-final-unity-1" defer></script>
+  ${landingScriptsHtml}
 </body>
 </html>`;
 }

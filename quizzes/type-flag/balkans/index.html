@@ -14,15 +14,16 @@
   <meta property="og:url" content="https://smurdy.fun/quizzes/type-flag/balkans/">
   <meta property="og:image" content="https://smurdy.fun/assets/images/apple-touch-icon.png?v=20260825-logo-1">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Quiz","name":"Balkans Flag Quiz","description":"Identify 12 flags from Smurdy's Balkans country set. Type each answer in a free interactive flag quiz.","url":"https://smurdy.fun/quizzes/type-flag/balkans/","educationalUse":"practice","about":{"@type":"Thing","name":"Balkans flags"},"isPartOf":{"@type":"WebSite","name":"Smurdy","url":"https://smurdy.fun"}}</script>
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260902-flag-quiz-4">
+  <link rel="stylesheet" href="/styles/quiz_shared.css?v=20260903-final-unity-1">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260903-final-unity-1">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/favicon-48.png?v=20260825-logo-1">
   <link rel="shortcut icon" href="/favicon.ico?v=20260825-logo-1">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png?v=20260825-logo-1">
 </head>
-<body data-flag-set="balkans">
-  <a class="flag-brand" href="/" aria-label="Smurdy home">
+<body data-smurdy-quiz-page data-quiz-id="type-flag" data-quiz-group="balkans" data-quiz-modality="flag" data-flag-set="balkans">
+  <a class="quiz-brand flag-brand" href="/" aria-label="Smurdy home">
     <img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span>
   </a>
 
@@ -39,11 +40,11 @@
         <h1>Balkans Flag Quiz</h1>
         <div class="flag-meta">Type the Flags · Balkans · 12 flags</div>
         <p class="flag-lead">Type the country represented by each flag in the Balkans set.</p>
-        <div class="flag-actions">
-          <button class="flag-button primary" type="button" data-flag-launch>Open quiz</button>
-          <button class="flag-button favorite" type="button" data-flag-favorite aria-pressed="false">☆ Add to favorites</button>
-          <a class="flag-button" href="/quizzes/">Browse all quizzes</a>
-        </div>
+        <div class="quiz-actions flag-actions" data-smurdy-quiz-actions>
+      <button class="quiz-button flag-button primary" type="button" data-smurdy-quiz-launch>Open quiz</button>
+      <button class="quiz-button flag-button favorite" type="button" data-smurdy-quiz-favorite aria-pressed="false">☆ Add to favorites</button>
+      <a class="quiz-button flag-button secondary" href="/quizzes/">Browse all quizzes</a>
+    </div>
       </header>
 
       <section class="flag-info content-section">
@@ -122,7 +123,7 @@
     </section>
   </main>
 
-  <footer class="flag-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
+  <footer class="quiz-footer flag-footer">Smurdy geography quizzes. <a href="/">Home</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a> | <a href="/privacy/">Privacy</a></footer>
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
   <script src="/src/js/quiz_completion.js?v=20260903-completion-1" defer></script>
@@ -130,6 +131,9 @@
   <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260903-completion-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260903-final-unity-1" defer></script>
+  <script src="/src/js/manifest.js?v=20260903-final-unity-1" defer></script>
+  <script src="/src/js/quiz_definitions.js?v=20260903-final-unity-1" defer></script>
+  <script src="/src/js/quiz_landing.js?v=20260903-final-unity-1" defer></script>
 </body>
 </html>

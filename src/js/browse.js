@@ -2,6 +2,10 @@
     // manifest will be populated at init (try global first, then fetch JSON)
     let baseManifest = window.SmurdyQuizManifest || [];
 
+    function normalizedDefinition(item) {
+        return window.SmurdyQuizDefinitions?.normalize?.(item) || null;
+    }
+
     async function loadManifest() {
         // 1) prefer an inlined global manifest if present
         if (window.SmurdyQuizManifest && Array.isArray(window.SmurdyQuizManifest) && window.SmurdyQuizManifest.length) {
@@ -172,6 +176,12 @@
     }
 
     function quizLandingPath(manifestItemOrId, groupId) {
+        const sharedPath = window.SmurdyQuizDefinitions?.landingPath?.(
+            manifestItemOrId,
+            groupId
+        );
+        if (sharedPath) return sharedPath;
+
         const rawQuizId = typeof manifestItemOrId === "string"
             ? manifestItemOrId.replace(/^manifest:/i, "")
             : (
@@ -1126,6 +1136,9 @@
     ];
 
     function categoryKeyForManifest(item) {
+        const shared = normalizedDefinition(item);
+        if (shared?.category) return shared.category;
+
         const explicit = String(
             item?.category ||
             item?.quizCategory ||
@@ -1156,6 +1169,9 @@
     }
 
     function interactionKeyForManifest(item) {
+        const shared = normalizedDefinition(item);
+        if (shared?.interaction) return shared.interaction;
+
         const raw = String(
             item?.interaction ||
             item?.type ||
@@ -1187,6 +1203,9 @@
     }
 
     function familyKeyForManifest(item) {
+        const shared = normalizedDefinition(item);
+        if (shared?.family) return shared.family;
+
         const explicit = String(
             item?.family ||
             item?.contentFamily ||
@@ -1211,6 +1230,9 @@
     }
 
     function familyKeysForManifest(item) {
+        const shared = normalizedDefinition(item);
+        if (shared?.families?.length) return Array.from(shared.families);
+
         const explicit = Array.isArray(item?.families)
             ? item.families.map(value => String(value).toLowerCase()).filter(Boolean)
             : [];
@@ -1218,6 +1240,8 @@
     }
 
     function manifestIsPlayable(item) {
+        const shared = normalizedDefinition(item);
+        if (shared) return shared.playable;
         return String(item?.status || "").toLowerCase() !== "coming-soon" &&
             !item?.config?.comingSoon;
     }
@@ -2237,15 +2261,17 @@
             const manifestItem = (baseManifest || []).find(
                 item => item.id === link.dataset.manifestId
             );
-            const isFlagQuiz = manifestItem &&
-                categoryKeyForManifest(manifestItem) === "flags";
+            const definition = normalizedDefinition(manifestItem);
+            const requiresMenuMap = definition
+                ? definition.adapter.requiresMenuMap
+                : categoryKeyForManifest(manifestItem) !== "flags";
 
             if (!link.dataset.readyText) {
                 link.dataset.readyText =
                     link.textContent.trim() || "Play";
             }
 
-            if (ready || isFlagQuiz) {
+            if (ready || !requiresMenuMap) {
                 link.removeAttribute("aria-disabled");
                 link.removeAttribute("tabindex");
                 link.style.removeProperty("pointer-events");
@@ -2328,9 +2354,11 @@
 
                     if (!manifestItem) return;
 
-                    // Flag quizzes use their own image-first game shell rather
-                    // than the MapLibre app, so open the crawlable flag page.
-                    if (categoryKeyForManifest(manifestItem) === "flags") {
+                    const definition = normalizedDefinition(manifestItem);
+
+                    // Non-map modalities own their own game surface. The adapter
+                    // decides that here instead of the browser naming a specific mode.
+                    if (definition?.modality !== "map") {
                         window.SmurdyQuizLaunchIntent?.store?.(
                             manifestItem.id,
                             link.dataset.group || "world",
