@@ -9,14 +9,17 @@ const sources = JSON.parse(fs.readFileSync(path.join(root, "src/data/flag_source
 const flagGroups = JSON.parse(fs.readFileSync(path.join(root, "src/data/flag_groups.json"), "utf8"));
 const countryGroups = JSON.parse(fs.readFileSync(path.join(root, "src/data/country_groups.json"), "utf8"));
 const countryAliases = JSON.parse(fs.readFileSync(path.join(root, "src/data/aliases.json"), "utf8"));
+const { expandFlagGroups } = require(path.join(root, "src/js/flag_catalog.js"));
+const expandedFlagGroups = expandFlagGroups(flagGroups, countryGroups);
 
 test("flag quiz selects all world and US state flags", () => {
     const world = api.selectFlags(sources, "world");
     const states = api.selectFlags(sources, "us_states");
 
-    assert.equal(world.length, 200);
+    assert.equal(world.length, 201);
     assert.equal(states.length, 50);
     assert.ok(world.some(flag => flag.name === "Oman"));
+    assert.ok(world.some(flag => flag.name === "Palestine"));
     assert.ok(states.some(flag => flag.name === "Mississippi"));
 });
 
@@ -25,7 +28,7 @@ test("every quiz flag has a unique id and an existing SVG", () => {
         ...api.selectFlags(sources, "world"),
         ...api.selectFlags(sources, "us_states")
     ];
-    assert.equal(new Set(flags.map(flag => flag.id)).size, 250);
+    assert.equal(new Set(flags.map(flag => flag.id)).size, 251);
 
     for (const flag of flags) {
         assert.equal(path.extname(flag.src), ".svg");
@@ -49,7 +52,7 @@ test("answer matching normalizes punctuation and existing aliases", () => {
 test("curated regional flag sets match their advertised counts", () => {
     const expected = {
         europe: 44,
-        asia: 50,
+        asia: 51,
         africa: 56,
         north_america: 23,
         south_america: 12,
@@ -60,7 +63,7 @@ test("curated regional flag sets match their advertised counts", () => {
         const flags = api.selectFlags(
             sources,
             setId,
-            flagGroups,
+            expandedFlagGroups,
             countryGroups,
             countryAliases
         );
@@ -70,7 +73,7 @@ test("curated regional flag sets match their advertised counts", () => {
 });
 
 test("Weak Spots flag practice filters to only the requested flags", () => {
-    const world = api.selectFlags(sources, "world", flagGroups, countryGroups, countryAliases);
+    const world = api.selectFlags(sources, "world", expandedFlagGroups, countryGroups, countryAliases);
     const retry = api.filterFlagsByNames(world, ["France", "Germany"]);
 
     assert.deepEqual(
@@ -103,7 +106,9 @@ test("flag routes load the shared runner and declare the correct set", () => {
         const html = fs.readFileSync(path.join(root, relativePath), "utf8");
         assert.match(html, new RegExp(`data-flag-set=["']${setId}["']`));
         assert.match(html, /src\/js\/flag_quiz\.js/);
-        assert.match(html, /flag_quiz\.js\?v=20260902-flag-quiz-5/);
+        assert.match(html, /flag_quiz\.js\?v=20260903-flag-parity-1/);
+        assert.match(html, /quiz_launch_intent\.js/);
+        assert.match(html, /flag_catalog\.js/);
     }
 });
 
@@ -125,7 +130,9 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(html, /data-flag-favorite/);
     assert.match(html, /data-flag-retry/);
     assert.match(html, /Countries included in this quiz \(44\)/);
-    assert.match(directory, /Countries and territories/);
+    assert.match(directory, /<h2>Main sets<\/h2>/);
+    assert.match(directory, /<h2>Regional sets<\/h2>/);
+    assert.match(directory, /directory-card-title">Middle East/);
     assert.match(directory, /<h2>Subdivisions<\/h2>/);
     assert.match(directory, /directory-card-title">North America/);
     assert.match(directory, /directory-card-title">US States/);

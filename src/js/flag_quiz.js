@@ -158,6 +158,7 @@
         let loadPromise = null;
         let retryWeakSpots = false;
         let weakSpotsPracticeStage = null;
+        let initialLaunchIntent = null;
 
         function weakSpotMode() {
             return setId === "us_states" ? "type-flag-subdivision" : "type-flag";
@@ -165,9 +166,7 @@
 
         function getWeakSpotsPracticeStage() {
             try {
-                const requested = new URLSearchParams(root.location?.search || "")
-                    .get("weakSpotsPractice") === "1";
-                if (!requested) return null;
+                if (initialLaunchIntent?.reason !== "weak_spots") return null;
                 const stage = root.SmurdyWeakSpots?.getActivePracticeStage?.() || null;
                 if (!stage || stage.quizId !== "type-flag") return null;
                 if (String(stage.group || "") !== String(setId)) return null;
@@ -442,7 +441,7 @@
             try {
                 const [source, loadedAliases, loadedFlagGroups, countryGroups] = await loadData();
                 aliases = loadedAliases || {};
-                flagGroups = loadedFlagGroups || {};
+                flagGroups = root.SmurdyFlagCatalog?.expandFlagGroups?.(loadedFlagGroups || {}, countryGroups) || loadedFlagGroups || {};
                 allFlags = selectFlags(source, setId, flagGroups, countryGroups, aliases);
                 const expected = Number(flagGroups?.[setId]?.memberCount || 0);
                 if (!allFlags.length || (expected && allFlags.length !== expected)) {
@@ -461,11 +460,15 @@
                 game.hidden = false;
                 body.classList.add("flag-quiz-running");
                 try { root.SmurdyQuizLibrary?.recordPlayed?.("type-flag", setId); } catch (_) {}
+                const startReason = weakSpotsPracticeStage
+                    ? "weak_spots"
+                    : (initialLaunchIntent?.reason === "browser" ? "browser" : "start");
                 startRun(
                     runFlags,
-                    weakSpotsPracticeStage ? "weak_spots" : "start",
+                    startReason,
                     Boolean(weakSpotsPracticeStage)
                 );
+                initialLaunchIntent = null;
             } catch (error) {
                 console.error("Could not start flag quiz", error);
                 launch.disabled = false;
@@ -494,12 +497,40 @@
         updateFavoriteButton();
 
         try {
-            const path = String(root.location?.pathname || "");
             const params = new URLSearchParams(root.location?.search || "");
-            if (/^\/quizzes\/type-flag\/[^/]+\/?$/.test(path) || params.get("weakSpotsPractice") === "1") {
-                void launchQuiz();
+            const legacyWeakSpots =
+                params.get("weakSpotsPractice") === "1" &&
+                Boolean(root.sessionStorage?.getItem?.("smurdy-weak-spots-practice-v1"));
+
+            if (legacyWeakSpots) {
+                root.SmurdyQuizLaunchIntent?.store?.("type-flag", setId, "weak_spots");
+                params.delete("weakSpotsPractice");
+                const query = params.toString();
+                root.history?.replaceState?.(
+                    {},
+                    "",
+                    (root.location?.pathname || "") +
+                        (query ? "?" + query : "") +
+                        (root.location?.hash || "")
+                );
             }
-        } catch (_) {}
+
+            initialLaunchIntent =
+                root.SmurdyQuizLaunchIntent?.consumeCurrent?.() ||
+                (legacyWeakSpots ? { reason: "weak_spots" } : null);
+
+            if (initialLaunchIntent) {
+                void launchQuiz();
+            } else {
+                root.SmurdyAnalytics?.trackLandingPageView?.({
+                    page_type: "quiz_landing"
+                });
+            }
+        } catch (_) {
+            root.SmurdyAnalytics?.trackLandingPageView?.({
+                page_type: "quiz_landing"
+            });
+        }
 
         return { launchQuiz, restartQuiz: restartCurrentRun };
     }

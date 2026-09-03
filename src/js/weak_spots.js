@@ -355,11 +355,31 @@
     }
 
     function practiceUrl(stage) {
-        return "/quizzes/" + stage.quizId + "/" + encodeURIComponent(stage.group) + "/?weakSpotsPractice=1";
+        return "/quizzes/" + stage.quizId + "/" + encodeURIComponent(stage.group) + "/";
     }
 
     function openPracticeStage(stage) {
         if (!stage || !root?.location) return;
+        let stored = false;
+        try {
+            stored = Boolean(root.SmurdyQuizLaunchIntent?.store?.(
+                stage.quizId,
+                stage.group,
+                "weak_spots"
+            ));
+        } catch (_) {}
+
+        if (!stored) {
+            try {
+                session()?.setItem("smurdy-quiz-launch-v1", JSON.stringify({
+                    version: 1,
+                    quizId: stage.quizId,
+                    groupId: stage.group,
+                    reason: "weak_spots",
+                    createdAt: Date.now()
+                }));
+            } catch (_) {}
+        }
         root.location.assign(practiceUrl(stage));
     }
 

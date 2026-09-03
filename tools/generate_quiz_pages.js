@@ -2,6 +2,8 @@ const fs = require("fs").promises;
 const path = require("path");
 const vm = require("vm");
 const { getCanonicalCountryName } = require("../src/js/quiz_entities.js");
+const { expandFlagGroups } = require("../src/js/flag_catalog.js");
+const { rebuildSitemaps } = require("./rebuild_sitemaps.js");
 
 (async function main() {
     const repoRoot = path.resolve(__dirname, "..");
@@ -22,7 +24,8 @@ const { getCanonicalCountryName } = require("../src/js/quiz_entities.js");
     const countriesData = await readJson(countriesDataPath, "countries.json");
     const worldCountryNames = getWorldQuizNames(countriesData.features || []);
     const subdivisionGroups = await readJson(subdivisionGroupsPath, "subdivision_groups.json");
-    const flagGroups = await readJson(flagGroupsPath, "flag_groups.json");
+    const flagGroupOverrides = await readJson(flagGroupsPath, "flag_groups.json");
+    const flagGroups = expandFlagGroups(flagGroupOverrides, groups);
     const groupSets = {
         country_groups: groups,
         subdivision_groups: subdivisionGroups,
@@ -1285,36 +1288,8 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
 }
 
 async function writeSitemap({ repoRoot, pages, publicRoot }) {
-    if (!pages.length) return;
-    const lastmod = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
-
-    // Generate both sitemap formats from one canonical, deduplicated URL list.
-    const sitemapUrls = Array.from(new Set([
-        `${publicRoot}/`,
-        `${publicRoot}/quizzes/`,
-        `${publicRoot}/about/`,
-        `${publicRoot}/contact/`,
-        `${publicRoot}/privacy/`,
-        ...pages
-    ]));
-
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapUrls.map((url, index) => `  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${index < 5 ? "weekly" : "monthly"}</changefreq>
-  </url>`).join("\n")}
-</urlset>`;
-
-    // Google-supported text sitemap: one absolute canonical URL per line.
-    // The generated quiz URLs already include their trailing slash.
-    const textSitemap = `${sitemapUrls.join("\n")}\n`;
-
-    await Promise.all([
-        fs.writeFile(path.join(repoRoot, "sitemap.xml"), sitemap, "utf8"),
-        fs.writeFile(path.join(repoRoot, "sitemap.txt"), textSitemap, "utf8")
-    ]);
+    void pages;
+    rebuildSitemaps({ repoRoot, publicRoot });
 }
 
 function renderTemplate(value, context) {

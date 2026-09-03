@@ -14,35 +14,79 @@
     const launchButton = document.querySelector("[data-smurdy-quiz-launch]");
     if (!launchButton) return;
 
-    function ensureAnalytics() {
-        if (window.SmurdyAnalytics) {
-            return Promise.resolve(window.SmurdyAnalytics);
-        }
-
+    function ensureScript(attribute, source) {
         return new Promise(resolve => {
-            let script = document.querySelector("script[data-smurdy-analytics]");
-            if (!script) {
-                script = document.createElement("script");
-                script.src = "/src/js/analytics.js?v=20260823-quiz-analytics-1";
-                script.defer = true;
-                script.setAttribute("data-smurdy-analytics", "true");
-                document.head.appendChild(script);
+            if (attribute === "data-smurdy-launch-intent" && window.SmurdyQuizLaunchIntent) {
+                resolve();
+                return;
+            }
+            if (attribute === "data-smurdy-analytics" && window.SmurdyAnalytics) {
+                resolve();
+                return;
             }
 
-            const finish = () => resolve(window.SmurdyAnalytics || null);
+            let script = document.querySelector(`script[${attribute}]`);
+            if (!script) {
+                script = document.createElement("script");
+                script.src = source;
+                script.defer = true;
+                script.setAttribute(attribute, "true");
+                document.head.appendChild(script);
+            }
+            const finish = () => resolve();
             script.addEventListener("load", finish, { once: true });
             script.addEventListener("error", finish, { once: true });
-
-            if (window.SmurdyAnalytics) finish();
         });
     }
 
-    void ensureAnalytics().then(analytics => {
-        if (!analytics) return;
-        analytics.trackLandingPageView({
+    async function prepareInitialLaunchIntent() {
+        await ensureScript(
+            "data-smurdy-launch-intent",
+            "/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1"
+        );
+
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const legacyWeakSpots =
+                params.get("weakSpotsPractice") === "1" &&
+                Boolean(sessionStorage.getItem("smurdy-weak-spots-practice-v1"));
+
+            if (legacyWeakSpots) {
+                const route = window.SmurdyQuizLaunchIntent?.parseQuizPath?.(
+                    window.location.pathname
+                );
+                if (route) {
+                    window.SmurdyQuizLaunchIntent?.store?.(
+                        route.quizId,
+                        route.groupId,
+                        "weak_spots"
+                    );
+                }
+                params.delete("weakSpotsPractice");
+                const query = params.toString();
+                history.replaceState(
+                    {},
+                    "",
+                    window.location.pathname +
+                        (query ? "?" + query : "") +
+                        window.location.hash
+                );
+            }
+            return window.SmurdyQuizLaunchIntent?.peekCurrent?.() || null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    async function trackLandingView() {
+        await ensureScript(
+            "data-smurdy-analytics",
+            "/src/js/analytics.js?v=20260823-quiz-analytics-1"
+        );
+        window.SmurdyAnalytics?.trackLandingPageView?.({
             page_type: "quiz_landing"
         });
-    });
+    }
 
     async function launchQuiz() {
         if (launchButton.disabled) return;
@@ -66,9 +110,6 @@
                 throw new Error("The quiz app shell was not found.");
             }
 
-            // Rebuild the document from the normal app shell. The browser keeps
-            // the current clean /quizzes/<mode>/<group>/ URL, so the same URL is
-            // both the crawlable landing page and the playable quiz.
             document.open();
             document.write(appHtml);
             document.close();
@@ -83,15 +124,11 @@
 
     launchButton.addEventListener("click", launchQuiz);
 
-    try {
-        const autoPractice =
-            new URLSearchParams(window.location.search)
-                .get("weakSpotsPractice") === "1" &&
-            Boolean(sessionStorage.getItem("smurdy-weak-spots-practice-v1"));
-        if (autoPractice) requestAnimationFrame(launchQuiz);
-    } catch (_) {}
+    void prepareInitialLaunchIntent().then(intent => {
+        if (intent) requestAnimationFrame(launchQuiz);
+        else void trackLandingView();
+    });
 })();
-
 
 // smurdy-privacy-footer-link-v1
 (() => {
@@ -103,7 +140,6 @@
         const link = document.createElement("a");
         link.href = "/privacy/";
         link.textContent = "Privacy";
-
         footer.append(separator, link);
     }
 

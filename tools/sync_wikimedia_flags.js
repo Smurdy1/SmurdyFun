@@ -10,6 +10,7 @@ const COUNTRIES_PATH = path.join(ROOT, "src/data/countries.json");
 const STATES_PATH = path.join(ROOT, "src/data/states.json");
 const FLAGS_DIR = path.join(ROOT, "assets/flags");
 const SOURCES_PATH = path.join(ROOT, "src/data/flag_sources.json");
+const { ADMIN_OVERRIDES, getCanonicalCountryName } = require("../src/js/quiz_entities.js");
 
 const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
@@ -75,6 +76,34 @@ function countryDestination(entry) {
   return localPath ? path.basename(localPath) : `${entry.code.toLowerCase()}.svg`;
 }
 
+function explicitQuizEntityTargets(countryFlags, countryFeatures) {
+  const existing = new Set(countryFlags.map((entry) => entry.name));
+  const targets = [];
+
+  for (const feature of countryFeatures || []) {
+    const properties = feature?.properties || {};
+    const overrideKey = [
+      properties.ADMIN,
+      properties.admin,
+      properties.GEOUNIT,
+      properties.geounit,
+    ].find((value) => value && ADMIN_OVERRIDES[String(value).trim()]);
+    if (!overrideKey) continue;
+
+    const name = getCanonicalCountryName(feature);
+    if (!name || existing.has(name)) continue;
+    const code = String(properties.ISO_A2 || properties.iso_a2 || "").toLowerCase();
+    const qid = properties.WIKIDATAID || properties.wikidataid || null;
+    if (!code || code === "-99") {
+      throw new Error(`${name} has no usable ISO_A2 code for its flag filename`);
+    }
+    targets.push({ kind: "country", name, code, qid, filename: `${code}.svg` });
+    existing.add(name);
+  }
+
+  return targets;
+}
+
 function buildTargets(countryFlags, countries, states) {
   const targets = countryFlags.map((entry) => ({
     kind: "country",
@@ -83,6 +112,8 @@ function buildTargets(countryFlags, countries, states) {
     qid: countryQid(entry, countries.features),
     filename: countryDestination(entry),
   }));
+
+  targets.push(...explicitQuizEntityTargets(countryFlags, countries.features));
 
   for (const feature of states.features) {
     const properties = feature.properties;
@@ -395,6 +426,7 @@ if (require.main === module) {
 
 module.exports = {
   buildTargets,
+  explicitQuizEntityTargets,
   countryDestination,
   countryQid,
   preferredClaim,
