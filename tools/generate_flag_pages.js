@@ -218,11 +218,12 @@ function quizPage(groupId, group) {
   <footer class="flag-footer">Smurdy geography quizzes. <a href="/">Home</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a></footer>
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
+  <script src="/src/js/quiz_completion.js?v=20260903-completion-1" defer></script>
   <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260903-session-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260903-completion-1" defer></script>
 </body>
 </html>`;
 }

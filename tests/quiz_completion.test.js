@@ -133,3 +133,21 @@ test("mode labels cover map, subdivision, and flag modes", () => {
     assert.equal(completion.modeLabelForQuiz("find-point-subdivision"), "Find State from a Point");
     assert.equal(completion.modeLabelForQuiz("type-flag"), "Flags");
 });
+
+
+test("both runners delegate completion flow instead of keeping a map-only share module", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.join(__dirname, "..");
+    const mapRunner = fs.readFileSync(path.join(root, "src/js/quiz_runner.js"), "utf8");
+    const flagRunner = fs.readFileSync(path.join(root, "src/js/flag_quiz.js"), "utf8");
+    const appCore = fs.readFileSync(path.join(root, "src/js/app_core.js"), "utf8");
+
+    assert.match(mapRunner, /SmurdyQuizCompletion/);
+    assert.match(flagRunner, /SmurdyQuizCompletion/);
+    assert.doesNotMatch(mapRunner, /Smurdy share result module v3/);
+    assert.doesNotMatch(mapRunner, /navigator\.share/);
+    assert.match(mapRunner, /completion\.retryMissed|renderReview/);
+    assert.match(flagRunner, /completion\.retryMissed/);
+    assert.match(appCore, /quiz_completion\.js\?v=20260903-completion-1/);
+});
