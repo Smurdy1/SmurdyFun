@@ -1092,9 +1092,39 @@ const SmurdyQuiz = {
 
         // hide main-menu decorations once a quiz is loading (non-destructive)
         try { this.hideMainMenuMap(); } catch (_) {}
+
+        // The map and flag runners share one session state machine. Keep it
+        // loaded across quiz switches instead of recreating it for every run.
+        if (!window.SmurdyQuizSession?.createSession) {
+            try {
+                await new Promise((resolve, reject) => {
+                    let sessionScript = document.getElementById("quiz-session-script");
+                    if (sessionScript) {
+                        if (window.SmurdyQuizSession?.createSession) {
+                            resolve();
+                            return;
+                        }
+                        sessionScript.addEventListener("load", resolve, { once: true });
+                        sessionScript.addEventListener("error", reject, { once: true });
+                        return;
+                    }
+
+                    sessionScript = document.createElement("script");
+                    sessionScript.src = "/src/js/quiz_session.js?v=20260903-session-1";
+                    sessionScript.id = "quiz-session-script";
+                    sessionScript.onload = resolve;
+                    sessionScript.onerror = reject;
+                    document.head.appendChild(sessionScript);
+                });
+            } catch (error) {
+                console.error("Could not load shared quiz session core", error);
+                return;
+            }
+        }
+
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260826-target-hierarchy-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260903-session-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {

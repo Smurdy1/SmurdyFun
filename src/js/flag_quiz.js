@@ -143,17 +143,17 @@
         let flags = [];
         let aliases = {};
         let flagGroups = {};
-        let attempts = 0;
-        let correct = 0;
-        let firstTryCorrect = 0;
         let locked = false;
-        let misses = [];
-        let completed = new Set();
         let currentFlag = null;
-        let lastFlagId = null;
-        let startedAt = 0;
-        let elapsed = 0;
         let timerInterval = null;
+        const quizSession = root.SmurdyQuizSession?.createSession?.({
+            keyOf: flag => flag?.id || "",
+            nameOf: flag => flag?.name || ""
+        });
+        if (!quizSession) {
+            console.error("SmurdyQuizSession must load before flag_quiz.js");
+            return null;
+        }
         let advanceTimeout = null;
         let loadPromise = null;
         let retryWeakSpots = false;
@@ -205,13 +205,14 @@
         }
 
         function analyticsSnapshot(answerCorrect) {
+            const snapshot = quizSession.snapshot({ total: flags.length });
             return {
                 correct: answerCorrect,
-                attempts,
-                correctAnswers: correct,
-                completedPlaces: completed.size,
-                placesTotal: flags.length,
-                completionTimeSeconds: Math.round(elapsed / 1000)
+                attempts: snapshot.attempts,
+                correctAnswers: snapshot.correctAnswers,
+                completedPlaces: snapshot.completedCount,
+                placesTotal: snapshot.total,
+                completionTimeSeconds: Math.round(snapshot.elapsedMs / 1000)
             };
         }
 
@@ -223,49 +224,45 @@
         }
 
         function updateStats() {
-            const completedCount = completed.size;
-            if (progress) progress.textContent = `${completedCount} / ${flags.length} completed`;
+            const snapshot = quizSession.snapshot({ total: flags.length });
+            if (progress) progress.textContent = `${snapshot.completedCount} / ${snapshot.total} completed`;
             if (progressBar) {
-                progressBar.style.width = `${flags.length ? (completedCount / flags.length) * 100 : 0}%`;
-                progressBar.parentElement?.setAttribute("aria-valuenow", String(completedCount));
-                progressBar.parentElement?.setAttribute("aria-valuemax", String(flags.length));
+                progressBar.style.width = `${snapshot.total ? (snapshot.completedCount / snapshot.total) * 100 : 0}%`;
+                progressBar.parentElement?.setAttribute("aria-valuenow", String(snapshot.completedCount));
+                progressBar.parentElement?.setAttribute("aria-valuemax", String(snapshot.total));
             }
-            if (accuracy) {
-                const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
-                accuracy.textContent = `${percent}% correct`;
-            }
-            if (timer) timer.textContent = formatElapsed(elapsed);
+            if (accuracy) accuracy.textContent = `${snapshot.accuracyPercent}% correct`;
+            if (timer) timer.textContent = formatElapsed(snapshot.elapsedMs);
         }
 
         function stopTimer() {
             if (timerInterval) root.clearInterval(timerInterval);
             timerInterval = null;
-            if (startedAt) elapsed = Date.now() - startedAt;
+            quizSession.stopClock();
             updateStats();
         }
 
         function startTimer() {
             stopTimer();
-            elapsed = 0;
-            startedAt = Date.now();
-            timerInterval = root.setInterval(() => {
-                elapsed = Date.now() - startedAt;
-                updateStats();
-            }, 250);
+            quizSession.startClock();
+            timerInterval = root.setInterval(updateStats, 250);
         }
 
         function renderReview() {
             if (!review) return;
+            const misses = quizSession.getMisses();
             review.hidden = misses.length === 0;
             review.innerHTML = misses.length ? `
                 <h2>Flags to review</h2>
-                <ul class="flag-review-grid">${misses.map(flag => `
-                    <li><img src="${escapeHtml(flag.src)}" alt=""><span>${escapeHtml(flag.name)}</span></li>
+                <ul class="flag-review-grid">${misses.map(item => `
+                    <li><img src="${escapeHtml(item.data?.src || "")}" alt=""><span>${escapeHtml(item.name)}</span></li>
                 `).join("")}</ul>` : "";
         }
 
         function finishQuiz() {
             stopTimer();
+            const misses = quizSession.getMisses();
+            const snapshot = quizSession.snapshot({ total: flags.length });
             image.removeAttribute("src");
             image.alt = "";
             image.hidden = true;
@@ -278,7 +275,6 @@
             game.classList.toggle("has-misses", misses.length > 0);
             if (afterActions) afterActions.hidden = false;
 
-            const percent = attempts ? Math.round((correct / attempts) * 100) : 100;
             result.textContent = "Quiz complete";
             result.className = "flag-result is-finished";
             if (summary) {
@@ -286,9 +282,9 @@
                 summary.innerHTML = `
                     <h2>Results</h2>
                     <div class="flag-summary-grid">
-                        <div><strong>${firstTryCorrect} / ${flags.length}</strong><span>Flags correct</span></div>
-                        <div><strong>${percent}%</strong><span>Accuracy</span></div>
-                        <div><strong>${formatElapsed(elapsed)}</strong><span>Time</span></div>
+                        <div><strong>${snapshot.firstTryCorrect} / ${snapshot.total}</strong><span>Flags correct</span></div>
+                        <div><strong>${snapshot.accuracyPercent}%</strong><span>Accuracy</span></div>
+                        <div><strong>${formatElapsed(snapshot.elapsedMs)}</strong><span>Time</span></div>
                     </div>`;
             }
             renderReview();
@@ -311,23 +307,25 @@
             result.className = "flag-result";
             input.value = "";
 
-            if (completed.size >= flags.length) {
+            if (quizSession.snapshot().completedCount >= flags.length) {
                 currentFlag = null;
                 finishQuiz();
                 return;
             }
 
-            currentFlag = chooseNextFlag(flags, completed, lastFlagId);
+            const remaining = quizSession.getRemaining(flags);
+            const candidates = quizSession.getQuestionCandidates(remaining);
+            currentFlag = candidates[Math.floor(Math.random() * candidates.length)] || remaining[0] || null;
             if (!currentFlag) {
                 finishQuiz();
                 return;
             }
-            lastFlagId = currentFlag.id;
+            quizSession.setCurrent(currentFlag);
 
             if (stage) stage.hidden = false;
             image.hidden = false;
             image.src = currentFlag.src;
-            image.alt = `Flag ${completed.size + 1} of ${flags.length}`;
+            image.alt = `Flag ${quizSession.snapshot().completedCount + 1} of ${flags.length}`;
             form.hidden = false;
             giveUp.hidden = false;
             restart.hidden = false;
@@ -337,13 +335,12 @@
             updateStats();
             input.focus({ preventScroll: true });
 
-            const remaining = remainingFlags(flags, completed).filter(flag => flag.id !== currentFlag.id);
-            const next = remaining[0];
+            const preloadRemaining = quizSession.getRemaining(flags).filter(flag => flag.id !== currentFlag.id);
+            const next = preloadRemaining[0];
             if (next) new Image().src = next.src;
         }
 
         function recordMiss(current, guess, gaveUp) {
-            if (!misses.some(flag => flag.id === current.id)) misses.push(current);
             try {
                 root.SmurdyWeakSpots?.recordMiss?.({
                     name: current.name,
@@ -357,15 +354,16 @@
         function finishQuestion(wasCorrect, guess, gaveUp = false) {
             if (locked || !currentFlag) return;
             locked = true;
-            attempts++;
 
             const current = currentFlag;
-            const hadMiss = misses.some(flag => flag.id === current.id);
+            const outcome = quizSession.recordAnswer(current, {
+                correct: wasCorrect,
+                guess,
+                gaveUp,
+                data: { src: current.src }
+            });
             if (wasCorrect) {
-                correct++;
-                completed.add(current.id);
-                if (!hadMiss) firstTryCorrect++;
-                if (retryWeakSpots && !hadMiss) clearWeakSpot(current);
+                if (retryWeakSpots && !outcome?.hadMiss) clearWeakSpot(current);
                 result.textContent = "Correct!";
                 result.classList.add("is-correct");
             } else {
@@ -394,13 +392,11 @@
             if (advanceTimeout) root.clearTimeout(advanceTimeout);
             advanceTimeout = null;
             flags = shuffle(items);
-            attempts = 0;
-            correct = 0;
-            firstTryCorrect = 0;
-            misses = [];
-            completed = new Set();
+            quizSession.reset({
+                total: flags.length,
+                preserveLastQuestion: reason === "restart"
+            });
             currentFlag = null;
-            lastFlagId = null;
             locked = false;
             retryWeakSpots = Boolean(isWeakSpotsRetry);
             game.classList.remove("is-complete", "has-misses");
@@ -487,7 +483,7 @@
         giveUp?.addEventListener("click", () => finishQuestion(false, "", true));
         restart?.addEventListener("click", restartCurrentRun);
         retry?.addEventListener("click", () => {
-            const missedFlags = misses.slice();
+            const missedFlags = quizSession.getMisses().map(item => item.item).filter(Boolean);
             if (missedFlags.length) startRun(missedFlags, "retry_missed", true);
         });
         favorite?.addEventListener("click", () => {
