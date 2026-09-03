@@ -2255,7 +2255,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.5";
+const APP_VERSION = "1.13.6";
 
 function injectVersionBadge() {
     try {
