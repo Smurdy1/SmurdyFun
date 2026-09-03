@@ -1149,7 +1149,7 @@ const SmurdyQuiz = {
                     }
 
                     completionScript = document.createElement("script");
-                    completionScript.src = "/src/js/quiz_completion.js?v=20260903-completion-1";
+                    completionScript.src = "/src/js/quiz_completion.js?v=20260903-review-pagination-1";
                     completionScript.id = "quiz-completion-script";
                     completionScript.onload = resolve;
                     completionScript.onerror = reject;
@@ -2296,7 +2296,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.8";
+const APP_VERSION = "1.13.9";
 
 function injectVersionBadge() {
     try {

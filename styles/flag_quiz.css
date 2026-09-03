@@ -89,7 +89,9 @@ h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; lett
 .flag-review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
 .flag-review-grid li { display: flex; min-width: 0; padding: 9px; align-items: center; gap: 9px; border-radius: 8px; background: var(--soft); font-size: 13px; font-weight: 700; }
 .flag-review-grid img { width: 48px; height: 34px; flex: 0 0 auto; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .18)); }
+.flag-review-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .flag-review-grid span { overflow-wrap: anywhere; }
+.flag-review-miss-count { color: var(--muted); font-size: 11px; font-weight: 600; }
 .flag-after-actions { margin-top: 16px; justify-content: center; }
 .flag-after-actions .flag-button { min-height: 38px; padding: 8px 12px; border-color: #d9dcdf; background: #fff; color: #444; font-size: 13px; font-weight: 650; }
 .flag-after-actions .flag-button:hover { border-color: #bcc1c5; background: #f7f8f8; }

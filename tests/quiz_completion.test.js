@@ -149,7 +149,7 @@ test("both runners delegate completion flow instead of keeping a map-only share 
     assert.doesNotMatch(mapRunner, /navigator\.share/);
     assert.match(mapRunner, /completion\.retryMissed|renderReview/);
     assert.match(flagRunner, /completion\.retryMissed/);
-    assert.match(appCore, /quiz_completion\.js\?v=20260903-completion-1/);
+    assert.match(appCore, /quiz_completion\.js\?v=20260903-review-pagination-1/);
 });
 
 
@@ -167,4 +167,32 @@ test("Retry Missed has one owner and map retries preserve their current mode", (
     assert.doesNotMatch(mapRunner, /retryQuizId|history\.pushState\(\{\}, "", path\)/);
     assert.doesNotMatch(weakSpotsSource, /installRetryInterception|weakSpotsRetryDelegated/);
     assert.doesNotMatch(weakSpotsSource, /#quiz-review-retry, \[data-flag-retry\]/);
+});
+
+
+test("post-game review sorts by miss count and pages six items at a time", () => {
+    const sorted = completion.sortMissesForReview([
+        { name: "Alpha", count: 1 },
+        { name: "Charlie", count: 4 },
+        { name: "Bravo", count: 4 },
+        { name: "Delta", count: 2 }
+    ]);
+
+    assert.equal(completion.DEFAULT_REVIEW_PAGE_SIZE, 6);
+    assert.deepEqual(
+        sorted.map(item => [item.name, item.count]),
+        [["Bravo", 4], ["Charlie", 4], ["Delta", 2], ["Alpha", 1]]
+    );
+
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.join(__dirname, "..");
+    const source = fs.readFileSync(path.join(root, "src/js/quiz_completion.js"), "utf8");
+    const flagRunner = fs.readFileSync(path.join(root, "src/js/flag_quiz.js"), "utf8");
+
+    assert.match(source, /visibleCount = Math\.min\(misses\.length, visibleCount \+ pageSize\)/);
+    assert.match(source, /options\.showMoreLabel \|\| "Show more"/);
+    assert.match(source, /options\.collapseLabel \|\| "Collapse"/);
+    assert.match(flagRunner, /flag-review-miss-count/);
+    assert.match(flagRunner, /count === 1 \? "miss" : "misses"/);
 });
