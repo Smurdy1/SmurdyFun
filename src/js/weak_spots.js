@@ -290,7 +290,7 @@
         return {
             mode,
             kind: definition.kind,
-            label: definition.label + " · " + humanizeGroup(group),
+            label: definition.label + ": " + humanizeGroup(group),
             quizId: definition.quizId || mode,
             group: group || definition.defaultGroup,
             names
@@ -551,28 +551,6 @@
         }
     }
 
-    function reviewNamesFromButton(button) {
-        const review = button?.closest?.("#quiz-review, [data-flag-game]") || root.document;
-        const selector = button?.matches?.("[data-flag-retry]")
-            ? "[data-flag-review] li span"
-            : ".quiz-review-country-name";
-        return Array.from(review.querySelectorAll(selector))
-            .map(node => String(node.textContent || "").trim())
-            .filter(Boolean);
-    }
-
-    function installRetryInterception() {
-        if (root.document.documentElement.dataset.weakSpotsRetryDelegated) return;
-        root.document.documentElement.dataset.weakSpotsRetryDelegated = "true";
-        root.document.addEventListener("click", event => {
-            const button = event.target.closest?.("#quiz-review-retry, [data-flag-retry]");
-            if (!button || button.disabled) return;
-            const names = reviewNamesFromButton(button);
-            if (!names.length || !startCurrentModeRetry(names)) return;
-            event.preventDefault();
-            event.stopImmediatePropagation();
-        }, true);
-    }
 
     function install() {
         if (!root?.document) return;
@@ -585,7 +563,6 @@
                 openDialog();
             });
         }
-        installRetryInterception();
         updateMenuCount();
         root.addEventListener("smurdy:weakspotschange", updateMenuCount);
     }

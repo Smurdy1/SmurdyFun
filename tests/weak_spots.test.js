@@ -38,6 +38,7 @@ test("Weak Spots practice stages preserve mode and group", () => {
     const flags = stages.find(stage => stage.mode === "type-flag");
     assert.equal(flags.quizId, "type-flag");
     assert.equal(flags.group, "europe");
+    assert.equal(flags.label, "Flags: Europe");
     assert.deepEqual(Array.from(flags.names), ["France", "Germany"]);
 
     const states = stages.find(stage => stage.mode === "type-subdivision");

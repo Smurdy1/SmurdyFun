@@ -875,32 +875,11 @@ window.runNameQuiz = function runNameQuiz(config) {
             .filter(Boolean);
         if (!names.length || typeof window.runNameQuiz !== "function") return;
 
-        const subdivision = isSubdivisionMapMode();
-        const retryQuizId = subdivision ? "click-subdivision" : "click-country";
-        const context = getAnalyticsContext();
-        const groupId = context.quiz_group || SQ.currentGroupId || "world";
-        const path = "/quizzes/" + retryQuizId + "/" + encodeURIComponent(groupId) + "/";
-
-        try { history.pushState({}, "", path); } catch (_) {}
-        if (window.__SmurdyConfig) {
-            window.__SmurdyConfig.cleanQuizId = retryQuizId;
-            window.__SmurdyConfig.quizGroupId = groupId;
-        }
-        SQ.currentShowBorders = true;
-        try { SQ.setShowBorders(true); } catch (_) {}
-
         hidePostQuizReview();
-
         window.runNameQuiz({
-            mode: "click",
-            quizId: retryQuizId,
-            borders: true,
+            ...config,
             includeNames: names,
-            retryWeakSpots: true,
-            titleBuilder: name => "Click: " + name,
-            successText: "Correct!",
-            persistCompletedHighlights: true,
-            showTargetOnWrong: true
+            retryWeakSpots: true
         });
     }
 

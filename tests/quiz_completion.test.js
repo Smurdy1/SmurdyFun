@@ -151,3 +151,20 @@ test("both runners delegate completion flow instead of keeping a map-only share 
     assert.match(flagRunner, /completion\.retryMissed/);
     assert.match(appCore, /quiz_completion\.js\?v=20260903-completion-1/);
 });
+
+
+test("Retry Missed has one owner and map retries preserve their current mode", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.join(__dirname, "..");
+    const mapRunner = fs.readFileSync(path.join(root, "src/js/quiz_runner.js"), "utf8");
+    const weakSpotsSource = fs.readFileSync(path.join(root, "src/js/weak_spots.js"), "utf8");
+
+    assert.match(
+        mapRunner,
+        /window\.runNameQuiz\(\{[\s\S]*?\.\.\.config,[\s\S]*?includeNames: names,[\s\S]*?retryWeakSpots: true/
+    );
+    assert.doesNotMatch(mapRunner, /retryQuizId|history\.pushState\(\{\}, "", path\)/);
+    assert.doesNotMatch(weakSpotsSource, /installRetryInterception|weakSpotsRetryDelegated/);
+    assert.doesNotMatch(weakSpotsSource, /#quiz-review-retry, \[data-flag-retry\]/);
+});
