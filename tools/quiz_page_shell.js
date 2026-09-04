@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260903-final-unity-1";
+const ASSET_VERSION = "20260903-landing-control-parity-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -33,6 +33,15 @@ function renderBrand({ root = "", className = "" } = {}) {
     return `<a class="${escapeHtml(classNames("quiz-brand", className))}" href="${escapeHtml(joinRoot(root, "/"))}" aria-label="Smurdy home">
     <img src="${escapeHtml(joinRoot(root, "/assets/images/smurdeye-transparent.png?v=20260825-logo-1"))}" alt=""><span>Smurdy</span>
   </a>`;
+}
+
+function renderPrimaryLaunch({ className = "", buttonClass = "" } = {}) {
+    const containerClass = classNames("quiz-actions", "quiz-primary-action", className);
+    const primaryClass = classNames("quiz-button", buttonClass, "primary");
+
+    return `<div class="${escapeHtml(containerClass)}" data-smurdy-quiz-primary-action>
+      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Open quiz</button>
+    </div>`;
 }
 
 function renderLandingActions({
@@ -94,6 +103,7 @@ module.exports = {
     classNames,
     renderSharedStyles,
     renderBrand,
+    renderPrimaryLaunch,
     renderLandingActions,
     renderFooter,
     renderLandingScripts

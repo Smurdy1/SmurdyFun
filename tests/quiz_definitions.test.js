@@ -50,15 +50,22 @@ test("definition registry owns canonical paths and legacy subdivision aliases", 
     );
 });
 
-test("shared landing shell exposes one launch and favorite contract", () => {
+test("shared landing shell separates the primary launch from the full action row", () => {
+    const primary = shell.renderPrimaryLaunch({ buttonClass: "qb-btn" });
     const actions = shell.renderLandingActions({
         quizId: "click-country",
         groupId: "europe",
-        buttonClass: "qb-btn"
+        buttonClass: "qb-btn",
+        includeHome: true
     });
+
+    assert.match(primary, /data-smurdy-quiz-primary-action/);
+    assert.match(primary, /data-smurdy-quiz-launch/);
+    assert.doesNotMatch(primary, /data-smurdy-quiz-favorite/);
     assert.match(actions, /data-smurdy-quiz-launch/);
     assert.match(actions, /data-smurdy-quiz-favorite/);
     assert.match(actions, /☆ Add to favorites/);
+    assert.match(actions, /Back to home/);
     assert.doesNotMatch(shell.renderFooter(), /·/);
 });
 
@@ -75,7 +82,10 @@ test("map and flag landing pages use the shared shell and Favorite control", () 
     for (const html of [map, flags]) {
         assert.match(html, /styles\/quiz_shared\.css/);
         assert.match(html, /data-smurdy-quiz-page/);
-        assert.match(html, /data-smurdy-quiz-favorite/);
+        assert.match(html, /data-smurdy-quiz-primary-action/);
+        assert.equal((html.match(/data-smurdy-quiz-launch/g) || []).length, 2);
+        assert.equal((html.match(/data-smurdy-quiz-favorite/g) || []).length, 1);
+        assert.match(html, /Back to home/);
         assert.match(html, /src\/js\/quiz_definitions\.js/);
         assert.match(html, /src\/js\/quiz_landing\.js/);
     }

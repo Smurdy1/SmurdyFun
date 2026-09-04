@@ -12,9 +12,10 @@
     const groupId = body.dataset.quizGroup || body.dataset.flagSet || (route ? route[2] : "world");
     const definition = window.SmurdyQuizDefinitions?.get?.(quizId) || null;
     const modality = body.dataset.quizModality || definition?.modality || "map";
-    const launchButton = document.querySelector(
+    const launchButtons = Array.from(document.querySelectorAll(
         "[data-smurdy-quiz-launch], [data-flag-launch]"
-    );
+    ));
+    const launchButton = launchButtons[0] || null;
     const favoriteButton = document.querySelector(
         "[data-smurdy-quiz-favorite], [data-flag-favorite]"
     );
@@ -167,8 +168,10 @@
         await launchMapQuiz();
     }
 
-    launchButton?.addEventListener("click", () => {
-        void launchQuiz(null);
+    launchButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            void launchQuiz(null);
+        });
     });
     void prepareFavorite();
 
