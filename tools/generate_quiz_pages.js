@@ -931,7 +931,7 @@ function directoryDocumentStart({ title, description, canonical, publicRoot }) {
   <meta name="description" content="${escapeHtml(description)}"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${escapeHtml(canonical)}"/>
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_directory.css?v=20260901-directory-1"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_directory.css?v=20260907-ui-polish-1"/>
   <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
 </head>
 <body>

@@ -8,9 +8,14 @@ const root = path.resolve(__dirname, "..");
 const definitions = require(path.join(root, "src/js/quiz_definitions.js"));
 const shell = require(path.join(root, "tools/quiz_page_shell.js"));
 
-function loadManifest() {
+function loadManifest(unitName = null) {
     const source = fs.readFileSync(path.join(root, "src/js/manifest.js"), "utf8");
     const sandbox = { window: {} };
+    if (unitName) {
+        sandbox.window.SmurdyQuiz = {
+            getCurrentGroup: () => ({ unitName })
+        };
+    }
     vm.createContext(sandbox);
     vm.runInContext(source, sandbox);
     return sandbox.window.SmurdyQuizManifest;
@@ -18,6 +23,22 @@ function loadManifest() {
 
 const manifest = loadManifest();
 const registry = definitions.createRegistry(() => manifest);
+
+test("subdivision prompts use the active group's unit name", () => {
+    const states = loadManifest("state");
+    const provinces = loadManifest("province");
+    const stateType = states.find(entry => entry.id === "type-subdivision");
+    const statePoint = states.find(entry => entry.id === "find-point-subdivision");
+    const provinceType = provinces.find(entry => entry.id === "type-subdivision");
+    const provincePoint = provinces.find(entry => entry.id === "find-point-subdivision");
+
+    assert.equal(stateType.config.titleBuilder(), "Name the highlighted state");
+    assert.equal(stateType.config.inputPlaceholder(), "Enter the state name...");
+    assert.equal(statePoint.config.titleBuilder(), "Name the state containing the point");
+    assert.equal(statePoint.config.inputPlaceholder(), "Enter the state name...");
+    assert.equal(provinceType.config.titleBuilder(), "Name the highlighted province");
+    assert.equal(provincePoint.config.titleBuilder(), "Name the province containing the point");
+});
 
 test("quiz definitions expose explicit modality adapters", () => {
     const click = registry.get("click-country");

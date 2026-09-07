@@ -96,6 +96,10 @@ button:disabled {
     line-height: 1.25;
 }
 
+html:not(.smurdy-quiz-active) #quiz-target {
+    font-weight: 700;
+}
+
 .about-header {
     margin: 16px 0 4px;
     color: var(--smurdy-muted);
