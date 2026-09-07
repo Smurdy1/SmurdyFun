@@ -131,6 +131,10 @@ li {
   margin: 0;
 }
 
+.compact-card {
+  padding-bottom: 10px;
+}
+
 .mode-grid,
 .contact-grid {
   display: grid;
