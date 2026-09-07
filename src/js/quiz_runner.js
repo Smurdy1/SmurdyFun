@@ -1207,7 +1207,9 @@ window.runNameQuiz = function runNameQuiz(config) {
  
         inputEl = document.createElement("input");
         inputEl.type = "text";
-        inputEl.placeholder = inputPlaceholder;
+        inputEl.placeholder = typeof inputPlaceholder === "function"
+            ? inputPlaceholder()
+            : inputPlaceholder;
         inputEl.autocomplete = "off";
         inputEl.spellcheck = false;
         inputEl.style.flex = "1";

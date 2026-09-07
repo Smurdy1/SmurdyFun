@@ -1,3 +1,12 @@
+function getActiveQuizUnitName(fallback = "subdivision") {
+    try {
+        const group = window.SmurdyQuiz?.getCurrentGroup?.();
+        const unitName = String(group?.unitName || "").trim().toLowerCase();
+        if (unitName) return unitName;
+    } catch (_) {}
+    return fallback;
+}
+
 window.SmurdyQuizManifest = [
     {
         id: "click-country",
@@ -188,8 +197,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} subdivision quiz tests your ability to identify {adjective} {unitPlural} by typing their names.",
         config: {
             mode: "type",
-            titleBuilder: () => "Name the highlighted state or subdivision",
-            inputPlaceholder: "Enter the state or subdivision...",
+            titleBuilder: () => `Name the highlighted ${getActiveQuizUnitName()}`,
+            inputPlaceholder: () => `Enter the ${getActiveQuizUnitName()} name...`,
             persistCompletedHighlights: true,
             showTargetOnWrong: false,
             clickableLayerId: null
@@ -239,8 +248,8 @@ window.SmurdyQuizManifest = [
         longDescription: "This {label} subdivision quiz tests your ability to identify the {unitName} containing a point.",
         config: {
             mode: "type",
-            titleBuilder: () => "Name the state or subdivision containing the point",
-            inputPlaceholder: "Enter the state or subdivision...",
+            titleBuilder: () => `Name the ${getActiveQuizUnitName()} containing the point`,
+            inputPlaceholder: () => `Enter the ${getActiveQuizUnitName()} name...`,
             persistCompletedHighlights: false,
             showTargetOnWrong: false,
             clickableLayerId: null,

@@ -267,7 +267,7 @@ function directoryPage() {
   <title>Flag Quizzes - World, Regions, and US States | Smurdy</title>
   <meta name="description" content="Choose from ${total} free flag quizzes covering the world, regions, specialty country sets, and US states.">
   <meta name="robots" content="index, follow"><link rel="canonical" href="${baseUrl}/quizzes/type-flag/">
-  <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260901-directory-1">
+  <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260907-ui-polish-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
 </head><body>
   <header class="directory-header"><a class="directory-brand" href="/" aria-label="Smurdy home"><img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span></a></header>
