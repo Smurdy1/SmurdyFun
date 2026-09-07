@@ -1,0 +1,161 @@
+from pathlib import Path
+
+def replace(path, old, new, count=None):
+    p = Path(path)
+    text = p.read_text()
+    if old not in text:
+        raise SystemExit(f"Expected text not found in {path}: {old[:80]!r}")
+    text = text.replace(old, new) if count is None else text.replace(old, new, count)
+    p.write_text(text)
+
+replace(
+    "styles/quiz_directory.css",
+    ".directory-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }",
+    ".directory-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }"
+)
+replace(
+    "styles/quiz_directory.css",
+    ".directory-mode-card { min-height: 126px; justify-content: flex-start; }",
+    ".directory-mode-card { min-height: 0; justify-content: flex-start; }"
+)
+
+replace("contact/index.html", "      <h2>Send a message</h2>\n", "")
+replace("about/index.html", "      <h2>Help improve Smurdy</h2>\n", "")
+
+replace(
+    "styles/style.css",
+    """#quiz-target {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 750;
+    line-height: 1.25;
+}
+
+.about-header {""",
+    """#quiz-target {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 750;
+    line-height: 1.25;
+}
+
+html:not(.smurdy-quiz-active) #quiz-target {
+    font-weight: 700;
+}
+
+.about-header {"""
+)
+replace(
+    "index.html",
+    "/styles/style.css?v=20260826-target-hierarchy-1",
+    "/styles/style.css?v=20260907-ui-polish-1"
+)
+
+manifest = Path("src/js/manifest.js")
+text = manifest.read_text()
+prefix = "window.SmurdyQuizManifest = ["
+if not text.startswith(prefix):
+    raise SystemExit("Unexpected manifest prefix")
+helper = """function getActiveQuizUnitName(fallback = "subdivision") {
+    try {
+        const group = window.SmurdyQuiz?.getCurrentGroup?.();
+        const unitName = String(group?.unitName || "").trim().toLowerCase();
+        if (unitName) return unitName;
+    } catch (_) {}
+    return fallback;
+}
+
+"""
+text = helper + text
+old = """            titleBuilder: () => "Name the highlighted state or subdivision",
+            inputPlaceholder: "Enter the state or subdivision...","""
+new = """            titleBuilder: () => `Name the highlighted ${getActiveQuizUnitName()}`,
+            inputPlaceholder: () => `Enter the ${getActiveQuizUnitName()} name...`,"""
+if old not in text:
+    raise SystemExit("Type-subdivision prompt block not found")
+text = text.replace(old, new, 1)
+old = """            titleBuilder: () => "Name the state or subdivision containing the point",
+            inputPlaceholder: "Enter the state or subdivision...","""
+new = """            titleBuilder: () => `Name the ${getActiveQuizUnitName()} containing the point`,
+            inputPlaceholder: () => `Enter the ${getActiveQuizUnitName()} name...`,"""
+if old not in text:
+    raise SystemExit("Find-point subdivision prompt block not found")
+text = text.replace(old, new, 1)
+manifest.write_text(text)
+
+replace(
+    "src/js/quiz_runner.js",
+    """        inputEl.type = "text";
+        inputEl.placeholder = inputPlaceholder;
+        inputEl.autocomplete = "off";""",
+    """        inputEl.type = "text";
+        inputEl.placeholder = typeof inputPlaceholder === "function"
+            ? inputPlaceholder()
+            : inputPlaceholder;
+        inputEl.autocomplete = "off";"""
+)
+
+tests = Path("tests/quiz_definitions.test.js")
+text = tests.read_text()
+old = """function loadManifest() {
+    const source = fs.readFileSync(path.join(root, "src/js/manifest.js"), "utf8");
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(source, sandbox);
+    return sandbox.window.SmurdyQuizManifest;
+}"""
+new = """function loadManifest(unitName = null) {
+    const source = fs.readFileSync(path.join(root, "src/js/manifest.js"), "utf8");
+    const sandbox = { window: {} };
+    if (unitName) {
+        sandbox.window.SmurdyQuiz = {
+            getCurrentGroup: () => ({ unitName })
+        };
+    }
+    vm.createContext(sandbox);
+    vm.runInContext(source, sandbox);
+    return sandbox.window.SmurdyQuizManifest;
+}"""
+if old not in text:
+    raise SystemExit("loadManifest helper not found")
+text = text.replace(old, new, 1)
+marker = """const registry = definitions.createRegistry(() => manifest);
+
+test("quiz definitions expose explicit modality adapters", () => {"""
+addition = """const registry = definitions.createRegistry(() => manifest);
+
+test("subdivision prompts use the active group's unit name", () => {
+    const states = loadManifest("state");
+    const provinces = loadManifest("province");
+    const stateType = states.find(entry => entry.id === "type-subdivision");
+    const statePoint = states.find(entry => entry.id === "find-point-subdivision");
+    const provinceType = provinces.find(entry => entry.id === "type-subdivision");
+    const provincePoint = provinces.find(entry => entry.id === "find-point-subdivision");
+
+    assert.equal(stateType.config.titleBuilder(), "Name the highlighted state");
+    assert.equal(stateType.config.inputPlaceholder(), "Enter the state name...");
+    assert.equal(statePoint.config.titleBuilder(), "Name the state containing the point");
+    assert.equal(statePoint.config.inputPlaceholder(), "Enter the state name...");
+    assert.equal(provinceType.config.titleBuilder(), "Name the highlighted province");
+    assert.equal(provincePoint.config.titleBuilder(), "Name the province containing the point");
+});
+
+test("quiz definitions expose explicit modality adapters", () => {"""
+if marker not in text:
+    raise SystemExit("Test insertion marker not found")
+tests.write_text(text.replace(marker, addition, 1))
+
+replace("src/js/app_core.js", 'const APP_VERSION = "1.13.9";', 'const APP_VERSION = "1.13.10";')
+
+for generator in ["tools/generate_quiz_pages.js", "tools/generate_flag_pages.js"]:
+    replace(generator, "20260901-directory-1", "20260907-ui-polish-1")
+
+for p in Path("quizzes").rglob("index.html"):
+    text = p.read_text()
+    if "20260901-directory-1" in text:
+        p.write_text(text.replace("20260901-directory-1", "20260907-ui-polish-1"))
+
+assert "<h2>Send a message</h2>" not in Path("contact/index.html").read_text()
+assert "<h2>Help improve Smurdy</h2>" not in Path("about/index.html").read_text()
+assert "min-height: 126px" not in Path("styles/quiz_directory.css").read_text()
+assert 'const APP_VERSION = "1.13.10";' in Path("src/js/app_core.js").read_text()
