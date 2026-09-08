@@ -25,6 +25,7 @@
     const MODE_DEFINITIONS = Object.freeze({
         "click-country": { label: "Click Countries", kind: "country", defaultGroup: "world" },
         "type-country": { label: "Type Countries", kind: "country", defaultGroup: "world" },
+        "type-capital": { label: "Type Capitals", kind: "country", defaultGroup: "world" },
         "find-country": { label: "No Borders", kind: "country", defaultGroup: "world" },
         "find-point": { label: "Find from a Point", kind: "country", defaultGroup: "world" },
         "click-subdivision": { label: "Click States", kind: "subdivision", defaultGroup: "us_states" },
