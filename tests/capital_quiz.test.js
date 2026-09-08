@@ -77,3 +77,14 @@ test("capital answer marker uses the primary capital coordinates", () => {
         [location.lng, location.lat]
     );
 });
+
+
+test("capital answer matching supports multilingual Unicode aliases", () => {
+    const japan = capitalQuiz.resolveRecord(dataset, "Japan");
+    const russia = capitalQuiz.resolveRecord(dataset, "Russia");
+    const greece = capitalQuiz.resolveRecord(dataset, "Greece");
+
+    assert.equal(capitalQuiz.isAccepted(japan, "東京"), true);
+    assert.equal(capitalQuiz.isAccepted(russia, "Москва"), true);
+    assert.equal(capitalQuiz.isAccepted(greece, "Αθήνα"), true);
+});
