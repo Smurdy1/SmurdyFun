@@ -27,8 +27,8 @@ function printHelp() {
         "Usage: node tools/build_capitals.js [--check]",
         "",
         "Builds src/data/capitals.json from Smurdy's country list plus Wikidata P36",
-        "(capital) and P625 (coordinate location). A small manual overrides file handles",
-        "real-world edge cases such as countries with multiple or de facto capitals.",
+        "(capital), P625 (coordinate location), and all available labels/aliases for",
+        "accepted answers. A small manual overrides file handles real-world edge cases.",
         "",
         "Options:",
         "  --check  Build in memory and fail if capitals.json is out of date",
@@ -92,21 +92,24 @@ function usableClaims(claims) {
     return preferred.length ? preferred : all;
 }
 
-async function fetchEntities(qids, props) {
+async function fetchEntities(qids, props, languages = "en") {
     const result = new Map();
     const uniqueQids = [...new Set(qids.filter(Boolean))];
 
     for (const batch of chunks(uniqueQids, 50)) {
-        const query = new URLSearchParams({
+        const params = {
             action: "wbgetentities",
             ids: batch.join("|"),
             props,
-            languages: "en",
-            languagefallback: "1",
             format: "json",
             formatversion: "2",
             origin: "*"
-        });
+        };
+        if (languages) {
+            params.languages = languages;
+            params.languagefallback = "1";
+        }
+        const query = new URLSearchParams(params);
         const data = await fetchJson(WIKIDATA_API + "?" + query);
         for (const entity of Object.values(data.entities || {})) {
             result.set(entity.id, entity);
@@ -119,10 +122,10 @@ async function fetchEntities(qids, props) {
 function normalize(value) {
     return String(value || "")
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\p{M}+/gu, "")
         .toLowerCase()
         .replace(/['’]/g, "")
-        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
         .replace(/\s+/g, " ")
         .trim();
 }
@@ -130,7 +133,7 @@ function normalize(value) {
 function asciiVariant(value) {
     return String(value || "")
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\p{M}+/gu, "")
         .trim();
 }
 
@@ -179,7 +182,35 @@ function coordinateForCapital(entity) {
 }
 
 function labelForEntity(entity) {
-    return String(entity && entity.labels && entity.labels.en ? entity.labels.en.value : "").trim();
+    const labels = entity && entity.labels ? entity.labels : {};
+    const preferred = labels.en || labels.mul || Object.values(labels)[0];
+    return String(preferred && preferred.value ? preferred.value : "").trim();
+}
+
+function wikidataTermsForEntity(entity) {
+    const terms = [];
+    const labels = entity && entity.labels ? entity.labels : {};
+    const aliases = entity && entity.aliases ? entity.aliases : {};
+
+    for (const [language, label] of Object.entries(labels)) {
+        const value = String(label && label.value ? label.value : "").trim();
+        if (value) terms.push({ language, kind: "label", value });
+    }
+
+    for (const [language, values] of Object.entries(aliases)) {
+        for (const alias of Array.isArray(values) ? values : []) {
+            const value = String(alias && alias.value ? alias.value : "").trim();
+            if (value) terms.push({ language, kind: "alias", value });
+        }
+    }
+
+    terms.sort((left, right) =>
+        left.language.localeCompare(right.language) ||
+        left.kind.localeCompare(right.kind) ||
+        left.value.localeCompare(right.value)
+    );
+
+    return terms.map(term => term.value);
 }
 
 function sourceCapitalMatches(seedCapital, label) {
@@ -192,7 +223,8 @@ function buildAccepted(primary, selected, override) {
     const base = [
         primary,
         ...selected.map(candidate => candidate.name),
-        ...(Array.isArray(override && override.accepted) ? override.accepted : [])
+        ...(Array.isArray(override && override.accepted) ? override.accepted : []),
+        ...selected.flatMap(candidate => candidate.wikidataTerms || [])
     ];
     const withAscii = [];
     for (const value of base) {
@@ -249,7 +281,8 @@ async function buildDataset() {
 
     const capitalEntities = await fetchEntities(
         [...requestedCapitalIds],
-        "claims|labels"
+        "claims|labels|aliases",
+        null
     );
 
     const output = {};
@@ -287,7 +320,8 @@ async function buildDataset() {
             return {
                 id,
                 name: labelForEntity(entity),
-                coordinates: coordinateForCapital(entity)
+                coordinates: coordinateForCapital(entity),
+                wikidataTerms: wikidataTermsForEntity(entity)
             };
         });
 
@@ -376,6 +410,7 @@ async function buildDataset() {
             seedCapitals: "src/data/country_flags.json",
             capitalProperty: "Wikidata P36",
             coordinatesProperty: "Wikidata P625",
+            acceptedAnswers: "Wikidata labels and aliases in all available languages, plus manual overrides",
             license: "CC0"
         },
         generatedBy: "tools/build_capitals.js",
