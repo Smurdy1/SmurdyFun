@@ -52,6 +52,13 @@ test("quiz definitions expose explicit modality adapters", () => {
     assert.equal(states.family, "subdivisions");
     assert.deepEqual(Array.from(states.families), ["subdivisions"]);
 
+    const capitals = registry.get("type-capital");
+    assert.equal(capitals.category, "capitals");
+    assert.equal(capitals.interaction, "type");
+    assert.equal(capitals.family, "countries");
+    assert.equal(capitals.modality, "map");
+    assert.equal(capitals.adapter.requiresMenuMap, true);
+
     const flags = registry.get("type-flag");
     assert.equal(flags.category, "flags");
     assert.equal(flags.interaction, "type");
@@ -95,12 +102,16 @@ test("map and flag landing pages use the shared shell and Favorite control", () 
         path.join(root, "quizzes/click-country/europe/index.html"),
         "utf8"
     );
+    const capitals = fs.readFileSync(
+        path.join(root, "quizzes/type-capital/latin_america/index.html"),
+        "utf8"
+    );
     const flags = fs.readFileSync(
         path.join(root, "quizzes/type-flag/europe/index.html"),
         "utf8"
     );
 
-    for (const html of [map, flags]) {
+    for (const html of [map, capitals, flags]) {
         assert.match(html, /styles\/quiz_shared\.css/);
         assert.match(html, /data-smurdy-quiz-page/);
         assert.match(html, /data-smurdy-quiz-primary-action/);
@@ -111,5 +122,8 @@ test("map and flag landing pages use the shared shell and Favorite control", () 
         assert.match(html, /src\/js\/quiz_landing\.js/);
     }
     assert.match(map, /data-quiz-modality="map"/);
+    assert.match(capitals, /data-quiz-modality="map"/);
+    assert.match(capitals, /Latin America Capitals Quiz/);
+    assert.match(capitals, /Type the Capitals/);
     assert.match(flags, /data-quiz-modality="flag"/);
 });
