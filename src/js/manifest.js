@@ -54,7 +54,8 @@ window.SmurdyQuizManifest = [
             inputPlaceholder: "Enter the country name...",
             persistCompletedHighlights: true,
             showTargetOnWrong: false,
-            clickableLayerId: null
+            clickableLayerId: null,
+            prepare: () => window.SmurdyCapitalQuiz?.loadSpanishClassGroup?.()
         }
     },
     {
