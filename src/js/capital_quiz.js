@@ -8,6 +8,8 @@
     "use strict";
 
     const DATA_PATH = "/src/data/capitals.json";
+    const SPANISH_CLASS_PATH = "/src/data/spanish_class.json";
+    const SPANISH_CLASS_GROUP_ID = "spanish_class";
     const SOURCE_ID = "smurdy-capital-answer-source";
     const LAYER_ID = "smurdy-capital-answer-layer";
 
@@ -144,34 +146,105 @@
 
     function createController(browserRoot) {
         let loadPromise = null;
+        let hiddenGroupPromise = null;
         let dataset = null;
         let indexes = null;
+        let hiddenGroup = null;
 
-        async function load() {
-            if (dataset) return dataset;
-            if (!loadPromise) {
-                loadPromise = fetch(DATA_PATH, { cache: "no-cache" })
+        function isSpanishClassRoute() {
+            try {
+                return /^\/quizzes\/type-capital\/spanish_class\/?$/i.test(
+                    String(browserRoot?.location?.pathname || "")
+                );
+            } catch (_) {
+                return false;
+            }
+        }
+
+        async function loadSpanishClassGroup() {
+            if (!isSpanishClassRoute()) return null;
+            if (hiddenGroup) return hiddenGroup;
+
+            if (!hiddenGroupPromise) {
+                hiddenGroupPromise = fetch(SPANISH_CLASS_PATH, { cache: "no-cache" })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(
-                                "Could not load capitals data: HTTP " + response.status
+                                "Could not load Spanish Class set: HTTP " + response.status
                             );
                         }
                         return response.json();
                     })
-                    .then(value => {
-                        if (!value || !value.capitals || typeof value.capitals !== "object") {
-                            throw new Error("Invalid capitals dataset");
+                    .then(group => {
+                        if (
+                            !group ||
+                            group.id !== SPANISH_CLASS_GROUP_ID ||
+                            !Array.isArray(group.countries) ||
+                            !group.countries.length
+                        ) {
+                            throw new Error("Invalid Spanish Class set");
                         }
-                        dataset = value;
-                        indexes = buildIndexes(dataset);
-                        return dataset;
+
+                        hiddenGroup = {
+                            ...group,
+                            family: "countries",
+                            allowedTypes: ["type"]
+                        };
+
+                        const quiz = browserRoot.SmurdyQuiz;
+                        if (quiz) {
+                            quiz.groups = quiz.groups || {};
+                            quiz.groups[SPANISH_CLASS_GROUP_ID] = hiddenGroup;
+
+                            try {
+                                const allowed = quiz.getAllowedNamesForCurrentGroup?.();
+                                if (allowed && allowed.size) {
+                                    quiz.setAllowedList?.(allowed);
+                                    quiz.requestGroupOutline?.(allowed);
+                                    quiz.setShowBorders?.(quiz.currentShowBorders);
+                                }
+                            } catch (_) {}
+                        }
+
+                        return hiddenGroup;
                     })
                     .finally(() => {
-                        loadPromise = null;
+                        hiddenGroupPromise = null;
                     });
             }
-            return loadPromise;
+
+            return hiddenGroupPromise;
+        }
+
+        async function load() {
+            if (!dataset) {
+                if (!loadPromise) {
+                    loadPromise = fetch(DATA_PATH, { cache: "no-cache" })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(
+                                    "Could not load capitals data: HTTP " + response.status
+                                );
+                            }
+                            return response.json();
+                        })
+                        .then(value => {
+                            if (!value || !value.capitals || typeof value.capitals !== "object") {
+                                throw new Error("Invalid capitals dataset");
+                            }
+                            dataset = value;
+                            indexes = buildIndexes(dataset);
+                            return dataset;
+                        })
+                        .finally(() => {
+                            loadPromise = null;
+                        });
+                }
+                await loadPromise;
+            }
+
+            await loadSpanishClassGroup();
+            return dataset;
         }
 
         function getFeature(countryName) {
@@ -276,6 +349,8 @@
 
         return Object.freeze({
             load,
+            loadSpanishClassGroup,
+            isSpanishClassRoute,
             getRecord,
             getCapital,
             getAcceptedAnswers,
@@ -287,6 +362,8 @@
 
     return Object.freeze({
         DATA_PATH,
+        SPANISH_CLASS_PATH,
+        SPANISH_CLASS_GROUP_ID,
         SOURCE_ID,
         LAYER_ID,
         COUNTRY_NAME_OVERRIDES,
