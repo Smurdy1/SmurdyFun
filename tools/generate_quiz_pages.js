@@ -486,7 +486,8 @@ ${pageSpecificSectionHtml}
         }
     }
 
-    await writeSpanishClassSecretPage({ outDir, publicRoot, group: spanishClass });
+    await writeSpanishClassSecretPage({ outDir, publicRoot, group: spanishClass, quizId: "type-capital" });
+    await writeSpanishClassSecretPage({ outDir, publicRoot, group: spanishClass, quizId: "type-country" });
     await writeLegacySubdivisionPages({ outDir, publicRoot });
     const modeHubPages = await writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot });
     const flagPageRecords = Object.entries(groupSets.flag_groups || {}).map(([groupId, group]) => ({
@@ -1277,7 +1278,7 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
     await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
 }
 
-async function writeSpanishClassSecretPage({ outDir, publicRoot, group }) {
+async function writeSpanishClassSecretPage({ outDir, publicRoot, group, quizId }) {
     if (
         !group ||
         group.id !== "spanish_class" ||
@@ -1287,11 +1288,28 @@ async function writeSpanishClassSecretPage({ outDir, publicRoot, group }) {
         throw new Error("Invalid spanish_class.json");
     }
 
-    const quizId = "type-capital";
+    if (!["type-capital", "type-country"].includes(quizId)) {
+        throw new Error("Unsupported Spanish Class quiz: " + quizId);
+    }
+
     const groupId = "spanish_class";
     const groupLabel = String(group.label || "Spanish Class");
     const entries = group.countries.map(String);
     const count = entries.length;
+    const isCapitalQuiz = quizId === "type-capital";
+    const modeLabel = isCapitalQuiz ? "Type the Capitals" : "Type the Countries";
+    const pageTitle = isCapitalQuiz
+        ? "Spanish Class Capitals Quiz | Smurdy"
+        : "Spanish Class Country Quiz | Smurdy";
+    const description = isCapitalQuiz
+        ? "Private Spanish Class capitals practice set on Smurdy."
+        : "Private Spanish Class country-name practice set on Smurdy.";
+    const lead = isCapitalQuiz
+        ? "A private capitals practice set for Spanish class."
+        : "A private country-name practice set for Spanish class.";
+    const instructions = isCapitalQuiz
+        ? "One country is highlighted and named on the map. Type its capital city. After each answer, Smurdy briefly marks the capital on the map before moving on."
+        : "One country is highlighted on the map. Type its country name to answer, just like the regular Type the Countries quiz.";
     const pageUrl = `${publicRoot}/quizzes/${quizId}/${groupId}/`;
     const outPathDir = path.join(outDir, quizId, groupId);
     await fs.mkdir(outPathDir, { recursive: true });
@@ -1315,8 +1333,8 @@ async function writeSpanishClassSecretPage({ outDir, publicRoot, group }) {
 </script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Spanish Class Capitals Quiz | Smurdy</title>
-  <meta name="description" content="Private Spanish Class capitals practice set on Smurdy."/>
+  <title>${escapeHtml(pageTitle)}</title>
+  <meta name="description" content="${escapeHtml(description)}"/>
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet"/>
   <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet"/>
   <link rel="canonical" href="${escapeHtml(pageUrl)}"/>
@@ -1334,15 +1352,15 @@ async function writeSpanishClassSecretPage({ outDir, publicRoot, group }) {
   <main>
     <header>
       <h1>${escapeHtml(groupLabel)}</h1>
-      <div class="meta">Type the Capitals / ${escapeHtml(groupLabel)} / ${count} countries</div>
+      <div class="meta">${escapeHtml(modeLabel)} / ${escapeHtml(groupLabel)} / ${count} countries</div>
     </header>
 
-    <p class="lead">A private capitals practice set for Spanish class.</p>
+    <p class="lead">${escapeHtml(lead)}</p>
     ${launchHtml}
 
     <section class="content-section">
       <h2>How it works</h2>
-      <p>One country is highlighted and named on the map. Type its capital city. After each answer, Smurdy briefly marks the capital on the map before moving on.</p>
+      <p>${escapeHtml(instructions)}</p>
     </section>
 
     <details class="included-list">
