@@ -1414,7 +1414,8 @@
         id,
         group,
         family,
-        pageDescriptions
+        pageDescriptions,
+        category = "maps"
     ) {
         const custom = group?.description;
         const overview =
@@ -1423,6 +1424,14 @@
         const selected = shortenDescription(
             custom || overview
         );
+
+        if (category === "capitals") {
+            const label = group?.label || getFriendlyTypeLabel(id);
+            if (id === "world") {
+                return "Practice the capital cities of countries from around the world.";
+            }
+            return `Practice the capital cities of ${label}, with each country highlighted on the map.`;
+        }
 
         if (selected) return selected;
 
@@ -1532,7 +1541,8 @@
                     id,
                     group,
                     family,
-                    pageDescriptions
+                    pageDescriptions,
+                    categoryKeyForManifest(manifestItem)
                 ),
                 tags: tagsForGroup(id, group, family),
                 meta: group,
@@ -1925,15 +1935,19 @@
         const category = categoryKeyForManifest(card.manifest);
         const family = category === "flags"
             ? "Flags"
-            : (
-                FAMILY_PRESENTATION[
-                    familyKeyForManifest(card.manifest)
-                ]?.title || "Quiz"
-            );
+            : category === "capitals"
+                ? "Capitals"
+                : (
+                    FAMILY_PRESENTATION[
+                        familyKeyForManifest(card.manifest)
+                    ]?.title || "Quiz"
+                );
         const displayLabel =
             showContext && category === "flags"
                 ? `${card.label} Flags`
-                : card.label;
+                : showContext && category === "capitals"
+                    ? `${card.label} Capitals`
+                    : card.label;
 
         return `
             <div
