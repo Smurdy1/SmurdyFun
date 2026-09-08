@@ -153,7 +153,7 @@
 
         function isSpanishClassRoute() {
             try {
-                return /^\/quizzes\/type-capital\/spanish_class\/?$/i.test(
+                return /^\/quizzes\/(?:type-capital|type-country)\/spanish_class\/?$/i.test(
                     String(browserRoot?.location?.pathname || "")
                 );
             } catch (_) {
