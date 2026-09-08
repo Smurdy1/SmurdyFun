@@ -121,6 +121,7 @@ function normalize(value) {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
+        .replace(/['’]/g, "")
         .replace(/[^a-z0-9]+/g, " ")
         .replace(/\s+/g, " ")
         .trim();
@@ -156,9 +157,11 @@ function seedForSource(source, flagsByName, flagsByCode) {
 }
 
 function capitalIdsForCountry(entity) {
-    return usableClaims(entity && entity.claims ? entity.claims.P36 : [])
-        .map(claim => claim.mainsnak.datavalue.value && claim.mainsnak.datavalue.value.id)
-        .filter(Boolean);
+    return [...new Set(
+        usableClaims(entity && entity.claims ? entity.claims.P36 : [])
+            .map(claim => claim.mainsnak.datavalue.value && claim.mainsnak.datavalue.value.id)
+            .filter(Boolean)
+    )];
 }
 
 function coordinateForCapital(entity) {
