@@ -1,0 +1,27 @@
+{
+  "id": "spanish_class",
+  "label": "Spanish Class",
+  "unitName": "country",
+  "borderset": "countries",
+  "countries": [
+    "Guatemala",
+    "El Salvador",
+    "Honduras",
+    "Nicaragua",
+    "Costa Rica",
+    "Panama",
+    "Colombia",
+    "Venezuela",
+    "Ecuador",
+    "Peru",
+    "Bolivia",
+    "Chile",
+    "Argentina",
+    "Paraguay",
+    "Uruguay",
+    "Cuba",
+    "Dominican Republic",
+    "Spain",
+    "Equatorial Guinea"
+  ]
+}
