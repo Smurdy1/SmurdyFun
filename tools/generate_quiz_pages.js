@@ -345,6 +345,12 @@ const entryListHtml = entries.length
 
             const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
             const brandHtml = pageShell.renderBrand({ root: publicRoot, className: "panel-brand" });
+            const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({
+                root: publicRoot,
+                modeHref: `/quizzes/${manifestId}/`,
+                modeLabel: getModeDisplayName(manifestEntry),
+                groupLabel
+            });
             const launchHtml = pageShell.renderPrimaryLaunch({
                 className: "action-row",
                 buttonClass: "qb-btn"
@@ -415,13 +421,7 @@ ${JSON.stringify({
   ${brandHtml}
 
   <main>
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href="${publicRoot}/">Smurdy</a>
-      <span aria-hidden="true">›</span>
-      <a href="${publicRoot}/quizzes/">All quizzes</a>
-      <span aria-hidden="true">›</span>
-      <span>${escapeHtml(groupLabel)} / ${escapeHtml(getModeDisplayName(manifestEntry))}</span>
-    </nav>
+    ${breadcrumbsHtml}
     <header>
       <h1>${escapeHtml(pageHeading)}</h1>
       <div class="meta">${escapeHtml(getModeDisplayName(manifestEntry))} / ${escapeHtml(groupLabel)} / ${entryCount ? `${entryCount} ${unitPlural}` : `Full ${unitName} set`}</div>
