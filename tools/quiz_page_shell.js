@@ -35,6 +35,27 @@ function renderBrand({ root = "", className = "" } = {}) {
   </a>`;
 }
 
+function renderLandingBreadcrumbs({
+    root = "",
+    modeHref,
+    modeLabel,
+    groupLabel
+} = {}) {
+    if (!modeHref || !modeLabel || !groupLabel) {
+        throw new Error("renderLandingBreadcrumbs requires modeHref, modeLabel, and groupLabel");
+    }
+
+    return `<nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="${escapeHtml(joinRoot(root, "/"))}">Smurdy</a>
+      <span aria-hidden="true">›</span>
+      <a href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>
+      <span aria-hidden="true">›</span>
+      <a href="${escapeHtml(joinRoot(root, modeHref))}">${escapeHtml(modeLabel)}</a>
+      <span aria-hidden="true">›</span>
+      <span aria-current="page">${escapeHtml(groupLabel)}</span>
+    </nav>`;
+}
+
 function renderPrimaryLaunch({ className = "", buttonClass = "" } = {}) {
     const containerClass = classNames("quiz-actions", "quiz-primary-action", className);
     const primaryClass = classNames("quiz-button", buttonClass, "primary");
@@ -103,6 +124,7 @@ module.exports = {
     classNames,
     renderSharedStyles,
     renderBrand,
+    renderLandingBreadcrumbs,
     renderPrimaryLaunch,
     renderLandingActions,
     renderFooter,
