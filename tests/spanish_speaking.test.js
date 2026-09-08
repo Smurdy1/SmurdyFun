@@ -100,7 +100,7 @@ test("all public country quiz modes generate Spanish-speaking landing pages", ()
     );
     assert.match(
         click,
-        /20 sovereign countries conventionally treated as Spanish-speaking/
+        /20 sovereign countries where Spanish is a national official or dominant language/
     );
 
     const flags = fs.readFileSync(
