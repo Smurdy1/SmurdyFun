@@ -58,6 +58,48 @@ window.SmurdyQuizManifest = [
         }
     },
     {
+        id: "type-capital",
+        title: "Type the Capitals",
+        file: "manifest:type-capital",
+        type: "type",
+        category: "capitals",
+        interaction: "type",
+        modality: "map",
+        families: ["countries"],
+        difficulty: "Medium",
+        tags: ["Capitals", "Map", "Typing"],
+        groupSet: "country_groups",
+        borders: 1,
+        descriptionTemplate: "Type the capital of the highlighted country.",
+        shortDescription: "Type the capital of each highlighted country.",
+        longDescription: "This {label} capitals quiz highlights each country and asks you to type its capital city.",
+        config: {
+            mode: "type",
+            titleBuilder: (country) => `What is the capital of ${country}?`,
+            inputPlaceholder: "Enter the capital...",
+            persistCompletedHighlights: true,
+            showTargetOnWrong: false,
+            clickableLayerId: null,
+            prepare: () => window.SmurdyCapitalQuiz?.load?.(),
+            answerDisplayForTarget: (country) =>
+                window.SmurdyCapitalQuiz?.getCapital?.(country) || country,
+            isAcceptedGuess: (country, guess) =>
+                Boolean(window.SmurdyCapitalQuiz?.isAcceptedAnswer?.(country, guess)),
+            revealAnswer: (country) =>
+                window.SmurdyCapitalQuiz?.showCapitalMarker?.(country),
+            clearAnswerReveal: () =>
+                window.SmurdyCapitalQuiz?.clearCapitalMarker?.(),
+            reviewLabelForTarget: (country) => {
+                const capital = window.SmurdyCapitalQuiz?.getCapital?.(country);
+                return capital ? `${country} — ${capital}` : country;
+            },
+            completionItemSingular: "capital",
+            completionItemPlural: "capitals",
+            shareHeadlineBuilder: (groupLabel) =>
+                `I finished the ${groupLabel} capitals quiz`
+        }
+    },
+    {
         id: "type-flag",
         title: "Type the Flags",
         file: "manifest:type-flag",
