@@ -187,6 +187,26 @@
                 "states and provinces quiz",
                 "find point subdivision geography quiz"
             ]
+        },
+        "type-capital": {
+            "displayName": "Type the Capitals",
+            "lead": "Practice the capitals of {group} while keeping each country tied to its place on the map.",
+            "heading": "How the capitals quiz works",
+            "howToPlay": "One {unitName} is highlighted and named on the map. Type its capital city, submit your answer, and Smurdy briefly marks the capital's location before moving on through {countPhrase}.",
+            "tip": "Use the highlighted country as context, but try to recall the capital before looking for where the answer dot appears.",
+            "searchTerms": [
+                "capital cities quiz",
+                "country capitals map quiz",
+                "type capitals geography quiz"
+            ],
+            "skillsHeading": "What you'll practice",
+            "skills": "This mode connects three facts at once: the country name, its location, and its capital city. The answer dot adds a quick location check after every attempt.",
+            "strategyHeading": "A good way to start",
+            "strategy": "Read the country name, recall its capital without scanning the map, then use the brief answer dot to reinforce where that city actually sits.",
+            "bestForHeading": "When this mode helps",
+            "bestFor": "Use this when you know the countries in {group} and want to add capital-city recall without losing the geographic context of the map.",
+            "mistakesHeading": "One mistake to watch for",
+            "mistakes": "Don't automatically type the country's largest or most famous city. Some capitals are smaller or less internationally prominent."
         }
     },
     "groups": {
