@@ -15,7 +15,7 @@ test("About and Contact pages have unique canonical metadata", () => {
 
     assert.match(about, /<title>About Smurdy \| Geography Quiz Project<\/title>/);
     assert.match(about, /rel="canonical" href="https:\/\/smurdy\.fun\/about\/"/);
-    assert.match(about, /Flags and capitals are next on my list/);
+    assert.match(about, /Flags and capitals are now part of Smurdy/);
     assert.match(about, /Smurdy Daily/);
 
     assert.match(contact, /<title>Contact and Feedback \| Smurdy<\/title>/);
