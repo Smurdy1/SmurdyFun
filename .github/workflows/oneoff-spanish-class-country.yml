@@ -1,0 +1,49 @@
+name: Validate Spanish Class country quiz
+
+on:
+  push:
+    branches:
+      - feature/spanish-class-country-quiz
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/spanish-class-country-quiz
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Regenerate pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-08'
+        run: npm run pages:generate
+      - name: Check syntax
+        run: |
+          node --check src/js/capital_quiz.js
+          node --check src/js/manifest.js
+          node --check tools/generate_quiz_pages.js
+      - name: Run tests
+        run: |
+          node --test tests/spanish_class.test.js
+          npm test
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit generated state
+        run: |
+          rm -f .github/workflows/oneoff-spanish-class-country.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Validate Spanish Class country quiz"
+            git push origin HEAD:feature/spanish-class-country-quiz
+          fi
