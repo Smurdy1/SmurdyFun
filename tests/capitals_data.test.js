@@ -74,3 +74,24 @@ test("known multi-capital edge cases stay explicit", () => {
     assert.ok(capitals.Nauru.accepted.includes("Yaren"));
     assert.equal(capitals["Sri Lanka"].capital, "Sri Jayawardenepura Kotte");
 });
+
+
+test("capital aliases include multilingual names and common shortenings", () => {
+    assert.ok(capitals["Equatorial Guinea"].accepted.includes("La Paz"));
+    assert.ok(capitals.Guatemala.accepted.includes("Ciudad de Guatemala"));
+    assert.ok(capitals.Mexico.accepted.includes("Ciudad de México"));
+    assert.ok(capitals.Mexico.accepted.includes("CDMX"));
+
+    assert.ok(capitals.Japan.accepted.includes("東京"));
+    assert.ok(capitals.Russia.accepted.includes("Москва"));
+    assert.ok(capitals.Greece.accepted.includes("Αθήνα"));
+    assert.ok(capitals.Egypt.accepted.includes("القاهرة"));
+
+    const totalAccepted = Object.values(capitals)
+        .reduce((sum, entry) => sum + entry.accepted.length, 0);
+    assert.ok(
+        totalAccepted > 1000,
+        "Expected Wikidata multilingual aliases to produce a broad accepted-answer set"
+    );
+    assert.match(dataset.source.acceptedAnswers, /all available languages/);
+});
