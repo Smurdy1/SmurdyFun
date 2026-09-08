@@ -1,0 +1,3259 @@
+{
+  "source": {
+    "countryList": "src/data/flag_sources.json",
+    "seedCapitals": "src/data/country_flags.json",
+    "capitalProperty": "Wikidata P36",
+    "coordinatesProperty": "Wikidata P625",
+    "license": "CC0"
+  },
+  "generatedBy": "tools/build_capitals.js",
+  "capitals": {
+    "Afghanistan": {
+      "code": "af",
+      "wikidataId": "Q889",
+      "capital": "Kabul",
+      "accepted": [
+        "Kabul"
+      ],
+      "locations": [
+        {
+          "name": "Kabul",
+          "wikidataId": "Q5838",
+          "lat": 34.532777777778,
+          "lng": 69.165833333333
+        }
+      ]
+    },
+    "Albania": {
+      "code": "al",
+      "wikidataId": "Q222",
+      "capital": "Tirana",
+      "accepted": [
+        "Tirana"
+      ],
+      "locations": [
+        {
+          "name": "Tirana",
+          "wikidataId": "Q19689",
+          "lat": 41.32833333333333,
+          "lng": 19.818055555555556
+        }
+      ]
+    },
+    "Algeria": {
+      "code": "dz",
+      "wikidataId": "Q262",
+      "capital": "Algiers",
+      "accepted": [
+        "Algiers"
+      ],
+      "locations": [
+        {
+          "name": "Algiers",
+          "wikidataId": "Q3561",
+          "lat": 36.776388888889,
+          "lng": 3.0586111111111
+        }
+      ]
+    },
+    "Andorra": {
+      "code": "ad",
+      "wikidataId": "Q228",
+      "capital": "Andorra la Vella",
+      "accepted": [
+        "Andorra la Vella"
+      ],
+      "locations": [
+        {
+          "name": "Andorra la Vella",
+          "wikidataId": "Q1863",
+          "lat": 42.507222222222225,
+          "lng": 1.5222222222222221
+        }
+      ]
+    },
+    "Angola": {
+      "code": "ao",
+      "wikidataId": "Q916",
+      "capital": "Luanda",
+      "accepted": [
+        "Luanda"
+      ],
+      "locations": [
+        {
+          "name": "Luanda",
+          "wikidataId": "Q3897",
+          "lat": -8.838333333333333,
+          "lng": 13.234444444444444
+        }
+      ]
+    },
+    "Antarctica": {
+      "code": "aq",
+      "wikidataId": "Q51",
+      "capital": null,
+      "accepted": [],
+      "locations": [],
+      "note": "Antarctica is not a sovereign state and has no national capital."
+    },
+    "Antigua and Barbuda": {
+      "code": "ag",
+      "wikidataId": "Q781",
+      "capital": "St. John's",
+      "accepted": [
+        "St. John's"
+      ],
+      "locations": [
+        {
+          "name": "St. John's",
+          "wikidataId": "Q36262",
+          "lat": 17.121111111111,
+          "lng": -61.844722222222
+        }
+      ]
+    },
+    "Argentina": {
+      "code": "ar",
+      "wikidataId": "Q414",
+      "capital": "Buenos Aires",
+      "accepted": [
+        "Buenos Aires"
+      ],
+      "locations": [
+        {
+          "name": "Buenos Aires",
+          "wikidataId": "Q1486",
+          "lat": -34.599722222222,
+          "lng": -58.381944444444
+        }
+      ]
+    },
+    "Armenia": {
+      "code": "am",
+      "wikidataId": "Q399",
+      "capital": "Yerevan",
+      "accepted": [
+        "Yerevan"
+      ],
+      "locations": [
+        {
+          "name": "Yerevan",
+          "wikidataId": "Q1953",
+          "lat": 40.181388888889,
+          "lng": 44.514444444444
+        }
+      ]
+    },
+    "Australia": {
+      "code": "au",
+      "wikidataId": "Q408",
+      "capital": "Canberra",
+      "accepted": [
+        "Canberra"
+      ],
+      "locations": [
+        {
+          "name": "Canberra",
+          "wikidataId": "Q3114",
+          "lat": -35.293055555556,
+          "lng": 149.12694444444
+        }
+      ]
+    },
+    "Austria": {
+      "code": "at",
+      "wikidataId": "Q40",
+      "capital": "Vienna",
+      "accepted": [
+        "Vienna"
+      ],
+      "locations": [
+        {
+          "name": "Vienna",
+          "wikidataId": "Q1741",
+          "lat": 48.208333333333336,
+          "lng": 16.3725
+        }
+      ]
+    },
+    "Azerbaijan": {
+      "code": "az",
+      "wikidataId": "Q227",
+      "capital": "Baku",
+      "accepted": [
+        "Baku"
+      ],
+      "locations": [
+        {
+          "name": "Baku",
+          "wikidataId": "Q9248",
+          "lat": 40.366655555556,
+          "lng": 49.835183333333
+        }
+      ]
+    },
+    "Bahamas": {
+      "code": "bs",
+      "wikidataId": "Q778",
+      "capital": "Nassau",
+      "accepted": [
+        "Nassau"
+      ],
+      "locations": [
+        {
+          "name": "Nassau",
+          "wikidataId": "Q2467",
+          "lat": 25.078055555555554,
+          "lng": -77.3386111111111
+        }
+      ]
+    },
+    "Bahrain": {
+      "code": "bh",
+      "wikidataId": "Q398",
+      "capital": "Manama",
+      "accepted": [
+        "Manama"
+      ],
+      "locations": [
+        {
+          "name": "Manama",
+          "wikidataId": "Q3882",
+          "lat": 26.216666666666665,
+          "lng": 50.583333333333336
+        }
+      ]
+    },
+    "Bangladesh": {
+      "code": "bd",
+      "wikidataId": "Q902",
+      "capital": "Dhaka",
+      "accepted": [
+        "Dhaka"
+      ],
+      "locations": [
+        {
+          "name": "Dhaka",
+          "wikidataId": "Q1354",
+          "lat": 23.72888888888889,
+          "lng": 90.39444444444445
+        }
+      ]
+    },
+    "Barbados": {
+      "code": "bb",
+      "wikidataId": "Q244",
+      "capital": "Bridgetown",
+      "accepted": [
+        "Bridgetown"
+      ],
+      "locations": [
+        {
+          "name": "Bridgetown",
+          "wikidataId": "Q36168",
+          "lat": 13.0975,
+          "lng": -59.616666666667
+        }
+      ]
+    },
+    "Belarus": {
+      "code": "by",
+      "wikidataId": "Q184",
+      "capital": "Minsk",
+      "accepted": [
+        "Minsk"
+      ],
+      "locations": [
+        {
+          "name": "Minsk",
+          "wikidataId": "Q2280",
+          "lat": 53.902246,
+          "lng": 27.561837
+        }
+      ]
+    },
+    "Belgium": {
+      "code": "be",
+      "wikidataId": "Q31",
+      "capital": "Brussels",
+      "accepted": [
+        "Brussels"
+      ],
+      "locations": [
+        {
+          "name": "Brussels",
+          "wikidataId": "Q239",
+          "lat": 50.846666666666664,
+          "lng": 4.351666666666667
+        }
+      ]
+    },
+    "Belize": {
+      "code": "bz",
+      "wikidataId": "Q242",
+      "capital": "Belmopan",
+      "accepted": [
+        "Belmopan"
+      ],
+      "locations": [
+        {
+          "name": "Belmopan",
+          "wikidataId": "Q3043",
+          "lat": 17.25,
+          "lng": -88.7675
+        }
+      ]
+    },
+    "Benin": {
+      "code": "bj",
+      "wikidataId": "Q962",
+      "capital": "Porto-Novo",
+      "accepted": [
+        "Porto-Novo"
+      ],
+      "locations": [
+        {
+          "name": "Porto-Novo",
+          "wikidataId": "Q3799",
+          "lat": 6.4833333333333,
+          "lng": 2.6166666666667
+        }
+      ]
+    },
+    "Bhutan": {
+      "code": "bt",
+      "wikidataId": "Q917",
+      "capital": "Thimphu",
+      "accepted": [
+        "Thimphu"
+      ],
+      "locations": [
+        {
+          "name": "Thimphu",
+          "wikidataId": "Q9270",
+          "lat": 27.47135,
+          "lng": 89.63367
+        }
+      ]
+    },
+    "Bolivia": {
+      "code": "bo",
+      "wikidataId": "Q750",
+      "capital": "Sucre",
+      "accepted": [
+        "Sucre"
+      ],
+      "locations": [
+        {
+          "name": "Sucre",
+          "wikidataId": "Q2907",
+          "lat": -19.0475,
+          "lng": -65.26
+        }
+      ],
+      "note": "Sucre is the constitutional capital; La Paz is the seat of government."
+    },
+    "Bosnia and Herzegovina": {
+      "code": "ba",
+      "wikidataId": "Q225",
+      "capital": "Sarajevo",
+      "accepted": [
+        "Sarajevo"
+      ],
+      "locations": [
+        {
+          "name": "Sarajevo",
+          "wikidataId": "Q11194",
+          "lat": 43.85638888888889,
+          "lng": 18.413055555555555
+        }
+      ]
+    },
+    "Botswana": {
+      "code": "bw",
+      "wikidataId": "Q963",
+      "capital": "Gaborone",
+      "accepted": [
+        "Gaborone"
+      ],
+      "locations": [
+        {
+          "name": "Gaborone",
+          "wikidataId": "Q3919",
+          "lat": -24.656944444444,
+          "lng": 25.908611111111
+        }
+      ]
+    },
+    "Brazil": {
+      "code": "br",
+      "wikidataId": "Q155",
+      "capital": "Brasília",
+      "accepted": [
+        "Brasília"
+      ],
+      "locations": [
+        {
+          "name": "Brasília",
+          "wikidataId": "Q2844",
+          "lat": -15.793888888889,
+          "lng": -47.882777777778
+        }
+      ]
+    },
+    "Brunei Darussalam": {
+      "code": "bn",
+      "wikidataId": "Q921",
+      "capital": "Bandar Seri Begawan",
+      "accepted": [
+        "Bandar Seri Begawan"
+      ],
+      "locations": [
+        {
+          "name": "Bandar Seri Begawan",
+          "wikidataId": "Q9279",
+          "lat": 4.9166666666667,
+          "lng": 114.91666666667
+        }
+      ]
+    },
+    "Bulgaria": {
+      "code": "bg",
+      "wikidataId": "Q219",
+      "capital": "Sofia",
+      "accepted": [
+        "Sofia"
+      ],
+      "locations": [
+        {
+          "name": "Sofia",
+          "wikidataId": "Q472",
+          "lat": 42.697886,
+          "lng": 23.321726
+        }
+      ]
+    },
+    "Burkina Faso": {
+      "code": "bf",
+      "wikidataId": "Q965",
+      "capital": "Ouagadougou",
+      "accepted": [
+        "Ouagadougou"
+      ],
+      "locations": [
+        {
+          "name": "Ouagadougou",
+          "wikidataId": "Q3777",
+          "lat": 12.368611111111111,
+          "lng": -1.5274999999999999
+        }
+      ]
+    },
+    "Burundi": {
+      "code": "bi",
+      "wikidataId": "Q967",
+      "capital": "Gitega",
+      "accepted": [
+        "Gitega"
+      ],
+      "locations": [
+        {
+          "name": "Gitega",
+          "wikidataId": "Q167551",
+          "lat": -3.4283333333333332,
+          "lng": 29.925
+        }
+      ]
+    },
+    "Cabo Verde": {
+      "code": "cv",
+      "wikidataId": "Q1011",
+      "capital": "Praia",
+      "accepted": [
+        "Praia"
+      ],
+      "locations": [
+        {
+          "name": "Praia",
+          "wikidataId": "Q3751",
+          "lat": 14.917719444444,
+          "lng": -23.509155555556
+        }
+      ]
+    },
+    "Cambodia": {
+      "code": "kh",
+      "wikidataId": "Q424",
+      "capital": "Phnom Penh",
+      "accepted": [
+        "Phnom Penh"
+      ],
+      "locations": [
+        {
+          "name": "Phnom Penh",
+          "wikidataId": "Q1850",
+          "lat": 11.569583333333,
+          "lng": 104.92102777778
+        }
+      ]
+    },
+    "Cameroon": {
+      "code": "cm",
+      "wikidataId": "Q1009",
+      "capital": "Yaoundé",
+      "accepted": [
+        "Yaoundé"
+      ],
+      "locations": [
+        {
+          "name": "Yaoundé",
+          "wikidataId": "Q3808",
+          "lat": 3.8577777777778,
+          "lng": 11.518055555556
+        }
+      ]
+    },
+    "Canada": {
+      "code": "ca",
+      "wikidataId": "Q16",
+      "capital": "Ottawa",
+      "accepted": [
+        "Ottawa"
+      ],
+      "locations": [
+        {
+          "name": "Ottawa",
+          "wikidataId": "Q1930",
+          "lat": 45.424722222222,
+          "lng": -75.695
+        }
+      ]
+    },
+    "Central African Republic": {
+      "code": "cf",
+      "wikidataId": "Q929",
+      "capital": "Bangui",
+      "accepted": [
+        "Bangui"
+      ],
+      "locations": [
+        {
+          "name": "Bangui",
+          "wikidataId": "Q3832",
+          "lat": 4.37325,
+          "lng": 18.562833333333
+        }
+      ]
+    },
+    "Chad": {
+      "code": "td",
+      "wikidataId": "Q657",
+      "capital": "N'Djamena",
+      "accepted": [
+        "N'Djamena"
+      ],
+      "locations": [
+        {
+          "name": "N'Djamena",
+          "wikidataId": "Q3659",
+          "lat": 12.11,
+          "lng": 15.05
+        }
+      ]
+    },
+    "Chile": {
+      "code": "cl",
+      "wikidataId": "Q298",
+      "capital": "Santiago",
+      "accepted": [
+        "Santiago"
+      ],
+      "locations": [
+        {
+          "name": "Santiago",
+          "wikidataId": "Q2887",
+          "lat": -33.4375,
+          "lng": -70.65
+        }
+      ]
+    },
+    "China": {
+      "code": "cn",
+      "wikidataId": "Q148",
+      "capital": "Beijing",
+      "accepted": [
+        "Beijing"
+      ],
+      "locations": [
+        {
+          "name": "Beijing",
+          "wikidataId": "Q956",
+          "lat": 39.90403,
+          "lng": 116.407526
+        }
+      ]
+    },
+    "Colombia": {
+      "code": "co",
+      "wikidataId": "Q739",
+      "capital": "Bogotá",
+      "accepted": [
+        "Bogotá"
+      ],
+      "locations": [
+        {
+          "name": "Bogotá",
+          "wikidataId": "Q2841",
+          "lat": 4.60971,
+          "lng": -74.08175
+        }
+      ]
+    },
+    "Comoros": {
+      "code": "km",
+      "wikidataId": "Q970",
+      "capital": "Moroni",
+      "accepted": [
+        "Moroni"
+      ],
+      "locations": [
+        {
+          "name": "Moroni",
+          "wikidataId": "Q3901",
+          "lat": -11.703611111111,
+          "lng": 43.253611111111
+        }
+      ]
+    },
+    "Costa Rica": {
+      "code": "cr",
+      "wikidataId": "Q800",
+      "capital": "San José",
+      "accepted": [
+        "San José"
+      ],
+      "locations": [
+        {
+          "name": "San José",
+          "wikidataId": "Q3070",
+          "lat": 9.932738888888888,
+          "lng": -84.07961388888889
+        }
+      ]
+    },
+    "Côte d'Ivoire": {
+      "code": "ci",
+      "wikidataId": "Q1008",
+      "capital": "Yamoussoukro",
+      "accepted": [
+        "Yamoussoukro"
+      ],
+      "locations": [
+        {
+          "name": "Yamoussoukro",
+          "wikidataId": "Q3768",
+          "lat": 6.816111111111111,
+          "lng": -5.274166666666667
+        }
+      ]
+    },
+    "Croatia": {
+      "code": "hr",
+      "wikidataId": "Q224",
+      "capital": "Zagreb",
+      "accepted": [
+        "Zagreb"
+      ],
+      "locations": [
+        {
+          "name": "Zagreb",
+          "wikidataId": "Q1435",
+          "lat": 45.81305555555556,
+          "lng": 15.977222222222222
+        }
+      ]
+    },
+    "Cuba": {
+      "code": "cu",
+      "wikidataId": "Q241",
+      "capital": "Havana",
+      "accepted": [
+        "Havana"
+      ],
+      "locations": [
+        {
+          "name": "Havana",
+          "wikidataId": "Q1563",
+          "lat": 23.136666666667,
+          "lng": -82.358888888889
+        }
+      ]
+    },
+    "Cyprus": {
+      "code": "cy",
+      "wikidataId": "Q229",
+      "capital": "Nicosia",
+      "accepted": [
+        "Nicosia"
+      ],
+      "locations": [
+        {
+          "name": "Nicosia",
+          "wikidataId": "Q3856",
+          "lat": 35.1725,
+          "lng": 33.365
+        }
+      ]
+    },
+    "Czech Republic": {
+      "code": "cz",
+      "wikidataId": "Q213",
+      "capital": "Prague",
+      "accepted": [
+        "Prague"
+      ],
+      "locations": [
+        {
+          "name": "Prague",
+          "wikidataId": "Q1085",
+          "lat": 50.0875,
+          "lng": 14.421388888888888
+        }
+      ]
+    },
+    "Democratic Republic of the Congo": {
+      "code": "cd",
+      "wikidataId": "Q974",
+      "capital": "Kinshasa",
+      "accepted": [
+        "Kinshasa"
+      ],
+      "locations": [
+        {
+          "name": "Kinshasa",
+          "wikidataId": "Q3838",
+          "lat": -4.321944444444444,
+          "lng": 15.311944444444444
+        }
+      ]
+    },
+    "Denmark": {
+      "code": "dk",
+      "wikidataId": "Q35",
+      "capital": "Copenhagen",
+      "accepted": [
+        "Copenhagen"
+      ],
+      "locations": [
+        {
+          "name": "Copenhagen",
+          "wikidataId": "Q1748",
+          "lat": 55.676111111111,
+          "lng": 12.568888888889
+        }
+      ]
+    },
+    "Djibouti": {
+      "code": "dj",
+      "wikidataId": "Q977",
+      "capital": "Djibouti",
+      "accepted": [
+        "Djibouti"
+      ],
+      "locations": [
+        {
+          "name": "Djibouti",
+          "wikidataId": "Q3604",
+          "lat": 11.595,
+          "lng": 43.148055555556
+        }
+      ]
+    },
+    "Dominica": {
+      "code": "dm",
+      "wikidataId": "Q784",
+      "capital": "Roseau",
+      "accepted": [
+        "Roseau"
+      ],
+      "locations": [
+        {
+          "name": "Roseau",
+          "wikidataId": "Q36281",
+          "lat": 15.3,
+          "lng": -61.383333333333
+        }
+      ]
+    },
+    "Dominican Republic": {
+      "code": "do",
+      "wikidataId": "Q786",
+      "capital": "Santo Domingo",
+      "accepted": [
+        "Santo Domingo"
+      ],
+      "locations": [
+        {
+          "name": "Santo Domingo",
+          "wikidataId": "Q34820",
+          "lat": 18.4625,
+          "lng": -69.93611111111112
+        }
+      ]
+    },
+    "Ecuador": {
+      "code": "ec",
+      "wikidataId": "Q736",
+      "capital": "Quito",
+      "accepted": [
+        "Quito"
+      ],
+      "locations": [
+        {
+          "name": "Quito",
+          "wikidataId": "Q2900",
+          "lat": -0.22,
+          "lng": -78.5125
+        }
+      ]
+    },
+    "Egypt": {
+      "code": "eg",
+      "wikidataId": "Q79",
+      "capital": "Cairo",
+      "accepted": [
+        "Cairo"
+      ],
+      "locations": [
+        {
+          "name": "Cairo",
+          "wikidataId": "Q85",
+          "lat": 30.044444444444444,
+          "lng": 31.235833333333332
+        }
+      ]
+    },
+    "El Salvador": {
+      "code": "sv",
+      "wikidataId": "Q792",
+      "capital": "San Salvador",
+      "accepted": [
+        "San Salvador"
+      ],
+      "locations": [
+        {
+          "name": "San Salvador",
+          "wikidataId": "Q3110",
+          "lat": 13.697597222222223,
+          "lng": -89.19115555555555
+        }
+      ]
+    },
+    "Equatorial Guinea": {
+      "code": "gq",
+      "wikidataId": "Q983",
+      "capital": "Ciudad de la Paz",
+      "accepted": [
+        "Ciudad de la Paz"
+      ],
+      "locations": [
+        {
+          "name": "Ciudad de la Paz",
+          "wikidataId": "Q1140136",
+          "lat": 1.5916666666666668,
+          "lng": 10.822222222222223
+        }
+      ]
+    },
+    "Eritrea": {
+      "code": "er",
+      "wikidataId": "Q986",
+      "capital": "Asmara",
+      "accepted": [
+        "Asmara"
+      ],
+      "locations": [
+        {
+          "name": "Asmara",
+          "wikidataId": "Q3642",
+          "lat": 15.333333333333,
+          "lng": 38.916666666667
+        }
+      ]
+    },
+    "Estonia": {
+      "code": "ee",
+      "wikidataId": "Q191",
+      "capital": "Tallinn",
+      "accepted": [
+        "Tallinn"
+      ],
+      "locations": [
+        {
+          "name": "Tallinn",
+          "wikidataId": "Q1770",
+          "lat": 59.437222222222,
+          "lng": 24.745
+        }
+      ]
+    },
+    "Eswatini": {
+      "code": "sz",
+      "wikidataId": "Q1050",
+      "capital": "Mbabane",
+      "accepted": [
+        "Mbabane",
+        "Lobamba"
+      ],
+      "locations": [
+        {
+          "name": "Mbabane",
+          "wikidataId": "Q3904",
+          "lat": -26.316666666666666,
+          "lng": 31.133333333333333
+        },
+        {
+          "name": "Lobamba",
+          "wikidataId": "Q101418",
+          "lat": -26.44648,
+          "lng": 31.206411
+        }
+      ],
+      "note": "Mbabane is the administrative capital; Lobamba is the royal and legislative capital."
+    },
+    "Ethiopia": {
+      "code": "et",
+      "wikidataId": "Q115",
+      "capital": "Addis Ababa",
+      "accepted": [
+        "Addis Ababa"
+      ],
+      "locations": [
+        {
+          "name": "Addis Ababa",
+          "wikidataId": "Q3624",
+          "lat": 9.035833333333333,
+          "lng": 38.7525
+        }
+      ]
+    },
+    "Federated States of Micronesia": {
+      "code": "fm",
+      "wikidataId": "Q702",
+      "capital": "Palikir",
+      "accepted": [
+        "Palikir"
+      ],
+      "locations": [
+        {
+          "name": "Palikir",
+          "wikidataId": "Q42751",
+          "lat": 6.9177777777778,
+          "lng": 158.185
+        }
+      ]
+    },
+    "Fiji": {
+      "code": "fj",
+      "wikidataId": "Q712",
+      "capital": "Suva",
+      "accepted": [
+        "Suva"
+      ],
+      "locations": [
+        {
+          "name": "Suva",
+          "wikidataId": "Q38807",
+          "lat": -18.133333333333,
+          "lng": 178.43333333333
+        }
+      ]
+    },
+    "Finland": {
+      "code": "fi",
+      "wikidataId": "Q33",
+      "capital": "Helsinki",
+      "accepted": [
+        "Helsinki"
+      ],
+      "locations": [
+        {
+          "name": "Helsinki",
+          "wikidataId": "Q1757",
+          "lat": 60.170833333333334,
+          "lng": 24.9375
+        }
+      ]
+    },
+    "France": {
+      "code": "fr",
+      "wikidataId": "Q142",
+      "capital": "Paris",
+      "accepted": [
+        "Paris"
+      ],
+      "locations": [
+        {
+          "name": "Paris",
+          "wikidataId": "Q90",
+          "lat": 48.85666666666667,
+          "lng": 2.352222222222222
+        }
+      ]
+    },
+    "Gabon": {
+      "code": "ga",
+      "wikidataId": "Q1000",
+      "capital": "Libreville",
+      "accepted": [
+        "Libreville"
+      ],
+      "locations": [
+        {
+          "name": "Libreville",
+          "wikidataId": "Q3825",
+          "lat": 0.40777777777777774,
+          "lng": 9.440277777777778
+        }
+      ]
+    },
+    "Gambia": {
+      "code": "gm",
+      "wikidataId": "Q1005",
+      "capital": "Banjul",
+      "accepted": [
+        "Banjul"
+      ],
+      "locations": [
+        {
+          "name": "Banjul",
+          "wikidataId": "Q3726",
+          "lat": 13.453055555556,
+          "lng": -16.5775
+        }
+      ]
+    },
+    "Georgia": {
+      "code": "ge",
+      "wikidataId": "Q230",
+      "capital": "Tbilisi",
+      "accepted": [
+        "Tbilisi"
+      ],
+      "locations": [
+        {
+          "name": "Tbilisi",
+          "wikidataId": "Q994",
+          "lat": 41.7225,
+          "lng": 44.7925
+        }
+      ]
+    },
+    "Germany": {
+      "code": "de",
+      "wikidataId": "Q183",
+      "capital": "Berlin",
+      "accepted": [
+        "Berlin"
+      ],
+      "locations": [
+        {
+          "name": "Berlin",
+          "wikidataId": "Q64",
+          "lat": 52.516666666667,
+          "lng": 13.383333333333
+        }
+      ]
+    },
+    "Ghana": {
+      "code": "gh",
+      "wikidataId": "Q117",
+      "capital": "Accra",
+      "accepted": [
+        "Accra"
+      ],
+      "locations": [
+        {
+          "name": "Accra",
+          "wikidataId": "Q3761",
+          "lat": 5.55602,
+          "lng": -0.1969
+        }
+      ]
+    },
+    "Greece": {
+      "code": "gr",
+      "wikidataId": "Q41",
+      "capital": "Athens",
+      "accepted": [
+        "Athens"
+      ],
+      "locations": [
+        {
+          "name": "Athens",
+          "wikidataId": "Q1524",
+          "lat": 37.98416666666667,
+          "lng": 23.728055555555557
+        }
+      ]
+    },
+    "Grenada": {
+      "code": "gd",
+      "wikidataId": "Q769",
+      "capital": "St. George's",
+      "accepted": [
+        "St. George's"
+      ],
+      "locations": [
+        {
+          "name": "St. George's",
+          "wikidataId": "Q41547",
+          "lat": 12.0525,
+          "lng": -61.753055555555555
+        }
+      ]
+    },
+    "Guatemala": {
+      "code": "gt",
+      "wikidataId": "Q774",
+      "capital": "Guatemala City",
+      "accepted": [
+        "Guatemala City"
+      ],
+      "locations": [
+        {
+          "name": "Guatemala City",
+          "wikidataId": "Q1555",
+          "lat": 14.641666666666667,
+          "lng": -90.51333333333334
+        }
+      ]
+    },
+    "Guinea": {
+      "code": "gn",
+      "wikidataId": "Q1006",
+      "capital": "Conakry",
+      "accepted": [
+        "Conakry"
+      ],
+      "locations": [
+        {
+          "name": "Conakry",
+          "wikidataId": "Q3733",
+          "lat": 9.5091666666667,
+          "lng": -13.712222222222
+        }
+      ]
+    },
+    "Guinea-Bissau": {
+      "code": "gw",
+      "wikidataId": "Q1007",
+      "capital": "Bissau",
+      "accepted": [
+        "Bissau"
+      ],
+      "locations": [
+        {
+          "name": "Bissau",
+          "wikidataId": "Q3739",
+          "lat": 11.86,
+          "lng": -15.583333333333334
+        }
+      ]
+    },
+    "Guyana": {
+      "code": "gy",
+      "wikidataId": "Q734",
+      "capital": "Georgetown",
+      "accepted": [
+        "Georgetown"
+      ],
+      "locations": [
+        {
+          "name": "Georgetown",
+          "wikidataId": "Q10717",
+          "lat": 6.805833333333333,
+          "lng": -58.15083333333333
+        }
+      ]
+    },
+    "Haiti": {
+      "code": "ht",
+      "wikidataId": "Q790",
+      "capital": "Port-au-Prince",
+      "accepted": [
+        "Port-au-Prince"
+      ],
+      "locations": [
+        {
+          "name": "Port-au-Prince",
+          "wikidataId": "Q34261",
+          "lat": 18.546944444444446,
+          "lng": -72.34027777777777
+        }
+      ]
+    },
+    "Holy See": {
+      "code": "va",
+      "wikidataId": "Q237",
+      "capital": "Vatican City",
+      "accepted": [
+        "Vatican City"
+      ],
+      "locations": [
+        {
+          "name": "Vatican City",
+          "wikidataId": "Q237",
+          "lat": 41.904,
+          "lng": 12.453
+        }
+      ]
+    },
+    "Honduras": {
+      "code": "hn",
+      "wikidataId": "Q783",
+      "capital": "Tegucigalpa",
+      "accepted": [
+        "Tegucigalpa"
+      ],
+      "locations": [
+        {
+          "name": "Tegucigalpa",
+          "wikidataId": "Q3238",
+          "lat": 14.105783333333333,
+          "lng": -87.20470555555555
+        }
+      ]
+    },
+    "Hungary": {
+      "code": "hu",
+      "wikidataId": "Q28",
+      "capital": "Budapest",
+      "accepted": [
+        "Budapest"
+      ],
+      "locations": [
+        {
+          "name": "Budapest",
+          "wikidataId": "Q1781",
+          "lat": 47.498333333333,
+          "lng": 19.040833333333
+        }
+      ]
+    },
+    "Iceland": {
+      "code": "is",
+      "wikidataId": "Q189",
+      "capital": "Reykjavík",
+      "accepted": [
+        "Reykjavík"
+      ],
+      "locations": [
+        {
+          "name": "Reykjavík",
+          "wikidataId": "Q1764",
+          "lat": 64.1475,
+          "lng": -21.935
+        }
+      ]
+    },
+    "India": {
+      "code": "in",
+      "wikidataId": "Q668",
+      "capital": "New Delhi",
+      "accepted": [
+        "New Delhi"
+      ],
+      "locations": [
+        {
+          "name": "New Delhi",
+          "wikidataId": "Q987",
+          "lat": 28.613888888888887,
+          "lng": 77.2088888888889
+        }
+      ]
+    },
+    "Indonesia": {
+      "code": "id",
+      "wikidataId": "Q252",
+      "capital": "Jakarta",
+      "accepted": [
+        "Jakarta"
+      ],
+      "locations": [
+        {
+          "name": "Jakarta",
+          "wikidataId": "Q3630",
+          "lat": -6.175277777777778,
+          "lng": 106.82694444444445
+        }
+      ]
+    },
+    "Iran": {
+      "code": "ir",
+      "wikidataId": "Q794",
+      "capital": "Tehran",
+      "accepted": [
+        "Tehran"
+      ],
+      "locations": [
+        {
+          "name": "Tehran",
+          "wikidataId": "Q3616",
+          "lat": 35.68888888888889,
+          "lng": 51.389722222222225
+        }
+      ]
+    },
+    "Iraq": {
+      "code": "iq",
+      "wikidataId": "Q796",
+      "capital": "Baghdad",
+      "accepted": [
+        "Baghdad"
+      ],
+      "locations": [
+        {
+          "name": "Baghdad",
+          "wikidataId": "Q1530",
+          "lat": 33.31527777777778,
+          "lng": 44.36611111111111
+        }
+      ]
+    },
+    "Ireland": {
+      "code": "ie",
+      "wikidataId": "Q27",
+      "capital": "Dublin",
+      "accepted": [
+        "Dublin"
+      ],
+      "locations": [
+        {
+          "name": "Dublin",
+          "wikidataId": "Q1761",
+          "lat": 53.34972222222222,
+          "lng": -6.260277777777778
+        }
+      ]
+    },
+    "Israel": {
+      "code": "il",
+      "wikidataId": "Q801",
+      "capital": "Jerusalem",
+      "accepted": [
+        "Jerusalem"
+      ],
+      "locations": [
+        {
+          "name": "Jerusalem",
+          "wikidataId": "Q1218",
+          "lat": 31.776679,
+          "lng": 35.234156
+        }
+      ]
+    },
+    "Italy": {
+      "code": "it",
+      "wikidataId": "Q38",
+      "capital": "Rome",
+      "accepted": [
+        "Rome"
+      ],
+      "locations": [
+        {
+          "name": "Rome",
+          "wikidataId": "Q220",
+          "lat": 41.893055555556,
+          "lng": 12.482777777778
+        }
+      ]
+    },
+    "Jamaica": {
+      "code": "jm",
+      "wikidataId": "Q766",
+      "capital": "Kingston",
+      "accepted": [
+        "Kingston"
+      ],
+      "locations": [
+        {
+          "name": "Kingston",
+          "wikidataId": "Q34692",
+          "lat": 17.971388888889,
+          "lng": -76.793055555556
+        }
+      ]
+    },
+    "Japan": {
+      "code": "jp",
+      "wikidataId": "Q17",
+      "capital": "Tokyo",
+      "accepted": [
+        "Tokyo"
+      ],
+      "locations": [
+        {
+          "name": "Tokyo",
+          "wikidataId": "Q1490",
+          "lat": 35.68944444444445,
+          "lng": 139.69166666666666
+        }
+      ]
+    },
+    "Jordan": {
+      "code": "jo",
+      "wikidataId": "Q810",
+      "capital": "Amman",
+      "accepted": [
+        "Amman"
+      ],
+      "locations": [
+        {
+          "name": "Amman",
+          "wikidataId": "Q3805",
+          "lat": 31.95,
+          "lng": 35.933333333333
+        }
+      ]
+    },
+    "Kazakhstan": {
+      "code": "kz",
+      "wikidataId": "Q232",
+      "capital": "Astana",
+      "accepted": [
+        "Astana"
+      ],
+      "locations": [
+        {
+          "name": "Astana",
+          "wikidataId": "Q1520",
+          "lat": 51.133333333333,
+          "lng": 71.433333333333
+        }
+      ]
+    },
+    "Kenya": {
+      "code": "ke",
+      "wikidataId": "Q114",
+      "capital": "Nairobi",
+      "accepted": [
+        "Nairobi"
+      ],
+      "locations": [
+        {
+          "name": "Nairobi",
+          "wikidataId": "Q3870",
+          "lat": -1.2863888888889,
+          "lng": 36.817222222222
+        }
+      ]
+    },
+    "Kiribati": {
+      "code": "ki",
+      "wikidataId": "Q710",
+      "capital": "South Tarawa",
+      "accepted": [
+        "South Tarawa"
+      ],
+      "locations": [
+        {
+          "name": "South Tarawa",
+          "wikidataId": "Q131233",
+          "lat": 1.3333333333333333,
+          "lng": 172.96666666666667
+        }
+      ]
+    },
+    "Kosovo": {
+      "code": "xk",
+      "wikidataId": "Q1246",
+      "capital": "Pristina",
+      "accepted": [
+        "Pristina"
+      ],
+      "locations": [
+        {
+          "name": "Pristina",
+          "wikidataId": "Q25270",
+          "lat": 42.666666666667,
+          "lng": 21.166666666667
+        }
+      ]
+    },
+    "Kuwait": {
+      "code": "kw",
+      "wikidataId": "Q817",
+      "capital": "Kuwait City",
+      "accepted": [
+        "Kuwait City"
+      ],
+      "locations": [
+        {
+          "name": "Kuwait City",
+          "wikidataId": "Q35178",
+          "lat": 29.375,
+          "lng": 47.98
+        }
+      ]
+    },
+    "Kyrgyzstan": {
+      "code": "kg",
+      "wikidataId": "Q813",
+      "capital": "Bishkek",
+      "accepted": [
+        "Bishkek"
+      ],
+      "locations": [
+        {
+          "name": "Bishkek",
+          "wikidataId": "Q9361",
+          "lat": 42.866666666667,
+          "lng": 74.566666666667
+        }
+      ]
+    },
+    "Laos": {
+      "code": "la",
+      "wikidataId": "Q819",
+      "capital": "Vientiane",
+      "accepted": [
+        "Vientiane"
+      ],
+      "locations": [
+        {
+          "name": "Vientiane",
+          "wikidataId": "Q9326",
+          "lat": 17.98,
+          "lng": 102.63
+        }
+      ]
+    },
+    "Latvia": {
+      "code": "lv",
+      "wikidataId": "Q211",
+      "capital": "Riga",
+      "accepted": [
+        "Riga"
+      ],
+      "locations": [
+        {
+          "name": "Riga",
+          "wikidataId": "Q1773",
+          "lat": 56.9475,
+          "lng": 24.106944444444
+        }
+      ]
+    },
+    "Lebanon": {
+      "code": "lb",
+      "wikidataId": "Q822",
+      "capital": "Beirut",
+      "accepted": [
+        "Beirut"
+      ],
+      "locations": [
+        {
+          "name": "Beirut",
+          "wikidataId": "Q3820",
+          "lat": 33.886944444444,
+          "lng": 35.513055555556
+        }
+      ]
+    },
+    "Lesotho": {
+      "code": "ls",
+      "wikidataId": "Q1013",
+      "capital": "Maseru",
+      "accepted": [
+        "Maseru"
+      ],
+      "locations": [
+        {
+          "name": "Maseru",
+          "wikidataId": "Q3909",
+          "lat": -29.31,
+          "lng": 27.48
+        }
+      ]
+    },
+    "Liberia": {
+      "code": "lr",
+      "wikidataId": "Q1014",
+      "capital": "Monrovia",
+      "accepted": [
+        "Monrovia"
+      ],
+      "locations": [
+        {
+          "name": "Monrovia",
+          "wikidataId": "Q3748",
+          "lat": 6.3105555555556,
+          "lng": -10.804722222222
+        }
+      ]
+    },
+    "Libya": {
+      "code": "ly",
+      "wikidataId": "Q1016",
+      "capital": "Tripoli",
+      "accepted": [
+        "Tripoli"
+      ],
+      "locations": [
+        {
+          "name": "Tripoli",
+          "wikidataId": "Q3579",
+          "lat": 32.8875,
+          "lng": 13.1875
+        }
+      ]
+    },
+    "Liechtenstein": {
+      "code": "li",
+      "wikidataId": "Q347",
+      "capital": "Vaduz",
+      "accepted": [
+        "Vaduz"
+      ],
+      "locations": [
+        {
+          "name": "Vaduz",
+          "wikidataId": "Q1844",
+          "lat": 47.14055555555556,
+          "lng": 9.522222222222222
+        }
+      ]
+    },
+    "Lithuania": {
+      "code": "lt",
+      "wikidataId": "Q37",
+      "capital": "Vilnius",
+      "accepted": [
+        "Vilnius"
+      ],
+      "locations": [
+        {
+          "name": "Vilnius",
+          "wikidataId": "Q216",
+          "lat": 54.687222222222225,
+          "lng": 25.28
+        }
+      ]
+    },
+    "Luxembourg": {
+      "code": "lu",
+      "wikidataId": "Q32",
+      "capital": "Luxembourg",
+      "accepted": [
+        "Luxembourg"
+      ],
+      "locations": [
+        {
+          "name": "Luxembourg",
+          "wikidataId": "Q1842",
+          "lat": 49.61138888888889,
+          "lng": 6.13
+        }
+      ]
+    },
+    "Madagascar": {
+      "code": "mg",
+      "wikidataId": "Q1019",
+      "capital": "Antananarivo",
+      "accepted": [
+        "Antananarivo"
+      ],
+      "locations": [
+        {
+          "name": "Antananarivo",
+          "wikidataId": "Q3915",
+          "lat": -18.91,
+          "lng": 47.525
+        }
+      ]
+    },
+    "Malawi": {
+      "code": "mw",
+      "wikidataId": "Q1020",
+      "capital": "Lilongwe",
+      "accepted": [
+        "Lilongwe"
+      ],
+      "locations": [
+        {
+          "name": "Lilongwe",
+          "wikidataId": "Q3876",
+          "lat": -13.98638888888889,
+          "lng": 33.768055555555556
+        }
+      ]
+    },
+    "Malaysia": {
+      "code": "my",
+      "wikidataId": "Q833",
+      "capital": "Kuala Lumpur",
+      "accepted": [
+        "Kuala Lumpur"
+      ],
+      "locations": [
+        {
+          "name": "Kuala Lumpur",
+          "wikidataId": "Q1865",
+          "lat": 3.1477777777778,
+          "lng": 101.69527777778
+        }
+      ]
+    },
+    "Maldives": {
+      "code": "mv",
+      "wikidataId": "Q826",
+      "capital": "Malé",
+      "accepted": [
+        "Malé"
+      ],
+      "locations": [
+        {
+          "name": "Malé",
+          "wikidataId": "Q9347",
+          "lat": 4.175,
+          "lng": 73.508333333333
+        }
+      ]
+    },
+    "Mali": {
+      "code": "ml",
+      "wikidataId": "Q912",
+      "capital": "Bamako",
+      "accepted": [
+        "Bamako"
+      ],
+      "locations": [
+        {
+          "name": "Bamako",
+          "wikidataId": "Q3703",
+          "lat": 12.645833333333,
+          "lng": -7.9922222222222
+        }
+      ]
+    },
+    "Malta": {
+      "code": "mt",
+      "wikidataId": "Q233",
+      "capital": "Valletta",
+      "accepted": [
+        "Valletta"
+      ],
+      "locations": [
+        {
+          "name": "Valletta",
+          "wikidataId": "Q23800",
+          "lat": 35.897777777778,
+          "lng": 14.5125
+        }
+      ]
+    },
+    "Marshall Islands": {
+      "code": "mh",
+      "wikidataId": "Q709",
+      "capital": "Majuro",
+      "accepted": [
+        "Majuro"
+      ],
+      "locations": [
+        {
+          "name": "Majuro",
+          "wikidataId": "Q12919",
+          "lat": 7.0918,
+          "lng": 171.3802
+        }
+      ]
+    },
+    "Mauritania": {
+      "code": "mr",
+      "wikidataId": "Q1025",
+      "capital": "Nouakchott",
+      "accepted": [
+        "Nouakchott"
+      ],
+      "locations": [
+        {
+          "name": "Nouakchott",
+          "wikidataId": "Q3688",
+          "lat": 18.08581,
+          "lng": -15.9785
+        }
+      ]
+    },
+    "Mauritius": {
+      "code": "mu",
+      "wikidataId": "Q1027",
+      "capital": "Port Louis",
+      "accepted": [
+        "Port Louis"
+      ],
+      "locations": [
+        {
+          "name": "Port Louis",
+          "wikidataId": "Q3929",
+          "lat": -20.161944444444,
+          "lng": 57.498888888889
+        }
+      ]
+    },
+    "Mexico": {
+      "code": "mx",
+      "wikidataId": "Q96",
+      "capital": "Mexico City",
+      "accepted": [
+        "Mexico City"
+      ],
+      "locations": [
+        {
+          "name": "Mexico City",
+          "wikidataId": "Q1489",
+          "lat": 19.353773,
+          "lng": -99.13589
+        }
+      ]
+    },
+    "Moldova": {
+      "code": "md",
+      "wikidataId": "Q217",
+      "capital": "Chișinău",
+      "accepted": [
+        "Chișinău"
+      ],
+      "locations": [
+        {
+          "name": "Chișinău",
+          "wikidataId": "Q21197",
+          "lat": 47.022777777777776,
+          "lng": 28.835277777777776
+        }
+      ]
+    },
+    "Monaco": {
+      "code": "mc",
+      "wikidataId": "Q235",
+      "capital": "Monaco",
+      "accepted": [
+        "Monaco"
+      ],
+      "locations": [
+        {
+          "name": "Monaco",
+          "wikidataId": "Q235",
+          "lat": 43.73111111111111,
+          "lng": 7.42
+        }
+      ]
+    },
+    "Mongolia": {
+      "code": "mn",
+      "wikidataId": "Q711",
+      "capital": "Ulaanbaatar",
+      "accepted": [
+        "Ulaanbaatar"
+      ],
+      "locations": [
+        {
+          "name": "Ulaanbaatar",
+          "wikidataId": "Q23430",
+          "lat": 47.921357,
+          "lng": 106.905515
+        }
+      ]
+    },
+    "Montenegro": {
+      "code": "me",
+      "wikidataId": "Q236",
+      "capital": "Podgorica",
+      "accepted": [
+        "Podgorica"
+      ],
+      "locations": [
+        {
+          "name": "Podgorica",
+          "wikidataId": "Q23564",
+          "lat": 42.44138888888889,
+          "lng": 19.262777777777778
+        }
+      ]
+    },
+    "Morocco": {
+      "code": "ma",
+      "wikidataId": "Q1028",
+      "capital": "Rabat",
+      "accepted": [
+        "Rabat"
+      ],
+      "locations": [
+        {
+          "name": "Rabat",
+          "wikidataId": "Q3551",
+          "lat": 34.02111111111111,
+          "lng": -6.841388888888889
+        }
+      ]
+    },
+    "Mozambique": {
+      "code": "mz",
+      "wikidataId": "Q1029",
+      "capital": "Maputo",
+      "accepted": [
+        "Maputo"
+      ],
+      "locations": [
+        {
+          "name": "Maputo",
+          "wikidataId": "Q3889",
+          "lat": -25.968888888888888,
+          "lng": 32.57333333333333
+        }
+      ]
+    },
+    "Myanmar": {
+      "code": "mm",
+      "wikidataId": "Q836",
+      "capital": "Naypyidaw",
+      "accepted": [
+        "Naypyidaw"
+      ],
+      "locations": [
+        {
+          "name": "Naypyidaw",
+          "wikidataId": "Q37400",
+          "lat": 19.7475,
+          "lng": 96.115
+        }
+      ]
+    },
+    "Namibia": {
+      "code": "na",
+      "wikidataId": "Q1030",
+      "capital": "Windhoek",
+      "accepted": [
+        "Windhoek"
+      ],
+      "locations": [
+        {
+          "name": "Windhoek",
+          "wikidataId": "Q3935",
+          "lat": -22.57,
+          "lng": 17.083611111111
+        }
+      ]
+    },
+    "Nauru": {
+      "code": "nr",
+      "wikidataId": "Q697",
+      "capital": "Yaren District",
+      "accepted": [
+        "Yaren District",
+        "Yaren"
+      ],
+      "locations": [
+        {
+          "name": "Yaren District",
+          "wikidataId": "Q31026",
+          "lat": -0.5477,
+          "lng": 166.920867
+        }
+      ],
+      "note": "Nauru has no official capital; Yaren District functions as the de facto capital."
+    },
+    "Nepal": {
+      "code": "np",
+      "wikidataId": "Q837",
+      "capital": "Kathmandu",
+      "accepted": [
+        "Kathmandu"
+      ],
+      "locations": [
+        {
+          "name": "Kathmandu",
+          "wikidataId": "Q3037",
+          "lat": 27.71,
+          "lng": 85.32
+        }
+      ]
+    },
+    "Netherlands": {
+      "code": "nl",
+      "wikidataId": "Q55",
+      "capital": "Amsterdam",
+      "accepted": [
+        "Amsterdam"
+      ],
+      "locations": [
+        {
+          "name": "Amsterdam",
+          "wikidataId": "Q727",
+          "lat": 52.36666666666667,
+          "lng": 4.883333333333333
+        }
+      ]
+    },
+    "New Zealand": {
+      "code": "nz",
+      "wikidataId": "Q664",
+      "capital": "Wellington",
+      "accepted": [
+        "Wellington"
+      ],
+      "locations": [
+        {
+          "name": "Wellington",
+          "wikidataId": "Q23661",
+          "lat": -41.288888888889,
+          "lng": 174.77722222222
+        }
+      ]
+    },
+    "Nicaragua": {
+      "code": "ni",
+      "wikidataId": "Q811",
+      "capital": "Managua",
+      "accepted": [
+        "Managua"
+      ],
+      "locations": [
+        {
+          "name": "Managua",
+          "wikidataId": "Q3274",
+          "lat": 12.154680555555556,
+          "lng": -86.273725
+        }
+      ]
+    },
+    "Niger": {
+      "code": "ne",
+      "wikidataId": "Q1032",
+      "capital": "Niamey",
+      "accepted": [
+        "Niamey"
+      ],
+      "locations": [
+        {
+          "name": "Niamey",
+          "wikidataId": "Q3674",
+          "lat": 13.515,
+          "lng": 2.1175
+        }
+      ]
+    },
+    "Nigeria": {
+      "code": "ng",
+      "wikidataId": "Q1033",
+      "capital": "Abuja",
+      "accepted": [
+        "Abuja"
+      ],
+      "locations": [
+        {
+          "name": "Abuja",
+          "wikidataId": "Q3787",
+          "lat": 9.0555555555556,
+          "lng": 7.4913888888889
+        }
+      ]
+    },
+    "North Korea": {
+      "code": "kp",
+      "wikidataId": "Q423",
+      "capital": "Pyongyang",
+      "accepted": [
+        "Pyongyang"
+      ],
+      "locations": [
+        {
+          "name": "Pyongyang",
+          "wikidataId": "Q18808",
+          "lat": 39.016666666666666,
+          "lng": 125.7475
+        }
+      ]
+    },
+    "North Macedonia": {
+      "code": "mk",
+      "wikidataId": "Q221",
+      "capital": "Skopje",
+      "accepted": [
+        "Skopje"
+      ],
+      "locations": [
+        {
+          "name": "Skopje",
+          "wikidataId": "Q384",
+          "lat": 41.99611111111111,
+          "lng": 21.431666666666665
+        }
+      ]
+    },
+    "Northern Cyprus": {
+      "code": "cy",
+      "wikidataId": "Q23681",
+      "capital": "North Nicosia",
+      "accepted": [
+        "North Nicosia"
+      ],
+      "locations": [
+        {
+          "name": "North Nicosia",
+          "wikidataId": "Q2762100",
+          "lat": 35.19,
+          "lng": 33.36361111111111
+        }
+      ]
+    },
+    "Norway": {
+      "code": "no",
+      "wikidataId": "Q20",
+      "capital": "Oslo",
+      "accepted": [
+        "Oslo"
+      ],
+      "locations": [
+        {
+          "name": "Oslo",
+          "wikidataId": "Q585",
+          "lat": 59.913333333333334,
+          "lng": 10.738888888888889
+        }
+      ]
+    },
+    "Oman": {
+      "code": "om",
+      "wikidataId": "Q842",
+      "capital": "Muscat",
+      "accepted": [
+        "Muscat"
+      ],
+      "locations": [
+        {
+          "name": "Muscat",
+          "wikidataId": "Q3826",
+          "lat": 23.613888888889,
+          "lng": 58.592222222222
+        }
+      ]
+    },
+    "Pakistan": {
+      "code": "pk",
+      "wikidataId": "Q843",
+      "capital": "Islamabad",
+      "accepted": [
+        "Islamabad"
+      ],
+      "locations": [
+        {
+          "name": "Islamabad",
+          "wikidataId": "Q1362",
+          "lat": 33.698888888889,
+          "lng": 73.036944444444
+        }
+      ]
+    },
+    "Palau": {
+      "code": "pw",
+      "wikidataId": "Q695",
+      "capital": "Ngerulmud",
+      "accepted": [
+        "Ngerulmud"
+      ],
+      "locations": [
+        {
+          "name": "Ngerulmud",
+          "wikidataId": "Q515229",
+          "lat": 7.500556,
+          "lng": 134.624167
+        }
+      ]
+    },
+    "Palestine": {
+      "code": "ps",
+      "wikidataId": "Q219060",
+      "capital": "East Jerusalem",
+      "accepted": [
+        "East Jerusalem",
+        "Ramallah"
+      ],
+      "locations": [
+        {
+          "name": "East Jerusalem",
+          "wikidataId": "Q212938",
+          "lat": 31.78336,
+          "lng": 35.23388
+        },
+        {
+          "name": "Ramallah",
+          "wikidataId": "Q158119",
+          "lat": 31.896944444444,
+          "lng": 35.201666666667
+        }
+      ],
+      "note": "Wikidata lists East Jerusalem and Ramallah; capital status is disputed and Ramallah serves as the administrative center."
+    },
+    "Panama": {
+      "code": "pa",
+      "wikidataId": "Q804",
+      "capital": "Panama City",
+      "accepted": [
+        "Panama City"
+      ],
+      "locations": [
+        {
+          "name": "Panama City",
+          "wikidataId": "Q3306",
+          "lat": 8.971111111111112,
+          "lng": -79.53472222222223
+        }
+      ]
+    },
+    "Papua New Guinea": {
+      "code": "pg",
+      "wikidataId": "Q691",
+      "capital": "Port Moresby",
+      "accepted": [
+        "Port Moresby"
+      ],
+      "locations": [
+        {
+          "name": "Port Moresby",
+          "wikidataId": "Q36526",
+          "lat": -9.4788888888889,
+          "lng": 147.14944444444
+        }
+      ]
+    },
+    "Paraguay": {
+      "code": "py",
+      "wikidataId": "Q733",
+      "capital": "Asunción",
+      "accepted": [
+        "Asunción"
+      ],
+      "locations": [
+        {
+          "name": "Asunción",
+          "wikidataId": "Q2933",
+          "lat": -25.28,
+          "lng": -57.63444444444445
+        }
+      ]
+    },
+    "Peru": {
+      "code": "pe",
+      "wikidataId": "Q419",
+      "capital": "Lima",
+      "accepted": [
+        "Lima"
+      ],
+      "locations": [
+        {
+          "name": "Lima",
+          "wikidataId": "Q2868",
+          "lat": -12.06,
+          "lng": -77.0375
+        }
+      ]
+    },
+    "Philippines": {
+      "code": "ph",
+      "wikidataId": "Q928",
+      "capital": "Manila",
+      "accepted": [
+        "Manila"
+      ],
+      "locations": [
+        {
+          "name": "Manila",
+          "wikidataId": "Q1461",
+          "lat": 14.595833333333333,
+          "lng": 120.97722222222222
+        }
+      ]
+    },
+    "Poland": {
+      "code": "pl",
+      "wikidataId": "Q36",
+      "capital": "Warsaw",
+      "accepted": [
+        "Warsaw"
+      ],
+      "locations": [
+        {
+          "name": "Warsaw",
+          "wikidataId": "Q270",
+          "lat": 52.23,
+          "lng": 21.011111111111113
+        }
+      ]
+    },
+    "Portugal": {
+      "code": "pt",
+      "wikidataId": "Q45",
+      "capital": "Lisbon",
+      "accepted": [
+        "Lisbon"
+      ],
+      "locations": [
+        {
+          "name": "Lisbon",
+          "wikidataId": "Q597",
+          "lat": 38.708042,
+          "lng": -9.139016
+        }
+      ]
+    },
+    "Qatar": {
+      "code": "qa",
+      "wikidataId": "Q846",
+      "capital": "Doha",
+      "accepted": [
+        "Doha"
+      ],
+      "locations": [
+        {
+          "name": "Doha",
+          "wikidataId": "Q3861",
+          "lat": 25.28611111111111,
+          "lng": 51.529444444444444
+        }
+      ]
+    },
+    "Republic of the Congo": {
+      "code": "cg",
+      "wikidataId": "Q971",
+      "capital": "Brazzaville",
+      "accepted": [
+        "Brazzaville"
+      ],
+      "locations": [
+        {
+          "name": "Brazzaville",
+          "wikidataId": "Q3844",
+          "lat": -4.269444444444445,
+          "lng": 15.27111111111111
+        }
+      ]
+    },
+    "Romania": {
+      "code": "ro",
+      "wikidataId": "Q218",
+      "capital": "Bucharest",
+      "accepted": [
+        "Bucharest"
+      ],
+      "locations": [
+        {
+          "name": "Bucharest",
+          "wikidataId": "Q19660",
+          "lat": 44.41336111111111,
+          "lng": 26.09777777777778
+        }
+      ]
+    },
+    "Russia": {
+      "code": "ru",
+      "wikidataId": "Q159",
+      "capital": "Moscow",
+      "accepted": [
+        "Moscow"
+      ],
+      "locations": [
+        {
+          "name": "Moscow",
+          "wikidataId": "Q649",
+          "lat": 55.75055555555556,
+          "lng": 37.6175
+        }
+      ]
+    },
+    "Rwanda": {
+      "code": "rw",
+      "wikidataId": "Q1037",
+      "capital": "Kigali",
+      "accepted": [
+        "Kigali"
+      ],
+      "locations": [
+        {
+          "name": "Kigali",
+          "wikidataId": "Q3859",
+          "lat": -1.9525000000000001,
+          "lng": 30.115
+        }
+      ]
+    },
+    "Saint Kitts and Nevis": {
+      "code": "kn",
+      "wikidataId": "Q763",
+      "capital": "Basseterre",
+      "accepted": [
+        "Basseterre"
+      ],
+      "locations": [
+        {
+          "name": "Basseterre",
+          "wikidataId": "Q41295",
+          "lat": 17.298333333333,
+          "lng": -62.734166666667
+        }
+      ]
+    },
+    "Saint Lucia": {
+      "code": "lc",
+      "wikidataId": "Q760",
+      "capital": "Castries",
+      "accepted": [
+        "Castries"
+      ],
+      "locations": [
+        {
+          "name": "Castries",
+          "wikidataId": "Q41699",
+          "lat": 14.010833333333334,
+          "lng": -60.989444444444445
+        }
+      ]
+    },
+    "Saint Vincent and the Grenadines": {
+      "code": "vc",
+      "wikidataId": "Q757",
+      "capital": "Kingstown",
+      "accepted": [
+        "Kingstown"
+      ],
+      "locations": [
+        {
+          "name": "Kingstown",
+          "wikidataId": "Q41474",
+          "lat": 13.15527,
+          "lng": -61.22742
+        }
+      ]
+    },
+    "Samoa": {
+      "code": "ws",
+      "wikidataId": "Q683",
+      "capital": "Apia",
+      "accepted": [
+        "Apia"
+      ],
+      "locations": [
+        {
+          "name": "Apia",
+          "wikidataId": "Q36260",
+          "lat": -13.833333333333,
+          "lng": -171.83333333333
+        }
+      ]
+    },
+    "San Marino": {
+      "code": "sm",
+      "wikidataId": "Q238",
+      "capital": "San Marino",
+      "accepted": [
+        "San Marino"
+      ],
+      "locations": [
+        {
+          "name": "San Marino",
+          "wikidataId": "Q1848",
+          "lat": 43.932011111111,
+          "lng": 12.44845
+        }
+      ]
+    },
+    "Sao Tome and Principe": {
+      "code": "st",
+      "wikidataId": "Q1039",
+      "capital": "São Tomé",
+      "accepted": [
+        "São Tomé"
+      ],
+      "locations": [
+        {
+          "name": "São Tomé",
+          "wikidataId": "Q3932",
+          "lat": 0.3375,
+          "lng": 6.7283333333333335
+        }
+      ]
+    },
+    "Saudi Arabia": {
+      "code": "sa",
+      "wikidataId": "Q851",
+      "capital": "Riyadh",
+      "accepted": [
+        "Riyadh"
+      ],
+      "locations": [
+        {
+          "name": "Riyadh",
+          "wikidataId": "Q3692",
+          "lat": 24.65,
+          "lng": 46.71
+        }
+      ]
+    },
+    "Senegal": {
+      "code": "sn",
+      "wikidataId": "Q1041",
+      "capital": "Dakar",
+      "accepted": [
+        "Dakar"
+      ],
+      "locations": [
+        {
+          "name": "Dakar",
+          "wikidataId": "Q3718",
+          "lat": 14.672555555555556,
+          "lng": -17.432
+        }
+      ]
+    },
+    "Serbia": {
+      "code": "rs",
+      "wikidataId": "Q403",
+      "capital": "Belgrade",
+      "accepted": [
+        "Belgrade"
+      ],
+      "locations": [
+        {
+          "name": "Belgrade",
+          "wikidataId": "Q3711",
+          "lat": 44.81777777777778,
+          "lng": 20.456944444444446
+        }
+      ]
+    },
+    "Seychelles": {
+      "code": "sc",
+      "wikidataId": "Q1042",
+      "capital": "Victoria",
+      "accepted": [
+        "Victoria"
+      ],
+      "locations": [
+        {
+          "name": "Victoria",
+          "wikidataId": "Q3940",
+          "lat": -4.6236111111111,
+          "lng": 55.454444444444
+        }
+      ]
+    },
+    "Sierra Leone": {
+      "code": "sl",
+      "wikidataId": "Q1044",
+      "capital": "Freetown",
+      "accepted": [
+        "Freetown"
+      ],
+      "locations": [
+        {
+          "name": "Freetown",
+          "wikidataId": "Q3780",
+          "lat": 8.487222222222222,
+          "lng": -13.235555555555555
+        }
+      ]
+    },
+    "Singapore": {
+      "code": "sg",
+      "wikidataId": "Q334",
+      "capital": "Singapore",
+      "accepted": [
+        "Singapore"
+      ],
+      "locations": [
+        {
+          "name": "Singapore",
+          "wikidataId": "Q334",
+          "lat": 1.3,
+          "lng": 103.8
+        }
+      ]
+    },
+    "Slovakia": {
+      "code": "sk",
+      "wikidataId": "Q214",
+      "capital": "Bratislava",
+      "accepted": [
+        "Bratislava"
+      ],
+      "locations": [
+        {
+          "name": "Bratislava",
+          "wikidataId": "Q1780",
+          "lat": 48.1516988,
+          "lng": 17.1093063
+        }
+      ]
+    },
+    "Slovenia": {
+      "code": "si",
+      "wikidataId": "Q215",
+      "capital": "Ljubljana",
+      "accepted": [
+        "Ljubljana"
+      ],
+      "locations": [
+        {
+          "name": "Ljubljana",
+          "wikidataId": "Q437",
+          "lat": 46.05138888888889,
+          "lng": 14.50611111111111
+        }
+      ]
+    },
+    "Solomon Islands": {
+      "code": "sb",
+      "wikidataId": "Q685",
+      "capital": "Honiara",
+      "accepted": [
+        "Honiara"
+      ],
+      "locations": [
+        {
+          "name": "Honiara",
+          "wikidataId": "Q40921",
+          "lat": -9.433333,
+          "lng": 159.95
+        }
+      ]
+    },
+    "Somalia": {
+      "code": "so",
+      "wikidataId": "Q1045",
+      "capital": "Mogadishu",
+      "accepted": [
+        "Mogadishu"
+      ],
+      "locations": [
+        {
+          "name": "Mogadishu",
+          "wikidataId": "Q2449",
+          "lat": 2.0391666666666666,
+          "lng": 45.341944444444444
+        }
+      ]
+    },
+    "Somaliland": {
+      "code": "so",
+      "wikidataId": "Q34754",
+      "capital": "Hargeisa",
+      "accepted": [
+        "Hargeisa"
+      ],
+      "locations": [
+        {
+          "name": "Hargeisa",
+          "wikidataId": "Q168652",
+          "lat": 9.565556,
+          "lng": 44.060556
+        }
+      ]
+    },
+    "South Africa": {
+      "code": "za",
+      "wikidataId": "Q258",
+      "capital": "Pretoria",
+      "accepted": [
+        "Pretoria",
+        "Bloemfontein",
+        "Cape Town"
+      ],
+      "locations": [
+        {
+          "name": "Pretoria",
+          "wikidataId": "Q3926",
+          "lat": -25.746388888889,
+          "lng": 28.188055555556
+        },
+        {
+          "name": "Bloemfontein",
+          "wikidataId": "Q37701",
+          "lat": -29.1,
+          "lng": 26.216666666667
+        },
+        {
+          "name": "Cape Town",
+          "wikidataId": "Q5465",
+          "lat": -33.92527777777778,
+          "lng": 18.42388888888889
+        }
+      ],
+      "note": "South Africa has three capitals: Pretoria (executive), Cape Town (legislative), and Bloemfontein (judicial)."
+    },
+    "South Korea": {
+      "code": "kr",
+      "wikidataId": "Q884",
+      "capital": "Seoul",
+      "accepted": [
+        "Seoul"
+      ],
+      "locations": [
+        {
+          "name": "Seoul",
+          "wikidataId": "Q8684",
+          "lat": 37.56,
+          "lng": 126.99
+        }
+      ]
+    },
+    "South Sudan": {
+      "code": "ss",
+      "wikidataId": "Q958",
+      "capital": "Juba",
+      "accepted": [
+        "Juba"
+      ],
+      "locations": [
+        {
+          "name": "Juba",
+          "wikidataId": "Q1947",
+          "lat": 4.853888888888889,
+          "lng": 31.5825
+        }
+      ]
+    },
+    "Spain": {
+      "code": "es",
+      "wikidataId": "Q29",
+      "capital": "Madrid",
+      "accepted": [
+        "Madrid"
+      ],
+      "locations": [
+        {
+          "name": "Madrid",
+          "wikidataId": "Q2807",
+          "lat": 40.41694444444445,
+          "lng": -3.703333333333333
+        }
+      ]
+    },
+    "Sri Lanka": {
+      "code": "lk",
+      "wikidataId": "Q854",
+      "capital": "Sri Jayawardenepura Kotte",
+      "accepted": [
+        "Sri Jayawardenepura Kotte",
+        "Sri Jayawardenapura Kotte",
+        "Kotte"
+      ],
+      "locations": [
+        {
+          "name": "Sri Jayawardenepura Kotte",
+          "wikidataId": "Q41963",
+          "lat": 6.9,
+          "lng": 79.916388888889
+        }
+      ],
+      "note": "Sri Jayawardenepura Kotte is the official legislative capital."
+    },
+    "Sudan": {
+      "code": "sd",
+      "wikidataId": "Q1049",
+      "capital": "Khartoum",
+      "accepted": [
+        "Khartoum"
+      ],
+      "locations": [
+        {
+          "name": "Khartoum",
+          "wikidataId": "Q1963",
+          "lat": 15.60308,
+          "lng": 32.52654
+        }
+      ]
+    },
+    "Suriname": {
+      "code": "sr",
+      "wikidataId": "Q730",
+      "capital": "Paramaribo",
+      "accepted": [
+        "Paramaribo"
+      ],
+      "locations": [
+        {
+          "name": "Paramaribo",
+          "wikidataId": "Q3001",
+          "lat": 5.8666666666667,
+          "lng": -55.166666666667
+        }
+      ]
+    },
+    "Sweden": {
+      "code": "se",
+      "wikidataId": "Q34",
+      "capital": "Stockholm",
+      "accepted": [
+        "Stockholm"
+      ],
+      "locations": [
+        {
+          "name": "Stockholm",
+          "wikidataId": "Q1754",
+          "lat": 59.329444444444,
+          "lng": 18.068611111111
+        }
+      ]
+    },
+    "Switzerland": {
+      "code": "ch",
+      "wikidataId": "Q39",
+      "capital": "Bern",
+      "accepted": [
+        "Bern"
+      ],
+      "locations": [
+        {
+          "name": "Bern",
+          "wikidataId": "Q70",
+          "lat": 46.94798,
+          "lng": 7.44743
+        }
+      ]
+    },
+    "Syria": {
+      "code": "sy",
+      "wikidataId": "Q858",
+      "capital": "Damascus",
+      "accepted": [
+        "Damascus"
+      ],
+      "locations": [
+        {
+          "name": "Damascus",
+          "wikidataId": "Q3766",
+          "lat": 33.513055555556,
+          "lng": 36.291944444444
+        }
+      ]
+    },
+    "Taiwan": {
+      "code": "tw",
+      "wikidataId": "Q865",
+      "capital": "Taipei",
+      "accepted": [
+        "Taipei"
+      ],
+      "locations": [
+        {
+          "name": "Taipei",
+          "wikidataId": "Q1867",
+          "lat": 25.0375,
+          "lng": 121.5625
+        }
+      ]
+    },
+    "Tajikistan": {
+      "code": "tj",
+      "wikidataId": "Q863",
+      "capital": "Dushanbe",
+      "accepted": [
+        "Dushanbe"
+      ],
+      "locations": [
+        {
+          "name": "Dushanbe",
+          "wikidataId": "Q9365",
+          "lat": 38.573055555556,
+          "lng": 68.786388888889
+        }
+      ]
+    },
+    "Tanzania": {
+      "code": "tz",
+      "wikidataId": "Q924",
+      "capital": "Dodoma",
+      "accepted": [
+        "Dodoma"
+      ],
+      "locations": [
+        {
+          "name": "Dodoma",
+          "wikidataId": "Q3866",
+          "lat": -6.1835,
+          "lng": 35.746
+        }
+      ]
+    },
+    "Thailand": {
+      "code": "th",
+      "wikidataId": "Q869",
+      "capital": "Bangkok",
+      "accepted": [
+        "Bangkok"
+      ],
+      "locations": [
+        {
+          "name": "Bangkok",
+          "wikidataId": "Q1861",
+          "lat": 13.75,
+          "lng": 100.51666666667
+        }
+      ]
+    },
+    "Timor-Leste": {
+      "code": "tl",
+      "wikidataId": "Q574",
+      "capital": "Dili",
+      "accepted": [
+        "Dili"
+      ],
+      "locations": [
+        {
+          "name": "Dili",
+          "wikidataId": "Q9310",
+          "lat": -8.553611111111111,
+          "lng": 125.57833333333333
+        }
+      ]
+    },
+    "Togo": {
+      "code": "tg",
+      "wikidataId": "Q945",
+      "capital": "Lomé",
+      "accepted": [
+        "Lomé"
+      ],
+      "locations": [
+        {
+          "name": "Lomé",
+          "wikidataId": "Q3792",
+          "lat": 6.13,
+          "lng": 1.2158333333333333
+        }
+      ]
+    },
+    "Tonga": {
+      "code": "to",
+      "wikidataId": "Q678",
+      "capital": "Nukuʻalofa",
+      "accepted": [
+        "Nukuʻalofa"
+      ],
+      "locations": [
+        {
+          "name": "Nukuʻalofa",
+          "wikidataId": "Q38834",
+          "lat": -21.1343401,
+          "lng": -175.201808
+        }
+      ]
+    },
+    "Trinidad and Tobago": {
+      "code": "tt",
+      "wikidataId": "Q754",
+      "capital": "Port of Spain",
+      "accepted": [
+        "Port of Spain"
+      ],
+      "locations": [
+        {
+          "name": "Port of Spain",
+          "wikidataId": "Q39178",
+          "lat": 10.666666666667,
+          "lng": -61.516666666667
+        }
+      ]
+    },
+    "Tunisia": {
+      "code": "tn",
+      "wikidataId": "Q948",
+      "capital": "Tunis",
+      "accepted": [
+        "Tunis"
+      ],
+      "locations": [
+        {
+          "name": "Tunis",
+          "wikidataId": "Q3572",
+          "lat": 36.800833333333,
+          "lng": 10.18
+        }
+      ]
+    },
+    "Türkiye": {
+      "code": "tr",
+      "wikidataId": "Q43",
+      "capital": "Ankara",
+      "accepted": [
+        "Ankara"
+      ],
+      "locations": [
+        {
+          "name": "Ankara",
+          "wikidataId": "Q3640",
+          "lat": 39.93576,
+          "lng": 32.83869
+        }
+      ]
+    },
+    "Turkmenistan": {
+      "code": "tm",
+      "wikidataId": "Q874",
+      "capital": "Ashgabat",
+      "accepted": [
+        "Ashgabat"
+      ],
+      "locations": [
+        {
+          "name": "Ashgabat",
+          "wikidataId": "Q23438",
+          "lat": 37.95,
+          "lng": 58.383333333333
+        }
+      ]
+    },
+    "Tuvalu": {
+      "code": "tv",
+      "wikidataId": "Q672",
+      "capital": "Funafuti",
+      "accepted": [
+        "Funafuti"
+      ],
+      "locations": [
+        {
+          "name": "Funafuti",
+          "wikidataId": "Q34126",
+          "lat": -8.504777777777777,
+          "lng": 179.1173611111111
+        }
+      ]
+    },
+    "Uganda": {
+      "code": "ug",
+      "wikidataId": "Q1036",
+      "capital": "Kampala",
+      "accepted": [
+        "Kampala"
+      ],
+      "locations": [
+        {
+          "name": "Kampala",
+          "wikidataId": "Q3894",
+          "lat": 0.31361111111111,
+          "lng": 32.581111111111
+        }
+      ]
+    },
+    "Ukraine": {
+      "code": "ua",
+      "wikidataId": "Q212",
+      "capital": "Kyiv",
+      "accepted": [
+        "Kyiv"
+      ],
+      "locations": [
+        {
+          "name": "Kyiv",
+          "wikidataId": "Q1899",
+          "lat": 50.45,
+          "lng": 30.523611111111
+        }
+      ]
+    },
+    "United Arab Emirates": {
+      "code": "ae",
+      "wikidataId": "Q878",
+      "capital": "Abu Dhabi",
+      "accepted": [
+        "Abu Dhabi"
+      ],
+      "locations": [
+        {
+          "name": "Abu Dhabi",
+          "wikidataId": "Q1519",
+          "lat": 24.45111111111111,
+          "lng": 54.39694444444444
+        }
+      ]
+    },
+    "United Kingdom": {
+      "code": "gb",
+      "wikidataId": "Q145",
+      "capital": "London",
+      "accepted": [
+        "London"
+      ],
+      "locations": [
+        {
+          "name": "London",
+          "wikidataId": "Q84",
+          "lat": 51.507222222222,
+          "lng": -0.1275
+        }
+      ]
+    },
+    "United States of America": {
+      "code": "us",
+      "wikidataId": "Q30",
+      "capital": "Washington, D.C.",
+      "accepted": [
+        "Washington, D.C."
+      ],
+      "locations": [
+        {
+          "name": "Washington, D.C.",
+          "wikidataId": "Q61",
+          "lat": 38.895,
+          "lng": -77.036666666667
+        }
+      ]
+    },
+    "Uruguay": {
+      "code": "uy",
+      "wikidataId": "Q77",
+      "capital": "Montevideo",
+      "accepted": [
+        "Montevideo"
+      ],
+      "locations": [
+        {
+          "name": "Montevideo",
+          "wikidataId": "Q1335",
+          "lat": -34.90591666666667,
+          "lng": -56.19131111111111
+        }
+      ]
+    },
+    "Uzbekistan": {
+      "code": "uz",
+      "wikidataId": "Q265",
+      "capital": "Tashkent",
+      "accepted": [
+        "Tashkent"
+      ],
+      "locations": [
+        {
+          "name": "Tashkent",
+          "wikidataId": "Q269",
+          "lat": 41.31111111111111,
+          "lng": 69.27972222222222
+        }
+      ]
+    },
+    "Vanuatu": {
+      "code": "vu",
+      "wikidataId": "Q686",
+      "capital": "Port Vila",
+      "accepted": [
+        "Port Vila"
+      ],
+      "locations": [
+        {
+          "name": "Port Vila",
+          "wikidataId": "Q37806",
+          "lat": -17.73333,
+          "lng": 168.316667
+        }
+      ]
+    },
+    "Venezuela": {
+      "code": "ve",
+      "wikidataId": "Q717",
+      "capital": "Caracas",
+      "accepted": [
+        "Caracas"
+      ],
+      "locations": [
+        {
+          "name": "Caracas",
+          "wikidataId": "Q1533",
+          "lat": 10.50611111111111,
+          "lng": -66.91444444444444
+        }
+      ]
+    },
+    "Vietnam": {
+      "code": "vn",
+      "wikidataId": "Q881",
+      "capital": "Hanoi",
+      "accepted": [
+        "Hanoi"
+      ],
+      "locations": [
+        {
+          "name": "Hanoi",
+          "wikidataId": "Q1858",
+          "lat": 21.0245,
+          "lng": 105.84117
+        }
+      ]
+    },
+    "Western Sahara": {
+      "code": "eh",
+      "wikidataId": "Q6250",
+      "capital": "Laayoune",
+      "accepted": [
+        "Laayoune",
+        "El Aaiún"
+      ],
+      "locations": [
+        {
+          "name": "Laayoune",
+          "wikidataId": "Q47837",
+          "lat": 27.15,
+          "lng": -13.2
+        }
+      ],
+      "note": "Western Sahara is disputed; Laayoune is commonly listed as its capital, while the Sahrawi Arab Democratic Republic also uses Tifariti as a temporary seat."
+    },
+    "Yemen": {
+      "code": "ye",
+      "wikidataId": "Q805",
+      "capital": "Sanaa",
+      "accepted": [
+        "Sanaa"
+      ],
+      "locations": [
+        {
+          "name": "Sanaa",
+          "wikidataId": "Q2471",
+          "lat": 15.35,
+          "lng": 44.2
+        }
+      ]
+    },
+    "Zambia": {
+      "code": "zm",
+      "wikidataId": "Q953",
+      "capital": "Lusaka",
+      "accepted": [
+        "Lusaka"
+      ],
+      "locations": [
+        {
+          "name": "Lusaka",
+          "wikidataId": "Q3881",
+          "lat": -15.416666666667,
+          "lng": 28.283333333333
+        }
+      ]
+    },
+    "Zimbabwe": {
+      "code": "zw",
+      "wikidataId": "Q954",
+      "capital": "Harare",
+      "accepted": [
+        "Harare"
+      ],
+      "locations": [
+        {
+          "name": "Harare",
+          "wikidataId": "Q3921",
+          "lat": -17.829166666667,
+          "lng": 31.052222222222
+        }
+      ]
+    }
+  }
+}

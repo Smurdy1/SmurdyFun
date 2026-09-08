@@ -1,0 +1,71 @@
+{
+  "Antarctica": {
+    "noCapital": true,
+    "note": "Antarctica is not a sovereign state and has no national capital."
+  },
+  "Bolivia": {
+    "note": "Sucre is the constitutional capital; La Paz is the seat of government."
+  },
+  "Eswatini": {
+    "capitalEntityIds": [
+      "Q3904",
+      "Q101418"
+    ],
+    "primary": "Mbabane",
+    "accepted": [
+      "Mbabane",
+      "Lobamba"
+    ],
+    "note": "Mbabane is the administrative capital; Lobamba is the royal and legislative capital."
+  },
+  "Nauru": {
+    "capitalEntityIds": [
+      "Q31026"
+    ],
+    "primary": "Yaren District",
+    "accepted": [
+      "Yaren District",
+      "Yaren"
+    ],
+    "note": "Nauru has no official capital; Yaren District functions as the de facto capital."
+  },
+  "South Africa": {
+    "includeAllWikidataCapitals": true,
+    "primary": "Pretoria",
+    "note": "South Africa has three capitals: Pretoria (executive), Cape Town (legislative), and Bloemfontein (judicial)."
+  },
+  "Sri Lanka": {
+    "capitalEntityIds": [
+      "Q41963"
+    ],
+    "primary": "Sri Jayawardenepura Kotte",
+    "accepted": [
+      "Sri Jayawardenepura Kotte",
+      "Sri Jayawardenapura Kotte",
+      "Kotte"
+    ],
+    "note": "Sri Jayawardenepura Kotte is the official legislative capital."
+  },
+  "Palestine": {
+    "includeAllWikidataCapitals": true,
+    "primary": "East Jerusalem",
+    "accepted": [
+      "East Jerusalem",
+      "Ramallah"
+    ],
+    "note": "Wikidata lists East Jerusalem and Ramallah; capital status is disputed and Ramallah serves as the administrative center."
+  },
+  "Western Sahara": {
+    "capitalEntityIds": [
+      "Q47837"
+    ],
+    "primary": "Laayoune",
+    "accepted": [
+      "Laayoune",
+      "Laâyoune",
+      "El Aaiún",
+      "El Aaiun"
+    ],
+    "note": "Western Sahara is disputed; Laayoune is commonly listed as its capital, while the Sahrawi Arab Democratic Republic also uses Tifariti as a temporary seat."
+  }
+}
