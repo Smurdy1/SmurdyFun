@@ -90,6 +90,11 @@ function quizPage(groupId, group) {
     const heading = `${group.shortLabel} Flag Quiz`;
     const sharedStylesHtml = pageShell.renderSharedStyles();
     const brandHtml = pageShell.renderBrand({ className: "flag-brand" });
+    const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({
+        modeHref: "/quizzes/type-flag/",
+        modeLabel: "Type the Flags",
+        groupLabel: group.shortLabel
+    });
     const launchHtml = pageShell.renderPrimaryLaunch({
         className: "flag-actions",
         buttonClass: "flag-button"
@@ -141,12 +146,7 @@ function quizPage(groupId, group) {
   ${brandHtml}
 
   <main class="flag-page">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href="/">Smurdy</a><span aria-hidden="true">›</span>
-      <a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span>
-      <a href="/quizzes/type-flag/">Flag quizzes</a><span aria-hidden="true">›</span>
-      <span>${escapeHtml(group.shortLabel)}</span>
-    </nav>
+    ${breadcrumbsHtml}
 
     <article data-flag-landing>
       <header>
