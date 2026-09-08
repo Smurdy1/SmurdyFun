@@ -45,11 +45,11 @@
             unitName: "country",
             memberCount,
             sourceKind: "country",
-            description: `Identify ${memberCount} flags from Smurdy's ${label} country set.`,
-            lead: `Type the country represented by each flag in the ${label} set.`,
-            overview: `This flag set uses the same ${label} country group as Smurdy's map quizzes, keeping flag and map practice aligned.`,
+            description: `Identify ${memberCount} flags in the ${label} set.`,
+            lead: "Type the country represented by each flag in this set.",
+            overview: "This flag quiz uses the same countries as the matching map quizzes, keeping flag and map practice aligned.",
             challenge: "Neighboring countries and recurring flag patterns can look similar, so small symbols, stripe order, and proportions matter.",
-            studyTip: `Learn the ${label} set in smaller clusters, then mix the full group once the designs feel familiar.`,
+            studyTip: "Learn the set in smaller clusters, then mix the full group once the designs feel familiar.",
             notable: defaultNotable(mapGroup)
         };
 

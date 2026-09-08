@@ -157,7 +157,7 @@ function quizPage(groupId, group) {
       </header>
 
       <section class="flag-info content-section">
-        <h2>What this ${escapeHtml(group.shortLabel)} quiz covers</h2>
+        <h2>What this quiz covers</h2>
         <p>${escapeHtml(group.overview)}</p>
       </section>
       <section class="flag-info content-section">
@@ -192,7 +192,7 @@ function quizPage(groupId, group) {
       ${actionsHtml}
       <section class="flag-links" aria-labelledby="explore-more-heading">
         <h2 id="explore-more-heading">Explore more geography quizzes</h2>
-        <h3>Practice the same region on a map</h3>
+        <h3>Practice the same set on a map</h3>
         ${chips(mapLinks)}
         <h3>Try another flag set</h3>
         ${chips(relatedFlags)}
@@ -232,7 +232,7 @@ function quizPage(groupId, group) {
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
   <script src="/src/js/quiz_completion.js?v=20260903-review-pagination-1" defer></script>
   <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
-  <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
+  <script src="/src/js/flag_catalog.js?v=20260908-landing-copy-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
   <script src="/src/js/flag_quiz.js?v=20260903-review-pagination-1" defer></script>
@@ -243,7 +243,7 @@ function quizPage(groupId, group) {
 
 function directoryPage() {
     const mainIds = new Set(["world", "europe", "asia", "africa", "north_america", "south_america", "oceania"]);
-    const specialtyIds = new Set(["european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands"]);
+    const specialtyIds = new Set(["european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands", "spanish_speaking"]);
     const countryEntries = Object.entries(groups).filter(([, group]) => group.family === "countries");
     const subdivisionEntries = Object.entries(groups).filter(([, group]) => group.family === "subdivisions");
     const main = countryEntries.filter(([id]) => mainIds.has(id));
@@ -277,7 +277,7 @@ function directoryPage() {
     <p class="directory-lead">Choose a flag set, then type the country, territory, or subdivision it represents.</p>
     ${section("Main sets", "Start with the world or one continent.", main)}
     ${section("Regional sets", "Focus on the same regional groups available in the map quizzes.", regional)}
-    ${section("Specialty sets", "Practice political, historical, island, and size-based country groups.", specialty)}
+    ${section("Specialty sets", "Practice political, language-based, historical, island, and size-based country groups.", specialty)}
     ${section("Subdivisions", "Practice flags for states, provinces, and other first-level subdivisions.", subdivisionEntries)}
     <section class="directory-section"><h2>Flag modes</h2><div class="directory-mode-grid">
       <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a flag and type the place it represents.</span><span class="directory-card-meta">Available now</span></div>

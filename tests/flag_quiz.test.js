@@ -125,7 +125,7 @@ test("flag pages include the full landing and results experience", () => {
     );
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
 
-    assert.match(html, /What this Europe quiz covers/);
+    assert.match(html, /What this quiz covers/);
     assert.match(html, /Flags to review|data-flag-review/);
     assert.match(html, /data-flag-progress-bar/);
     assert.match(html, /data-flag-time/);
