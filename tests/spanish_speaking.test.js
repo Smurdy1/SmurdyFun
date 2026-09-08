@@ -112,7 +112,6 @@ test("all public country quiz modes generate Spanish-speaking landing pages", ()
 
 test("Spanish-speaking group appears on public discovery pages and sitemaps", () => {
     for (const relativePath of [
-        "quizzes/index.html",
         "quizzes/click-country/index.html",
         "quizzes/type-country/index.html",
         "quizzes/type-capital/index.html",
@@ -127,6 +126,13 @@ test("Spanish-speaking group appears on public discovery pages and sitemaps", ()
             relativePath + " should list the public group"
         );
     }
+
+    const allQuizzes = fs.readFileSync(
+        path.join(root, "quizzes/index.html"),
+        "utf8"
+    );
+    assert.match(allQuizzes, /30 quiz sets/);
+    assert.match(allQuizzes, /31 quiz sets/);
 
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
     for (const mode of [
