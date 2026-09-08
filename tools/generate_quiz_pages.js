@@ -110,8 +110,10 @@ const pageShell = require("./quiz_page_shell.js");
                 ? group.notable.slice(0, 5)
                 : entries.slice(0, 5);
 
+            const groupTopic = getGroupTopic({ groupId, group, groupLabel });
             const context = {
                 group: groupLabel,
+                groupTopic,
                 label: group.label || groupLabel,
                 adjective: group.adjective || "",
                 borderset: group.borderset || "",
@@ -645,6 +647,37 @@ function normalizeModeKey(entry) {
     if (raw.includes("type")) return "type";
     if (raw.includes("click")) return "click";
     return raw;
+}
+
+function getGroupTopic({ groupId, group, groupLabel }) {
+    const specialTopics = {
+        world: "the world",
+        middle_east: "the Middle East",
+        mena: "the Middle East and North Africa",
+        european_union: "the European Union",
+        former_soviet_union: "the former Soviet Union",
+        balkans: "the Balkans",
+        americas: "the Americas",
+        caribbean_islands: "the Caribbean islands",
+        pacific_islands: "the Pacific islands"
+    };
+
+    if (specialTopics[groupId]) return specialTopics[groupId];
+
+    if (groupId === "us_states" && group?.parent) {
+        return group.parent === "United States"
+            ? "the United States"
+            : String(group.parent);
+    }
+
+    if (
+        String(groupLabel).endsWith("Countries") &&
+        String(group?.adjective || "").trim()
+    ) {
+        return `${String(group.adjective).trim()} countries`;
+    }
+
+    return groupLabel;
 }
 
 function getModeDisplayName(entry) {
