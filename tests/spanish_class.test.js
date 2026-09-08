@@ -13,13 +13,14 @@ const countryGroups = JSON.parse(fs.readFileSync(
     "utf8"
 ));
 
-test("Spanish Class contains exactly the requested 19 countries", () => {
+test("Spanish Class contains exactly the requested 20 countries", () => {
     assert.equal(spanishClass.id, "spanish_class");
     assert.equal(spanishClass.label, "Spanish Class");
-    assert.equal(spanishClass.countries.length, 19);
+    assert.equal(spanishClass.countries.length, 20);
 
     const actual = new Set(spanishClass.countries);
     const expected = new Set([
+        "Mexico",
         "Guatemala",
         "El Salvador",
         "Honduras",
@@ -61,22 +62,26 @@ test("Spanish Class is not part of the public country group catalog", () => {
     assert.equal(Object.hasOwn(countryGroups, "spanish_class"), false);
 });
 
-test("Spanish Class landing page is noindex and absent from public discovery surfaces", () => {
-    const secret = fs.readFileSync(
-        path.join(root, "quizzes/type-capital/spanish_class/index.html"),
-        "utf8"
-    );
-    assert.match(secret, /data-quiz-id="type-capital"/);
-    assert.match(secret, /data-quiz-group="spanish_class"/);
-    assert.match(secret, /<h1>Spanish Class<\/h1>/);
-    assert.match(secret, /19 countries/);
-    assert.match(secret, /name="robots" content="noindex, nofollow, noarchive, nosnippet"/);
-    assert.doesNotMatch(secret, /content="index, follow"/);
+test("both Spanish Class landing pages are noindex and absent from public discovery surfaces", () => {
+    for (const quizId of ["type-capital", "type-country"]) {
+        const secret = fs.readFileSync(
+            path.join(root, "quizzes", quizId, "spanish_class", "index.html"),
+            "utf8"
+        );
+        assert.match(secret, new RegExp('data-quiz-id="' + quizId + '"'));
+        assert.match(secret, /data-quiz-group="spanish_class"/);
+        assert.match(secret, /<h1>Spanish Class<\/h1>/);
+        assert.match(secret, /20 countries/);
+        assert.match(secret, /Mexico/);
+        assert.match(secret, /name="robots" content="noindex, nofollow, noarchive, nosnippet"/);
+        assert.doesNotMatch(secret, /content="index, follow"/);
+    }
 
     for (const relativePath of [
         "index.html",
         "quizzes/index.html",
         "quizzes/type-capital/index.html",
+        "quizzes/type-country/index.html",
         "sitemap.txt",
         "sitemap.xml"
     ]) {
@@ -143,6 +148,35 @@ test("capital controller only loads the hidden group on the secret route", async
         );
 
         calls.length = 0;
+        const countryRoot = {
+            location: { pathname: "/quizzes/type-country/spanish_class/" },
+            SmurdyQuiz: {
+                groups: {},
+                currentGroupId: "spanish_class",
+                currentShowBorders: true,
+                getAllowedNamesForCurrentGroup() {
+                    return new Set(["mexico", "guatemala"]);
+                },
+                setAllowedList(allowed) {
+                    this.allowed = [...allowed];
+                },
+                requestGroupOutline() {},
+                setShowBorders() {}
+            }
+        };
+        const countryController = capitalQuiz.createController(countryRoot);
+        await countryController.loadSpanishClassGroup();
+        assert.deepEqual(
+            countryRoot.SmurdyQuiz.groups.spanish_class.countries,
+            hiddenGroup.countries
+        );
+        assert.deepEqual(countryRoot.SmurdyQuiz.allowed, ["mexico", "guatemala"]);
+        assert.equal(
+            calls.some(url => url.endsWith("/src/data/spanish_class.json")),
+            true
+        );
+
+        calls.length = 0;
         const normalRoot = {
             location: { pathname: "/quizzes/type-capital/latin_america/" },
             SmurdyQuiz: { groups: {} }
@@ -156,4 +190,16 @@ test("capital controller only loads the hidden group on the secret route", async
     } finally {
         global.fetch = originalFetch;
     }
+});
+
+
+test("type-country prepares the hidden group without publishing it", () => {
+    const manifest = fs.readFileSync(
+        path.join(root, "src/js/manifest.js"),
+        "utf8"
+    );
+    assert.match(
+        manifest,
+        /id: "type-country"[\s\S]*?prepare: \(\) => window\.SmurdyCapitalQuiz\?\.loadSpanishClassGroup\?\.\(\)/
+    );
 });
