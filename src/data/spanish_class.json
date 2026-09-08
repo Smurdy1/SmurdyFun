@@ -4,6 +4,7 @@
   "unitName": "country",
   "borderset": "countries",
   "countries": [
+    "Mexico",
     "Guatemala",
     "El Salvador",
     "Honduras",
