@@ -232,7 +232,7 @@ function quizPage(groupId, group) {
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
   <script src="/src/js/quiz_completion.js?v=20260903-review-pagination-1" defer></script>
   <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
-  <script src="/src/js/flag_catalog.js?v=20260903-flag-parity-1" defer></script>
+  <script src="/src/js/flag_catalog.js?v=20260908-landing-copy-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
   <script src="/src/js/flag_quiz.js?v=20260903-review-pagination-1" defer></script>
