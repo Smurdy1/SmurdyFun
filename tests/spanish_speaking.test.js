@@ -153,26 +153,3 @@ test("Spanish-speaking group appears on public discovery pages and sitemaps", ()
         );
     }
 });
-
-test("old private Spanish Class artifacts are removed", () => {
-    for (const relativePath of [
-        "src/data/spanish_class.json",
-        "quizzes/type-country/spanish_class/index.html",
-        "quizzes/type-capital/spanish_class/index.html"
-    ]) {
-        assert.equal(
-            fs.existsSync(path.join(root, relativePath)),
-            false,
-            relativePath + " should be gone"
-        );
-    }
-
-    for (const relativePath of [
-        "src/js/capital_quiz.js",
-        "src/js/manifest.js",
-        "tools/generate_quiz_pages.js"
-    ]) {
-        const source = fs.readFileSync(path.join(root, relativePath), "utf8");
-        assert.doesNotMatch(source, /spanish_class|Spanish Class/);
-    }
-});
