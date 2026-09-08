@@ -28,11 +28,11 @@
     function normalize(value) {
         return String(value || "")
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\p{M}+/gu, "")
             .toLowerCase()
             .replace(/['’]/g, "")
             .replace(/&/g, "and")
-            .replace(/[^a-z0-9]+/g, " ")
+            .replace(/[^\p{L}\p{N}]+/gu, " ")
             .replace(/\s+/g, " ")
             .trim();
     }
