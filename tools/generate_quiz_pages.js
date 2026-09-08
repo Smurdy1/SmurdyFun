@@ -135,39 +135,38 @@ const pageShell = require("./quiz_page_shell.js");
                 modeKey
             });
             const pageTitle = renderTemplate(pageOverride.title || defaultPageTitle, context);
-            const defaultHeading = pageTitle.replace(/\s*\|\s*Smurdy\s*$/, "");
-            const pageHeading = renderTemplate(pageOverride.h1 || defaultHeading, context);
+            const pageHeading = renderTemplate(pageOverride.h1 || pageTitle, context);
 
             const lead = renderTemplate(
                 pageOverride.lead ||
                 modeCopy.lead ||
                 manifestEntry.shortDescription ||
                 manifestEntry.descriptionTemplate ||
-                "Practice this geography set.",
+                `Practice the ${groupLabel} map.`,
                 context
             );
 
             const overviewHeading = renderTemplate(
-                pageOverride.overviewHeading || "What this quiz covers",
+                pageOverride.overviewHeading || `What this ${groupLabel} quiz covers`,
                 context
             );
 
             const overview = renderTemplate(
                 pageOverride.overview ||
                 groupCopy.overview ||
-                "This quiz uses a focused set of places for geography practice.",
+                `${groupLabel} is included as a focused geography practice group in Smurdy.`,
                 context
             );
 
             const challengeHeading = renderTemplate(
-                pageOverride.challengeHeading || "What makes this set challenging",
+                pageOverride.challengeHeading || "What makes this group challenging",
                 context
             );
 
             const challenge = renderTemplate(
                 pageOverride.challenge ||
                 groupCopy.challenge ||
-                "This set tests both name recognition and accurate map placement.",
+                `This group tests both name recognition and accurate map placement.`,
                 context
             );
 
@@ -399,7 +398,7 @@ ${JSON.stringify({
     "url": pageUrlRaw,
     "about": {
         "@type": "Thing",
-        "name": groupLabel
+        "name": `${groupLabel} geography`
     },
     "educationalUse": "practice",
     "isPartOf": {
@@ -872,7 +871,7 @@ function buildPageNavigationHtml({
 
     if (otherQuizzes.length) {
         blocks.push(`<div class="link-block">
-          <h3>Practice the same set another way</h3>
+          <h3>Try another mode for ${escapeHtml(groupLabel)}</h3>
           <div class="chip-list">${otherQuizzes.map(quiz =>
               `<a class="chip" href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a>`
           ).join("")}</div>
@@ -881,16 +880,16 @@ function buildPageNavigationHtml({
 
     if (relatedGroups.length) {
         blocks.push(`<div class="link-block">
-          <h3>Related quiz sets</h3>
+          <h3>Related regions in this mode</h3>
           <div class="chip-list">${relatedGroups.map(region =>
-              `<a class="chip" href="${publicRoot}/quizzes/${slug(region.manifestId || manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)}</a>`
+              `<a class="chip" href="${publicRoot}/quizzes/${slug(region.manifestId || manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)} map quiz</a>`
           ).join("")}</div>
         </div>`);
     }
 
     if (popularGroups.length) {
         blocks.push(`<div class="link-block">
-          <h3>Popular quiz sets</h3>
+          <h3>Popular map sets</h3>
           <div class="chip-list">${popularGroups.map(region =>
               `<a class="chip" href="${publicRoot}/quizzes/${slug(manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)}</a>`
           ).join("")}</div>
@@ -923,7 +922,7 @@ function buildKeywords({ manifestEntry, modeCopy, groupCopy, groupLabel, unitPlu
     const values = [
         `${groupLabel} map quiz`,
         `${groupLabel} ${unitPlural} quiz`,
-        `${groupLabel} geography quiz`,
+        `learn ${groupLabel} geography`,
         ...(manifestEntry.tags || []),
         ...(modeCopy.searchTerms || []),
         ...(groupCopy.searchTerms || []),
@@ -960,7 +959,7 @@ const MAIN_DIRECTORY_GROUPS = new Set([
     "world", "europe", "asia", "africa", "north_america", "south_america", "oceania"
 ]);
 const SPECIALTY_DIRECTORY_GROUPS = new Set([
-    "european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands", "spanish_speaking"
+    "european_union", "former_soviet_union", "tiny_countries", "small_island_countries", "pacific_islands"
 ]);
 
 function directoryDocumentStart({ title, description, canonical, publicRoot }) {
@@ -1022,7 +1021,7 @@ function groupedDirectorySections(records) {
     if (main.length) sections.push(["Main sets", "Start with the world or one continent.", main]);
     if (subdivisions.length) sections.push(["Subdivision sets", "Practice geography below the country level.", subdivisions]);
     if (regional.length) sections.push(["Regional sets", "Focus on a smaller geographic region.", regional]);
-    if (specialty.length) sections.push(["Specialty sets", "Practice political, language-based, historical, island, and size-based groups.", specialty]);
+    if (specialty.length) sections.push(["Specialty sets", "Practice political, historical, island, and size-based groups.", specialty]);
     return sections.map(([heading, lead, values]) => `<section class="directory-section"><h2>${heading}</h2><p class="directory-section-lead">${lead}</p>${renderRecordCards(values)}</section>`).join("");
 }
 
