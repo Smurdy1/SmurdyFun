@@ -1149,7 +1149,7 @@ const SmurdyQuiz = {
                     }
 
                     completionScript = document.createElement("script");
-                    completionScript.src = "/src/js/quiz_completion.js?v=20260903-review-pagination-1";
+                    completionScript.src = "/src/js/quiz_completion.js?v=20260908-capitals-1";
                     completionScript.id = "quiz-completion-script";
                     completionScript.onload = resolve;
                     completionScript.onerror = reject;
@@ -1163,7 +1163,7 @@ const SmurdyQuiz = {
 
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260903-completion-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260908-capitals-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -1220,7 +1220,19 @@ const SmurdyQuiz = {
                         // pass manifest-level prefs (like borders) into the runner config so the runner
                         // can honor manifest-specified border visibility.
                         const runnerConfig = Object.assign({}, def.config, { borders: def.borders, quizId: id });
-                        setTimeout(() => {
+                        setTimeout(async () => {
+                            try {
+                                if (typeof runnerConfig.prepare === "function") {
+                                    await runnerConfig.prepare();
+                                }
+                            } catch (error) {
+                                console.error("Could not prepare quiz data", error);
+                                try {
+                                    SmurdyQuiz.setResultText("The quiz data could not load. Please try again.");
+                                } catch (_) {}
+                                return;
+                            }
+
                             if (typeof window.runNameQuiz === "function") {
                                 window.runNameQuiz(runnerConfig);
                                 // Runner started — ensure left panel shows game UI and hide browser
@@ -2296,7 +2308,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.13.10";
+const APP_VERSION = "1.14.0";
 
 function injectVersionBadge() {
     try {
