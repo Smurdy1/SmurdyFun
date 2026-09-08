@@ -87,7 +87,7 @@ test("subdivision prose refers to the parent geography, not the group title", ()
     assert.doesNotMatch(clickStates, /inside US States/);
 
     const findStates = read("quizzes/find-subdivision/us_states/index.html");
-    assert.match(findStates, /knowledge of the United States/);
+    assert.match(findStates, /inside the United States/);
     assert.match(findStates, /outer shape of the United States/);
 });
 
