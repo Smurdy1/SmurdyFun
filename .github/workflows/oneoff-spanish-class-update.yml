@@ -1,0 +1,54 @@
+name: One-off Spanish Class update
+
+on:
+  push:
+    branches:
+      - feature/spanish-class-capitals
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/spanish-class-capitals
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Generate quiz pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-08'
+        run: npm run pages:generate
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/js/capital_quiz.js
+          node --check src/js/manifest.js
+          node --check tools/generate_quiz_pages.js
+
+      - name: Run Spanish Class and full tests
+        run: |
+          node --test tests/spanish_class.test.js
+          npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit generated update
+        run: |
+          rm -f .github/workflows/oneoff-spanish-class-update.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Expand hidden Spanish Class quizzes"
+          git push origin HEAD:feature/spanish-class-capitals
