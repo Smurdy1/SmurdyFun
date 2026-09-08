@@ -1,0 +1,38 @@
+name: One-off capitals Weak Spots fix
+
+on:
+  push:
+    branches:
+      - feature/type-capital-quiz
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/type-capital-quiz
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Run Weak Spots and full test suite
+        run: |
+          node --test tests/weak_spots.test.js
+          npm test
+      - name: Validate diff
+        run: git diff --check
+      - name: Remove one-off workflow
+        run: |
+          rm -f .github/workflows/oneoff-capitals-weak-spots-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Validate capital Weak Spots fix"
+          git push origin HEAD:feature/type-capital-quiz
