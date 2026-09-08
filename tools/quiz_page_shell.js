@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260903-landing-control-parity-1";
+const ASSET_VERSION = "20260908-capitals-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)

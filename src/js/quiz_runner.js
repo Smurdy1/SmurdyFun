@@ -240,6 +240,14 @@ window.runNameQuiz = function runNameQuiz(config) {
          persistCompletedHighlights = true,
          showTargetOnWrong = true,
          clickableLayerId = null,
+         answerDisplayForTarget = null,
+         isAcceptedGuess = null,
+         revealAnswer = null,
+         clearAnswerReveal = null,
+         reviewLabelForTarget = null,
+         completionItemSingular = null,
+         completionItemPlural = null,
+         shareHeadlineBuilder = null,
          // custom for "find the point"
          findPoint = false,
          borders = null,
@@ -736,6 +744,9 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function clearStates() {
         SQ.clearAllStates();
+        try {
+            if (typeof clearAnswerReveal === "function") clearAnswerReveal();
+        } catch (_) {}
         // remove any temporary point marker layers + source (outer/inner)
         try {
             const outerId = FIND_POINT_LAYER + "-outer";
@@ -755,6 +766,36 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function getRemaining() {
         return quizSession.getRemaining(getNames());
+    }
+
+    function getAnswerDisplay(name = currentName) {
+        const countryName = getCanonicalDisplayName(name);
+        if (typeof answerDisplayForTarget === "function") {
+            try {
+                const answer = answerDisplayForTarget(countryName);
+                if (answer != null && String(answer).trim()) return String(answer).trim();
+            } catch (_) {}
+        }
+        return countryName;
+    }
+
+    function guessIsAccepted(name, guess) {
+        const countryName = getCanonicalDisplayName(name);
+        if (typeof isAcceptedGuess === "function") {
+            try { return Boolean(isAcceptedGuess(countryName, guess)); } catch (_) { return false; }
+        }
+        return SQ.isAcceptedAnswer(countryName, guess);
+    }
+
+    function revealCurrentAnswer(correct, guess = "") {
+        if (typeof revealAnswer !== "function" || !currentName) return;
+        try {
+            revealAnswer(getCanonicalDisplayName(currentName), {
+                correct: Boolean(correct),
+                guess: String(guess || ""),
+                answer: getAnswerDisplay(currentName)
+            });
+        } catch (_) {}
     }
 
     // Anti-repeat behavior is shared across quiz renderers.
@@ -889,6 +930,15 @@ window.runNameQuiz = function runNameQuiz(config) {
         try { groupLabel = String(SQ.getCurrentGroup?.()?.label || ""); } catch (_) {}
         if (!groupLabel) groupLabel = completion.humanizeSlug(context.quiz_group || "world");
         const subdivision = isSubdivisionMapMode();
+        const itemSingular = String(
+            completionItemSingular || (subdivision ? "state" : "country")
+        );
+        const itemPlural = String(
+            completionItemPlural || (subdivision ? "states" : "countries")
+        );
+        const shareHeadline = typeof shareHeadlineBuilder === "function"
+            ? shareHeadlineBuilder(groupLabel)
+            : `I finished the ${groupLabel} map quiz`;
         return completion.buildResult({
             session: quizSession,
             total: getNames().length,
@@ -896,9 +946,9 @@ window.runNameQuiz = function runNameQuiz(config) {
             groupId: context.quiz_group,
             groupLabel,
             modeLabel: completion.modeLabelForQuiz(context.quiz_mode),
-            itemSingular: subdivision ? "state" : "country",
-            itemPlural: subdivision ? "states" : "countries",
-            shareHeadline: `I finished the ${groupLabel} map quiz`,
+            itemSingular,
+            itemPlural,
+            shareHeadline,
             url: window.location.pathname
         });
     }
@@ -932,9 +982,13 @@ window.runNameQuiz = function runNameQuiz(config) {
             else panel.appendChild(review);
         }
 
-        const placeNoun = isSubdivisionMapMode()
-            ? (items.length === 1 ? "state" : "states")
-            : (items.length === 1 ? "country" : "countries");
+        const singularNoun = String(
+            completionItemSingular || (isSubdivisionMapMode() ? "state" : "country")
+        );
+        const pluralNoun = String(
+            completionItemPlural || (isSubdivisionMapMode() ? "states" : "countries")
+        );
+        const placeNoun = items.length === 1 ? singularNoun : pluralNoun;
         const reviewResult = {
             ...completionResult,
             misses: items,
@@ -959,7 +1013,9 @@ window.runNameQuiz = function runNameQuiz(config) {
                 button.dataset.reviewIndex = String(index);
                 const name = document.createElement("span");
                 name.className = "quiz-review-country-name";
-                name.textContent = item.name;
+                name.textContent = typeof reviewLabelForTarget === "function"
+                    ? reviewLabelForTarget(item.name)
+                    : item.name;
                 const detail = document.createElement("span");
                 detail.className = "quiz-review-country-detail";
                 detail.textContent = completion.describeMiss(item);
@@ -1509,6 +1565,9 @@ window.runNameQuiz = function runNameQuiz(config) {
  
         if (remaining.length === 0) {
             const total = getNames().length;
+            try {
+                if (typeof clearAnswerReveal === "function") clearAnswerReveal();
+            } catch (_) {}
             SQ.setTargetText("Done!");
             // Ensure we clear any lingering target highlight (yellow) after the final correct answer.
             try { SQ.setTargetByName(null); } catch (e) {}
@@ -1734,7 +1793,7 @@ window.runNameQuiz = function runNameQuiz(config) {
          startQuestionSequence();
      }
 
-    function finishCorrect() {
+    function finishCorrect(guess = "") {
         const outcome = quizSession.recordAnswer(currentName, { correct: true });
         reduceWeakSpotAfterRetry(Boolean(outcome?.hadMiss));
         recordAnalyticsAnswer(true);
@@ -1743,6 +1802,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         // country in green. Find Point clears it before the next question.
         try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
         try { setState(currentName, "correct"); } catch (_) {}
+        revealCurrentAnswer(true, guess);
 
         // If completed highlights persist, restore all earlier correct answers too.
         try { if (persistCompletedHighlights) repaintCompleted(); } catch (_) {}
@@ -1790,7 +1850,8 @@ window.runNameQuiz = function runNameQuiz(config) {
         }
 
         if (mode === "type" || gaveUp) {
-            SQ.setResultText(`Wrong. Answer: ${currentName}`);
+            revealCurrentAnswer(false, gaveUp ? "" : clickedOrGuess);
+            SQ.setResultText(`Wrong. Answer: ${getAnswerDisplay(currentName)}`);
         } else {
             SQ.setResultText(`Wrong. Guessed: ${clickedOrGuess}`);
         }
@@ -1875,10 +1936,10 @@ window.runNameQuiz = function runNameQuiz(config) {
 
         locked = true;
 
-        const answerCorrect = SQ.isAcceptedAnswer(currentName, guess);
+        const answerCorrect = guessIsAccepted(currentName, guess);
 
         if (answerCorrect) {
-            finishCorrect();
+            finishCorrect(guess);
         } else {
             finishWrong(guess);
         }

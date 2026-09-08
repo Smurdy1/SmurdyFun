@@ -188,3 +188,19 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
     assert.match(modeHub, /<h2>Regional sets<\/h2>/);
     assert.doesNotMatch(allQuizzes, /<ul>/);
 });
+
+
+test("generated quiz directory includes the capitals family", () => {
+    const directory = fs.readFileSync(
+        path.resolve(__dirname, "../quizzes/index.html"),
+        "utf8"
+    );
+    const hub = fs.readFileSync(
+        path.resolve(__dirname, "../quizzes/type-capital/index.html"),
+        "utf8"
+    );
+
+    assert.match(directory, /<h2>Capitals<\/h2>/);
+    assert.match(directory, /\/quizzes\/type-capital\//);
+    assert.match(hub, /Type the Capitals Quizzes/);
+});

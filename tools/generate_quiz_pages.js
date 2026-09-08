@@ -650,6 +650,7 @@ function getModeDisplayName(entry) {
     const id = getManifestId(entry);
     if (id === "click-country") return "Click the Countries";
     if (id === "type-country") return "Type the Countries";
+    if (id === "type-capital") return "Type the Capitals";
     if (id === "find-country") return "Find the Countries";
     if (id === "find-point") return "Find the Country from a Point";
     if (id === "click-subdivision") return "Click the Subdivisions";
@@ -660,6 +661,9 @@ function getModeDisplayName(entry) {
 }
 
 function buildPageTitle({ groupLabel, unitPluralTitle, manifestId, modeKey }) {
+    if (manifestId === "type-capital") {
+        return `${groupLabel} Capitals Quiz – Type the Capitals | Smurdy`;
+    }
     if (manifestId === "find-point" || modeKey === "find-point") {
         return `${groupLabel} Find the Point Map Quiz | Smurdy`;
     }
@@ -674,6 +678,9 @@ function buildPageTitle({ groupLabel, unitPluralTitle, manifestId, modeKey }) {
 
 function inferModeInstructions(entry, context) {
     const mode = normalizeModeKey(entry);
+    if (getManifestId(entry) === "type-capital") {
+        return `A ${context.unitName} is highlighted and named. Type its capital city to answer.`;
+    }
     if (mode === "type") {
         return `A ${context.unitName} is highlighted on the map. Type its name to answer.`;
     }
@@ -905,6 +912,7 @@ function buildKeywords({ manifestEntry, modeCopy, groupCopy, groupLabel, unitPlu
 const DIRECTORY_MODE_CONFIG = {
     "click-country": { name: "Click", heading: "Click the Countries", family: "countries", description: "Choose a named country by clicking it on the map." },
     "type-country": { name: "Type", heading: "Type the Countries", family: "countries", description: "Type the name of each highlighted country." },
+    "type-capital": { name: "Type", heading: "Type the Capitals", family: "capitals", description: "Type the capital city of each highlighted country." },
     "find-country": { name: "No Borders", heading: "Find Countries Without Borders", family: "countries", description: "Locate countries with their political borders hidden." },
     "find-point": { name: "Point", heading: "Find the Country from a Point", family: "countries", description: "Identify the country containing each point." },
     "click-subdivision": { name: "Click", heading: "Click the Subdivisions", family: "subdivisions", description: "Choose a named state or subdivision on the map." },
@@ -996,6 +1004,16 @@ async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
             .filter(id => id !== modeId && DIRECTORY_MODE_CONFIG[id].family === mode.family)
             .map(id => `<a class="directory-chip" href="${publicRoot}/quizzes/${id}/">${escapeHtml(DIRECTORY_MODE_CONFIG[id].heading)}</a>`)
             .join("");
+        const familyNoun = mode.family === "countries"
+            ? "country"
+            : mode.family === "subdivisions"
+                ? "subdivision"
+                : mode.family === "capitals"
+                    ? "capital"
+                    : mode.family;
+        const relatedSection = related
+            ? `<section class="directory-section"><h2>Other ${familyNoun} modes</h2><div class="directory-related">${related}</div></section>`
+            : "";
         const pageDescription = `${mode.description} Choose from ${records.length} available quiz sets.`;
         const html = `${directoryDocumentStart({ title: `${mode.heading} Geography Quizzes | Smurdy`, description: pageDescription, canonical: `${publicRoot}/quizzes/${modeId}/`, publicRoot })}
   <main class="directory-shell">
@@ -1003,7 +1021,7 @@ async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
     <h1 class="directory-title">${escapeHtml(mode.heading)} Quizzes</h1>
     <p class="directory-lead">${escapeHtml(pageDescription)}</p>
     ${groupedDirectorySections(records)}
-    <section class="directory-section"><h2>Other ${mode.family === "countries" ? "country" : "subdivision"} modes</h2><div class="directory-related">${related}</div></section>
+    ${relatedSection}
   </main>
   ${directoryFooter(publicRoot)}`;
         const modeDir = path.join(outDir, modeId);
@@ -1026,6 +1044,7 @@ function renderModeDirectoryCard({ modeId, count, publicRoot }) {
 async function writeUnifiedQuizIndex({ outDir, pageRecords, publicRoot }) {
     const countFor = modeId => pageRecords.filter(record => record.manifestId === modeId).length;
     const countryModes = ["click-country", "type-country", "find-country", "find-point"];
+    const capitalModes = ["type-capital"];
     const subdivisionModes = ["click-subdivision", "type-subdivision", "find-subdivision", "find-point-subdivision"];
     const description = "Browse every Smurdy geography quiz by category, game mode, and subject.";
     const html = `${directoryDocumentStart({ title: "All Smurdy Geography Quizzes", description, canonical: `${publicRoot}/quizzes/`, publicRoot })}
@@ -1034,6 +1053,7 @@ async function writeUnifiedQuizIndex({ outDir, pageRecords, publicRoot }) {
     <h1 class="directory-title">All Geography Quizzes</h1>
     <p class="directory-lead">Choose a category and game mode. Each directory contains the complete list of available quiz sets.</p>
     <section class="directory-section"><h2>Country maps</h2><p class="directory-section-lead">Learn country names, shapes, locations, and borders.</p><div class="directory-mode-grid">${countryModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Capitals</h2><p class="directory-section-lead">Connect countries with their capital cities.</p><div class="directory-mode-grid">${capitalModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
     <section class="directory-section"><h2>Subdivision maps</h2><p class="directory-section-lead">Practice states and other first-level subdivisions.</p><div class="directory-mode-grid">${subdivisionModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
     <section class="directory-section"><h2>Flags</h2><p class="directory-section-lead">Recognize flags and connect them with their places.</p><div class="directory-mode-grid">${renderModeDirectoryCard({ modeId: "type-flag", count: countFor("type-flag"), publicRoot })}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag and locate its country on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
   </main>

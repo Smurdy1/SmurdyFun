@@ -131,6 +131,7 @@ test("analytics reporter gives both runners the same event payload shape", () =>
 test("mode labels cover map, subdivision, and flag modes", () => {
     assert.equal(completion.modeLabelForQuiz("click-country"), "Click Countries");
     assert.equal(completion.modeLabelForQuiz("find-point-subdivision"), "Find State from a Point");
+    assert.equal(completion.modeLabelForQuiz("type-capital"), "Type Capitals");
     assert.equal(completion.modeLabelForQuiz("type-flag"), "Flags");
 });
 
@@ -149,7 +150,7 @@ test("both runners delegate completion flow instead of keeping a map-only share 
     assert.doesNotMatch(mapRunner, /navigator\.share/);
     assert.match(mapRunner, /completion\.retryMissed|renderReview/);
     assert.match(flagRunner, /completion\.retryMissed/);
-    assert.match(appCore, /quiz_completion\.js\?v=20260903-review-pagination-1/);
+    assert.match(appCore, /quiz_completion\.js\?v=20260908-capitals-1/);
 });
 
 

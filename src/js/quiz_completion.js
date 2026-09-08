@@ -31,6 +31,7 @@
         const labels = {
             "click-country": "Click Countries",
             "type-country": "Type Countries",
+            "type-capital": "Type Capitals",
             "find-country": "No Borders",
             "find-point": "Find from a Point",
             "click-subdivision": "Click States",
