@@ -135,6 +135,10 @@ li {
   padding-bottom: 10px;
 }
 
+.compact-card h2 {
+  margin-top: 0;
+}
+
 .mode-grid,
 .contact-grid {
   display: grid;
