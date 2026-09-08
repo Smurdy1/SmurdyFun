@@ -29,6 +29,7 @@ https://smurdy.fun/quizzes/click-country/south_america/
 https://smurdy.fun/quizzes/click-country/south_and_central_asia/
 https://smurdy.fun/quizzes/click-country/southeast_asia/
 https://smurdy.fun/quizzes/click-country/southern_europe/
+https://smurdy.fun/quizzes/click-country/spanish_speaking/
 https://smurdy.fun/quizzes/click-country/sub_saharan_africa/
 https://smurdy.fun/quizzes/click-country/tiny_countries/
 https://smurdy.fun/quizzes/click-country/west_africa/
@@ -56,6 +57,7 @@ https://smurdy.fun/quizzes/find-country/south_america/
 https://smurdy.fun/quizzes/find-country/south_and_central_asia/
 https://smurdy.fun/quizzes/find-country/southeast_asia/
 https://smurdy.fun/quizzes/find-country/southern_europe/
+https://smurdy.fun/quizzes/find-country/spanish_speaking/
 https://smurdy.fun/quizzes/find-country/sub_saharan_africa/
 https://smurdy.fun/quizzes/find-country/west_africa/
 https://smurdy.fun/quizzes/find-country/world/
@@ -82,6 +84,7 @@ https://smurdy.fun/quizzes/find-point/south_america/
 https://smurdy.fun/quizzes/find-point/south_and_central_asia/
 https://smurdy.fun/quizzes/find-point/southeast_asia/
 https://smurdy.fun/quizzes/find-point/southern_europe/
+https://smurdy.fun/quizzes/find-point/spanish_speaking/
 https://smurdy.fun/quizzes/find-point/sub_saharan_africa/
 https://smurdy.fun/quizzes/find-point/west_africa/
 https://smurdy.fun/quizzes/find-point/world/
@@ -113,6 +116,7 @@ https://smurdy.fun/quizzes/type-capital/south_america/
 https://smurdy.fun/quizzes/type-capital/south_and_central_asia/
 https://smurdy.fun/quizzes/type-capital/southeast_asia/
 https://smurdy.fun/quizzes/type-capital/southern_europe/
+https://smurdy.fun/quizzes/type-capital/spanish_speaking/
 https://smurdy.fun/quizzes/type-capital/sub_saharan_africa/
 https://smurdy.fun/quizzes/type-capital/tiny_countries/
 https://smurdy.fun/quizzes/type-capital/west_africa/
@@ -143,6 +147,7 @@ https://smurdy.fun/quizzes/type-country/south_america/
 https://smurdy.fun/quizzes/type-country/south_and_central_asia/
 https://smurdy.fun/quizzes/type-country/southeast_asia/
 https://smurdy.fun/quizzes/type-country/southern_europe/
+https://smurdy.fun/quizzes/type-country/spanish_speaking/
 https://smurdy.fun/quizzes/type-country/sub_saharan_africa/
 https://smurdy.fun/quizzes/type-country/tiny_countries/
 https://smurdy.fun/quizzes/type-country/west_africa/
@@ -173,6 +178,7 @@ https://smurdy.fun/quizzes/type-flag/south_america/
 https://smurdy.fun/quizzes/type-flag/south_and_central_asia/
 https://smurdy.fun/quizzes/type-flag/southeast_asia/
 https://smurdy.fun/quizzes/type-flag/southern_europe/
+https://smurdy.fun/quizzes/type-flag/spanish_speaking/
 https://smurdy.fun/quizzes/type-flag/sub_saharan_africa/
 https://smurdy.fun/quizzes/type-flag/tiny_countries/
 https://smurdy.fun/quizzes/type-flag/us_states/

@@ -14,7 +14,6 @@ const pageShell = require("./quiz_page_shell.js");
     const subdivisionGroupsPath = path.join(repoRoot, "src", "data", "subdivision_groups.json");
     const flagGroupsPath = path.join(repoRoot, "src", "data", "flag_groups.json");
     const copyPath = path.join(repoRoot, "src", "data", "quiz_page_descriptions.json");
-    const spanishClassPath = path.join(repoRoot, "src", "data", "spanish_class.json");
     const outDir = path.join(repoRoot, "quizzes");
 
     const baseUrl = (process.env.BASE_URL || "https://smurdy.fun").replace(/\/+$/, "");
@@ -34,7 +33,6 @@ const pageShell = require("./quiz_page_shell.js");
         flag_groups: flagGroups
     };
     const pageCopy = await readJson(copyPath, "quiz_page_descriptions.json");
-    const spanishClass = await readJson(spanishClassPath, "spanish_class.json");
 
     let manifest = [];
     try {
@@ -486,8 +484,6 @@ ${pageSpecificSectionHtml}
         }
     }
 
-    await writeSpanishClassSecretPage({ outDir, publicRoot, group: spanishClass, quizId: "type-capital" });
-    await writeSpanishClassSecretPage({ outDir, publicRoot, group: spanishClass, quizId: "type-country" });
     await writeLegacySubdivisionPages({ outDir, publicRoot });
     const modeHubPages = await writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot });
     const flagPageRecords = Object.entries(groupSets.flag_groups || {}).map(([groupId, group]) => ({
@@ -1276,110 +1272,6 @@ async function writeQuizIndex({ outDir, pageRecords, publicRoot }) {
 </html>`;
 
     await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
-}
-
-async function writeSpanishClassSecretPage({ outDir, publicRoot, group, quizId }) {
-    if (
-        !group ||
-        group.id !== "spanish_class" ||
-        !Array.isArray(group.countries) ||
-        !group.countries.length
-    ) {
-        throw new Error("Invalid spanish_class.json");
-    }
-
-    if (!["type-capital", "type-country"].includes(quizId)) {
-        throw new Error("Unsupported Spanish Class quiz: " + quizId);
-    }
-
-    const groupId = "spanish_class";
-    const groupLabel = String(group.label || "Spanish Class");
-    const entries = group.countries.map(String);
-    const count = entries.length;
-    const isCapitalQuiz = quizId === "type-capital";
-    const modeLabel = isCapitalQuiz ? "Type the Capitals" : "Type the Countries";
-    const pageTitle = isCapitalQuiz
-        ? "Spanish Class Capitals Quiz | Smurdy"
-        : "Spanish Class Country Quiz | Smurdy";
-    const description = isCapitalQuiz
-        ? "Private Spanish Class capitals practice set on Smurdy."
-        : "Private Spanish Class country-name practice set on Smurdy.";
-    const lead = isCapitalQuiz
-        ? "A private capitals practice set for Spanish class."
-        : "A private country-name practice set for Spanish class.";
-    const instructions = isCapitalQuiz
-        ? "One country is highlighted and named on the map. Type its capital city. After each answer, Smurdy briefly marks the capital on the map before moving on."
-        : "One country is highlighted on the map. Type its country name to answer, just like the regular Type the Countries quiz.";
-    const pageUrl = `${publicRoot}/quizzes/${quizId}/${groupId}/`;
-    const outPathDir = path.join(outDir, quizId, groupId);
-    await fs.mkdir(outPathDir, { recursive: true });
-
-    const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
-    const brandHtml = pageShell.renderBrand({ root: publicRoot, className: "panel-brand" });
-    const launchHtml = pageShell.renderPrimaryLaunch({ className: "action-row", buttonClass: "qb-btn" });
-    const footerHtml = pageShell.renderFooter({ root: publicRoot });
-    const landingScriptsHtml = pageShell.renderLandingScripts({ root: publicRoot });
-
-    const html = `<!doctype html>
-<html lang="en">
-<head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-64GJ4C47HL"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-64GJ4C47HL');
-</script>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>${escapeHtml(pageTitle)}</title>
-  <meta name="description" content="${escapeHtml(description)}"/>
-  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet"/>
-  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet"/>
-  <link rel="canonical" href="${escapeHtml(pageUrl)}"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
-  <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
-  <link rel="icon" type="image/png" sizes="48x48" href="${publicRoot}/assets/images/favicon-48.png?v=20260825-logo-1"/>
-  <link rel="shortcut icon" href="${publicRoot}/favicon.ico?v=20260825-logo-1"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="${publicRoot}/assets/images/apple-touch-icon.png?v=20260825-logo-1"/>
-  ${sharedStylesHtml}
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260903-final-unity-1"/>
-</head>
-<body data-smurdy-quiz-page data-quiz-id="${quizId}" data-quiz-group="${groupId}" data-quiz-modality="map">
-  ${brandHtml}
-
-  <main>
-    <header>
-      <h1>${escapeHtml(groupLabel)}</h1>
-      <div class="meta">${escapeHtml(modeLabel)} / ${escapeHtml(groupLabel)} / ${count} countries</div>
-    </header>
-
-    <p class="lead">${escapeHtml(lead)}</p>
-    ${launchHtml}
-
-    <section class="content-section">
-      <h2>How it works</h2>
-      <p>${escapeHtml(instructions)}</p>
-    </section>
-
-    <details class="included-list">
-      <summary>Countries included in this quiz (${count})</summary>
-      <p>${entries.map(escapeHtml).join(", ")}.</p>
-    </details>
-
-    <div class="quiz-actions action-row">
-      <button class="quiz-button qb-btn primary" type="button" data-smurdy-quiz-launch>Open quiz</button>
-      <a class="quiz-button qb-btn secondary" href="${publicRoot}/">Back to home</a>
-    </div>
-  </main>
-
-  ${footerHtml}
-  ${landingScriptsHtml}
-</body>
-</html>`;
-
-    await fs.writeFile(path.join(outPathDir, "index.html"), html, "utf8");
 }
 
 async function writeSitemap({ repoRoot, pages, publicRoot }) {

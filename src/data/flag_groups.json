@@ -188,5 +188,21 @@
       "Fiji",
       "Samoa"
     ]
+  },
+  "spanish_speaking": {
+    "label": "Spanish-Speaking Countries",
+    "shortLabel": "Spanish-Speaking Countries",
+    "description": "Identify the flags of all 20 Spanish-speaking sovereign countries.",
+    "lead": "Type the country represented by each flag in the Spanish-Speaking Countries set.",
+    "overview": "This set uses the same 20-country Spanish-speaking group as Smurdy's map and capitals quizzes, covering 18 countries in the Americas plus Spain and Equatorial Guinea.",
+    "challenge": "Several flags in the Americas share red, white, and blue, while the Central American flags often use blue-and-white patterns that reward attention to emblems and stripe layouts.",
+    "studyTip": "Study the Central American flags together, then South America, the Caribbean, and finally Spain and Equatorial Guinea before mixing the full set.",
+    "notable": [
+      "Mexico",
+      "Spain",
+      "Argentina",
+      "Colombia",
+      "Equatorial Guinea"
+    ]
   }
 }

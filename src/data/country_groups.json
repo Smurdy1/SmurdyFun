@@ -470,6 +470,51 @@
             "Venezuela"
         ]
     },
+    "spanish_speaking": {
+        "label": "Spanish-Speaking Countries",
+        "allowedTypes": [
+            "click",
+            "type",
+            "find",
+            "find-point"
+        ],
+        "borderset": "countries",
+        "unitName": "country",
+        "notable": [
+            "Mexico",
+            "Spain",
+            "Argentina",
+            "Colombia",
+            "Equatorial Guinea"
+        ],
+        "adjective": "Spanish-speaking",
+        "tags": [
+            "language",
+            "spanish"
+        ],
+        "countries": [
+            "Mexico",
+            "Guatemala",
+            "El Salvador",
+            "Honduras",
+            "Nicaragua",
+            "Costa Rica",
+            "Panama",
+            "Cuba",
+            "Dominican Republic",
+            "Colombia",
+            "Venezuela",
+            "Ecuador",
+            "Peru",
+            "Bolivia",
+            "Chile",
+            "Argentina",
+            "Paraguay",
+            "Uruguay",
+            "Spain",
+            "Equatorial Guinea"
+        ]
+    },
     "oceania": {
         "label": "Oceania",
         "allowedTypes": [
