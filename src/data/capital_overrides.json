@@ -67,5 +67,25 @@
       "El Aaiun"
     ],
     "note": "Western Sahara is disputed; Laayoune is commonly listed as its capital, while the Sahrawi Arab Democratic Republic also uses Tifariti as a temporary seat."
+  },
+  "Equatorial Guinea": {
+    "accepted": [
+      "La Paz"
+    ],
+    "note": "Ciudad de la Paz is the capital; “La Paz” is accepted as a common shortening."
+  },
+  "Guatemala": {
+    "accepted": [
+      "Ciudad de Guatemala"
+    ]
+  },
+  "Mexico": {
+    "accepted": [
+      "Ciudad de México",
+      "CDMX",
+      "México D.F.",
+      "Mexico D.F.",
+      "Mexico DF"
+    ]
   }
 }
