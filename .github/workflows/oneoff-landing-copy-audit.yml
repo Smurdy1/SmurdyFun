@@ -1,0 +1,54 @@
+name: One-off landing copy audit
+
+on:
+  push:
+    branches:
+      - fix/landing-copy-quality
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/landing-copy-quality
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate all quiz landing pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-08'
+        run: npm run pages:generate
+
+      - name: Check generator and browser syntax
+        run: |
+          node --check tools/generate_quiz_pages.js
+          node --check tools/generate_flag_pages.js
+          node --check src/js/flag_catalog.js
+
+      - name: Run landing copy audit and full tests
+        run: |
+          node --test tests/landing_copy_quality.test.js
+          npm test
+
+      - name: Validate generated diff
+        run: git diff --check
+
+      - name: Commit regenerated landing pages
+        run: |
+          rm -f .github/workflows/oneoff-landing-copy-audit.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Regenerate polished quiz landing pages"
+          git push origin HEAD:fix/landing-copy-quality
