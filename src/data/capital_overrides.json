@@ -45,5 +45,27 @@
       "Kotte"
     ],
     "note": "Sri Jayawardenepura Kotte is the official legislative capital."
+  },
+  "Palestine": {
+    "includeAllWikidataCapitals": true,
+    "primary": "East Jerusalem",
+    "accepted": [
+      "East Jerusalem",
+      "Ramallah"
+    ],
+    "note": "Wikidata lists East Jerusalem and Ramallah; capital status is disputed and Ramallah serves as the administrative center."
+  },
+  "Western Sahara": {
+    "capitalEntityIds": [
+      "Q47837"
+    ],
+    "primary": "Laayoune",
+    "accepted": [
+      "Laayoune",
+      "Laâyoune",
+      "El Aaiún",
+      "El Aaiun"
+    ],
+    "note": "Western Sahara is disputed; Laayoune is commonly listed as its capital, while the Sahrawi Arab Democratic Republic also uses Tifariti as a temporary seat."
   }
 }
