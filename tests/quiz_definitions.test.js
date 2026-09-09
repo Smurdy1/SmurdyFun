@@ -105,7 +105,8 @@ test("shared landing shell separates the primary launch from the full action row
     assert.match(actions, /data-smurdy-quiz-launch/);
     assert.match(actions, /data-smurdy-quiz-favorite/);
     assert.match(actions, /☆ Add to favorites/);
-    assert.match(actions, />Home<\\/a>/);\n    assert.match(actions, />All quizzes<\\/a>/);
+    assert.match(actions, />Home<\\/a>/);
+    assert.match(actions, />All quizzes<\\/a>/);
     assert.doesNotMatch(shell.renderFooter(), /·/);
 });
 
