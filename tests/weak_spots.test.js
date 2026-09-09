@@ -22,6 +22,14 @@ test("Weak Spots keys keep quiz skills separate", () => {
         weakSpots.modeDefinition("type-capital").label,
         "Type Capitals"
     );
+    assert.notEqual(
+        weakSpots.entryKey("Georgia", "type-capital"),
+        weakSpots.entryKey("Georgia", "type-capital-subdivision")
+    );
+    assert.equal(
+        weakSpots.modeDefinition("type-capital-subdivision").label,
+        "State Capitals"
+    );
     assert.equal(
         weakSpots.entryKey("São Tomé", "type-flag"),
         weakSpots.entryKey("Sao Tome", "type-flag")
@@ -34,10 +42,11 @@ test("Weak Spots practice stages preserve mode and group", () => {
         { name: "France", mode: "type-flag", group: "europe" },
         { name: "Germany", mode: "type-flag", group: "europe" },
         { name: "Brazil", mode: "type-capital", group: "latin_america" },
+        { name: "California", mode: "type-capital-subdivision", group: "us_states" },
         { name: "Texas", mode: "type-subdivision", group: "us_states" }
     ]);
 
-    assert.equal(stages.length, 4);
+    assert.equal(stages.length, 5);
 
     const click = stages.find(stage => stage.mode === "click-country");
     assert.equal(click.quizId, "click-country");
@@ -55,6 +64,12 @@ test("Weak Spots practice stages preserve mode and group", () => {
     assert.equal(capitals.group, "latin_america");
     assert.equal(capitals.label, "Type Capitals: Latin America");
     assert.deepEqual(Array.from(capitals.names), ["Brazil"]);
+
+    const stateCapitals = stages.find(stage => stage.mode === "type-capital-subdivision");
+    assert.equal(stateCapitals.quizId, "type-capital");
+    assert.equal(stateCapitals.group, "us_states");
+    assert.equal(stateCapitals.label, "State Capitals: US States");
+    assert.deepEqual(Array.from(stateCapitals.names), ["California"]);
 
     const states = stages.find(stage => stage.mode === "type-subdivision");
     assert.equal(states.quizId, "type-subdivision");
