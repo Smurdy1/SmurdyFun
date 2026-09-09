@@ -99,7 +99,7 @@ window.SmurdyQuizManifest = [
                     : "type-capital",
             reviewLabelForTarget: (country) => {
                 const capital = window.SmurdyCapitalQuiz?.getCapital?.(country);
-                return capital ? `${country} — ${capital}` : country;
+                return capital ? `${country}: ${capital}` : country;
             },
             completionItemSingular: "capital",
             completionItemPlural: "capitals",
