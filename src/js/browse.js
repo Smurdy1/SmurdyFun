@@ -1590,7 +1590,7 @@
                 result.slice(0, maxLength - 1)
                     .replace(/\s+\S*$/, "")
                     .trim() +
-                "…";
+                "...";
         }
 
         return result;
@@ -2648,7 +2648,7 @@
 
             <div id="qb-list">
                 <div class="qb-loading">
-                    Loading quizzes…
+                    Loading quizzes...
                 </div>
             </div>
 
