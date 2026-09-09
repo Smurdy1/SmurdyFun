@@ -15,8 +15,10 @@ test("About and Contact pages have unique canonical metadata", () => {
 
     assert.match(about, /<title>About Smurdy \| Geography Quiz Project<\/title>/);
     assert.match(about, /rel="canonical" href="https:\/\/smurdy\.fun\/about\/"/);
-    assert.match(about, /Flag quizzes for the world, regions, specialty groups, and US states/);\n    assert.match(about, /Country capitals and all 50 US state capitals/);
-    assert.match(about, /Smurdy Daily/);\n    assert.match(about, /I like geography and programming/);
+    assert.match(about, /Flag quizzes for the world, regions, specialty groups, and US states/);
+    assert.match(about, /Country capitals and all 50 US state capitals/);
+    assert.match(about, /Smurdy Daily/);
+    assert.match(about, /I like geography and programming/);
 
     assert.match(contact, /<title>Contact and Feedback \| Smurdy<\/title>/);
     assert.match(contact, /rel="canonical" href="https:\/\/smurdy\.fun\/contact\/"/);
