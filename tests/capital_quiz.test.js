@@ -88,3 +88,43 @@ test("capital answer matching supports multilingual Unicode aliases", () => {
     assert.equal(capitalQuiz.isAccepted(russia, "Москва"), true);
     assert.equal(capitalQuiz.isAccepted(greece, "Αθήνα"), true);
 });
+
+
+test("state capital lookup is scoped separately from country capitals", () => {
+    const countryGeorgia = capitalQuiz.resolveRecord(dataset, "Georgia");
+    const stateGeorgia = capitalQuiz.resolveRecord(
+        dataset,
+        "Georgia",
+        null,
+        { groupSet: "subdivision_groups", groupId: "us_states" }
+    );
+    const california = capitalQuiz.resolveRecord(
+        dataset,
+        "California",
+        null,
+        { groupSet: "subdivision_groups", groupId: "us_states" }
+    );
+
+    assert.equal(countryGeorgia.capital, "Tbilisi");
+    assert.equal(stateGeorgia.capital, "Atlanta");
+    assert.equal(california.capital, "Sacramento");
+    assert.notEqual(countryGeorgia, stateGeorgia);
+});
+
+test("state capital records keep aliases and map-marker coordinates", () => {
+    const california = capitalQuiz.resolveRecord(
+        dataset,
+        "California",
+        null,
+        { groupSet: "subdivision_groups", groupId: "us_states" }
+    );
+    assert.equal(capitalQuiz.isAccepted(california, "Sacramento"), true);
+
+    const location = capitalQuiz.primaryLocation(california);
+    assert.equal(location.name, "Sacramento");
+    const marker = capitalQuiz.markerFeatureCollection(location);
+    assert.deepEqual(marker.features[0].geometry.coordinates, [
+        location.lng,
+        location.lat
+    ]);
+});
