@@ -1164,7 +1164,7 @@ const SmurdyQuiz = {
 
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260908-capitals-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260909-state-capitals-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
