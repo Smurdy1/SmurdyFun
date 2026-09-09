@@ -745,34 +745,6 @@
             line-height: 1.4;
         }
 
-        .qb-card-copy .qb-tags {
-            margin-top: 9px;
-        }
-
-        .qb-card-featured {
-            border-color: rgba(0,119,204,.42);
-            background: linear-gradient(
-                135deg,
-                rgba(0,119,204,.10),
-                #fbfbfb 58%
-            );
-            box-shadow: 0 4px 14px rgba(0,119,204,.09);
-        }
-
-        .qb-main-badge {
-            display: inline-block;
-            margin-left: 7px;
-            padding: 3px 7px;
-            border-radius: 4px;
-            background: #0077cc;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 700;
-            line-height: 1.2;
-            vertical-align: 2px;
-            white-space: nowrap;
-        }
-
         .qb-loading {
             padding: 24px 12px;
             color: #777;
