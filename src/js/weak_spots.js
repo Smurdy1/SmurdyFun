@@ -26,6 +26,7 @@
         "click-country": { label: "Click Countries", kind: "country", defaultGroup: "world" },
         "type-country": { label: "Type Countries", kind: "country", defaultGroup: "world" },
         "type-capital": { label: "Type Capitals", kind: "country", defaultGroup: "world" },
+        "type-capital-subdivision": { label: "State Capitals", kind: "subdivision", defaultGroup: "us_states", quizId: "type-capital" },
         "find-country": { label: "No Borders", kind: "country", defaultGroup: "world" },
         "find-point": { label: "Find from a Point", kind: "country", defaultGroup: "world" },
         "click-subdivision": { label: "Click States", kind: "subdivision", defaultGroup: "us_states" },
@@ -420,6 +421,9 @@
         let mode = routeQuizId;
         if (routeQuizId === "type-flag") {
             mode = group === "us_states" ? "type-flag-subdivision" : "type-flag";
+        }
+        if (routeQuizId === "type-capital") {
+            mode = group === "us_states" ? "type-capital-subdivision" : "type-capital";
         }
         if (!MODE_DEFINITIONS[mode]) return null;
         return stageForEntries(

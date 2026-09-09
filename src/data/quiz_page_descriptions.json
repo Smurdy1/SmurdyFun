@@ -190,23 +190,23 @@
         },
         "type-capital": {
             "displayName": "Type the Capitals",
-            "lead": "Practice the capitals of {groupTopic} while keeping each country tied to its place on the map.",
+            "lead": "Practice the capitals of {groupTopic} while keeping each {unitName} tied to its place on the map.",
             "heading": "How the capitals quiz works",
             "howToPlay": "One {unitName} is highlighted and named on the map. Type its capital city, submit your answer, and Smurdy briefly marks the capital's location before moving on through {countPhrase}.",
-            "tip": "Use the highlighted country as context, but try to recall the capital before looking for where the answer dot appears.",
+            "tip": "Use the highlighted {unitName} as context, but try to recall the capital before looking for where the answer dot appears.",
             "searchTerms": [
                 "capital cities quiz",
                 "country capitals map quiz",
                 "type capitals geography quiz"
             ],
             "skillsHeading": "What you'll practice",
-            "skills": "This mode connects three facts at once: the country name, its location, and its capital city. The answer dot adds a quick location check after every attempt.",
+            "skills": "This mode connects three facts at once: the {unitName} name, its location, and its capital city. The answer dot adds a quick location check after every attempt.",
             "strategyHeading": "A good way to start",
-            "strategy": "Read the country name, recall its capital without scanning the map, then use the brief answer dot to reinforce where that city actually sits.",
+            "strategy": "Read the {unitName} name, recall its capital without scanning the map, then use the brief answer dot to reinforce where that city actually sits.",
             "bestForHeading": "When this mode helps",
-            "bestFor": "Use this when you know the countries in this set and want to add capital-city recall without losing the geographic context of the map.",
+            "bestFor": "Use this when you know the {unitPlural} in this set and want to add capital-city recall without losing the geographic context of the map.",
             "mistakesHeading": "One mistake to watch for",
-            "mistakes": "Don't automatically type the country's largest or most famous city. Some capitals are smaller or less internationally prominent."
+            "mistakes": "Don't automatically type the {unitName}'s largest or most famous city. Some capitals are smaller or less prominent."
         }
     },
     "groups": {
@@ -654,6 +654,20 @@
             "studyTip": "Memorize the Pacific coast from Colombia to Chile, then learn the northern Atlantic countries and the Southern Cone. Add Bolivia and Paraguay last as the two landlocked countries, always relating them back to Brazil.",
             "sectionHeading": "Use Brazil to organize the continent",
             "sectionBody": "Brazil borders every sovereign South American country except Chile and Ecuador. That makes one question especially useful: does the target touch Brazil? Combining that fact with the Pacific and Atlantic coastlines quickly narrows most answers."
+        },
+        "type-capital/us_states": {
+            "title": "US State Capitals Quiz – Type All 50 State Capitals | Smurdy",
+            "h1": "US State Capitals Quiz – Type All 50 State Capitals",
+            "metaDescription": "Practice all 50 US state capitals on an interactive map. Each state is highlighted, you type its capital, and the capital city is briefly marked after every answer.",
+            "lead": "Learn all 50 US state capitals with the same state map used by Smurdy's other US geography quizzes.",
+            "overviewHeading": "What the US state capitals quiz covers",
+            "overview": "This quiz includes all 50 states and their current capital cities. Each question keeps the state visible on the map so you learn the capital together with its geographic location.",
+            "challengeHeading": "What makes state capitals challenging",
+            "challenge": "Many state capitals are not the state's largest or best-known city. Pairs such as New York and Albany, California and Sacramento, and Nevada and Carson City reward direct recall instead of guessing the most famous city.",
+            "studyTipHeading": "How to learn the 50 state capitals",
+            "studyTip": "Learn capitals by region first, then mix the full set. The Northeast and Midwest are useful clusters because several states and capitals are packed closely together.",
+            "sectionHeading": "Why Washington, DC is not included",
+            "sectionBody": "Washington, DC is the capital of the United States, not a state capital. This quiz covers exactly the 50 states, so the answer set contains 50 state capitals."
         }
     }
 }

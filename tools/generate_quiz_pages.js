@@ -71,15 +71,20 @@ const pageShell = require("./quiz_page_shell.js");
 
     const pages = [];
     const pageRecords = [];
+    const generationVariants = manifest
+        .filter(manifestEntry => !(manifestEntry.config && manifestEntry.config.flagQuiz))
+        .flatMap(manifestEntry =>
+            getGroupSetIdsForManifest(manifestEntry).map(activeGroupSetId => ({
+                manifestEntry,
+                activeGroupSetId
+            }))
+        );
 
-    for (const manifestEntry of manifest) {
-        // Flag pages use their own image-based runner and richer generator.
-        if (manifestEntry.config && manifestEntry.config.flagQuiz) continue;
+    for (const { manifestEntry, activeGroupSetId } of generationVariants) {
         const manifestId = getManifestId(manifestEntry);
         const modeKey = normalizeModeKey(manifestEntry);
         const modeCopy = modeCopyMap[manifestId] || modeCopyMap[modeKey] || {};
         const titleBase = manifestEntry.title || manifestEntry.name || manifestId;
-        const activeGroupSetId = manifestEntry.groupSet || "country_groups";
         const groupsForEntry = groupSets[activeGroupSetId] || {};
         const groupKeys = getGroupKeysForManifest(manifestEntry, groupsForEntry);
 
@@ -263,7 +268,7 @@ const metaDescription = pageOverride.metaDescription
 
             const otherQuizzes = manifest
                 .filter(other => getManifestId(other) !== manifestId)
-                .filter(other => (other.groupSet || "country_groups") === activeGroupSetId)
+                .filter(other => getGroupSetIdsForManifest(other).includes(activeGroupSetId))
                 .filter(other => getGroupKeysForManifest(other, groupsForEntry).includes(groupId))
                 .map(other => ({
                     id: getManifestId(other),
@@ -293,7 +298,8 @@ const metaDescription = pageOverride.metaDescription
                     "click-subdivision": "click-country",
                     "type-subdivision": "type-country",
                     "find-subdivision": "find-country",
-                    "find-point-subdivision": "find-point"
+                    "find-point-subdivision": "find-point",
+                    "type-capital": "type-capital"
                 }[manifestId];
 
                 if (countryModeId) {
@@ -637,6 +643,17 @@ function validateCopyCoverage(groups, groupCopyMap) {
 
 function getManifestId(entry) {
     return entry.id || slug(entry.title || entry.file || "quiz");
+}
+
+function getGroupSetIdsForManifest(entry) {
+    const ids = [
+        entry?.groupSet || "country_groups",
+        ...(Array.isArray(entry?.additionalGroupSets)
+            ? entry.additionalGroupSets
+            : [])
+    ].map(value => String(value || "").trim()).filter(Boolean);
+
+    return [...new Set(ids)];
 }
 
 function normalizeModeKey(entry) {

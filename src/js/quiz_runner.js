@@ -248,6 +248,7 @@ window.runNameQuiz = function runNameQuiz(config) {
          completionItemSingular = null,
          completionItemPlural = null,
          shareHeadlineBuilder = null,
+         weakSpotMode = null,
          // custom for "find the point"
          findPoint = false,
          borders = null,
@@ -412,6 +413,17 @@ window.runNameQuiz = function runNameQuiz(config) {
                 ""
             )
         };
+    }
+
+    function getWeakSpotMode() {
+        const context = getAnalyticsContext();
+        if (typeof weakSpotMode === "function") {
+            try {
+                return String(weakSpotMode(context) || context.quiz_mode);
+            } catch (_) {}
+        }
+        if (weakSpotMode) return String(weakSpotMode);
+        return context.quiz_mode;
     }
 
     function beginAnalyticsRun(startReason) {
@@ -846,7 +858,7 @@ window.runNameQuiz = function runNameQuiz(config) {
                 const context = getAnalyticsContext();
                 window.SmurdyWeakSpots?.recordMiss({
                     name: displayName,
-                    mode: context.quiz_mode,
+                    mode: getWeakSpotMode(),
                     group: context.quiz_group
                 });
             } catch (_) {}
@@ -861,7 +873,7 @@ window.runNameQuiz = function runNameQuiz(config) {
             const context = getAnalyticsContext();
             window.SmurdyWeakSpots?.recordRetrySuccess({
                 name: getCanonicalDisplayName(currentName),
-                mode: context.quiz_mode,
+                mode: getWeakSpotMode(),
                 group: context.quiz_group
             });
         } catch (_) {}

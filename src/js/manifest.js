@@ -65,14 +65,18 @@ window.SmurdyQuizManifest = [
         category: "capitals",
         interaction: "type",
         modality: "map",
-        families: ["countries"],
+        families: ["countries", "subdivisions"],
         difficulty: "Medium",
         tags: ["Capitals", "Map", "Typing"],
         groupSet: "country_groups",
+        additionalGroupSets: ["subdivision_groups"],
+        groupSetOverrides: {
+            us_states: "subdivision_groups"
+        },
         borders: 1,
-        descriptionTemplate: "Type the capital of the highlighted country.",
-        shortDescription: "Type the capital of each highlighted country.",
-        longDescription: "This {label} capitals quiz highlights each country and asks you to type its capital city.",
+        descriptionTemplate: "Type the capital of the highlighted place.",
+        shortDescription: "Type the capital of each highlighted place.",
+        longDescription: "This {label} capitals quiz highlights each {unitName} and asks you to type its capital city.",
         config: {
             mode: "type",
             titleBuilder: (country) => `What is the capital of ${country}?`,
@@ -89,6 +93,10 @@ window.SmurdyQuizManifest = [
                 window.SmurdyCapitalQuiz?.showCapitalMarker?.(country),
             clearAnswerReveal: () =>
                 window.SmurdyCapitalQuiz?.clearCapitalMarker?.(),
+            weakSpotMode: () =>
+                window.SmurdyQuiz?.currentGroupSet === "subdivision_groups"
+                    ? "type-capital-subdivision"
+                    : "type-capital",
             reviewLabelForTarget: (country) => {
                 const capital = window.SmurdyCapitalQuiz?.getCapital?.(country);
                 return capital ? `${country} — ${capital}` : country;

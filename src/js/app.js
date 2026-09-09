@@ -1,7 +1,7 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260908-capitals-1";
+    const ASSET_VERSION = "20260909-state-capitals-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
@@ -62,7 +62,14 @@
     const cleanDefinition = cleanQuizId
         ? quizDefinitions?.get?.(cleanQuizId)
         : null;
+    const cleanManifest = cleanQuizId
+        ? quizDefinitions?.getManifest?.(cleanQuizId)
+        : null;
+    const groupSetOverride = String(
+        cleanManifest?.groupSetOverrides?.[cleanGroupId] || ""
+    );
     const cleanUsesSubdivisions = Boolean(
+        groupSetOverride === "subdivision_groups" ||
         cleanDefinition?.family === "subdivisions" ||
         (cleanQuizId && cleanQuizId.includes("subdivision"))
     );
@@ -73,6 +80,7 @@
         quizGroupId: cleanGroupId,
         quizGroupSet:
             urlParams.get("groupSet") ||
+            groupSetOverride ||
             (cleanUsesSubdivisions ? "subdivision_groups" : "country_groups"),
         cleanQuizId
     };

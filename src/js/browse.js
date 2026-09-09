@@ -1239,6 +1239,23 @@
         return explicit.length ? explicit : [familyKeyForManifest(item)];
     }
 
+    function groupSetIdsForManifest(item) {
+        const ids = [
+            item?.groupSet || "country_groups",
+            ...(Array.isArray(item?.additionalGroupSets)
+                ? item.additionalGroupSets
+                : [])
+        ].map(value => String(value || "").trim()).filter(Boolean);
+
+        return [...new Set(ids)];
+    }
+
+    function familyForGroupSet(groupSetId) {
+        if (groupSetId === "country_groups") return "countries";
+        if (groupSetId === "subdivision_groups") return "subdivisions";
+        return null;
+    }
+
     function manifestIsPlayable(item) {
         const shared = normalizedDefinition(item);
         if (shared) return shared.playable;
@@ -1427,6 +1444,12 @@
 
         if (category === "capitals") {
             const label = group?.label || getFriendlyTypeLabel(id);
+            if (family === "subdivisions") {
+                const unit = group?.unitName || "subdivision";
+                return id === "us_states"
+                    ? "Practice all 50 US state capitals, with each state highlighted on the map."
+                    : `Practice the capitals in ${label}, with each ${unit} highlighted on the map.`;
+            }
             if (id === "world") {
                 return "Practice the capital cities of countries from around the world.";
             }
@@ -1787,27 +1810,31 @@
         const cards = [];
 
         for (const manifestItem of manifests) {
-            const groupSetId =
-                manifestItem.groupSet ||
-                "country_groups";
+            const groupSetIds = groupSetIdsForManifest(manifestItem)
+                .filter(groupSetId => {
+                    const family = familyForGroupSet(groupSetId);
+                    return !family || family === activeFamily;
+                });
 
-            try {
-                const groupCollection =
-                    await loadGroupSet(groupSetId);
+            for (const groupSetId of groupSetIds) {
+                try {
+                    const groupCollection =
+                        await loadGroupSet(groupSetId);
 
-                cards.push(
-                    ...buildCardsForManifest(
-                        manifestItem,
-                        groupCollection,
-                        pageDescriptions,
-                        activeFamily
-                    )
-                );
-            } catch (error) {
-                console.error(
-                    `Could not load ${groupSetId}`,
-                    error
-                );
+                    cards.push(
+                        ...buildCardsForManifest(
+                            manifestItem,
+                            groupCollection,
+                            pageDescriptions,
+                            activeFamily
+                        )
+                    );
+                } catch (error) {
+                    console.error(
+                        `Could not load ${groupSetId}`,
+                        error
+                    );
+                }
             }
         }
 
@@ -1827,25 +1854,24 @@
                     continue;
                 }
 
-                const groupSetId =
-                    manifestItem.groupSet ||
-                    "country_groups";
-
-                try {
-                    const groupCollection =
-                        await loadGroupSet(groupSetId);
-                    cards.push(
-                        ...buildCardsForManifest(
-                            manifestItem,
-                            groupCollection,
-                            pageDescriptions
-                        )
-                    );
-                } catch (error) {
-                    console.error(
-                        `Could not load ${groupSetId}`,
-                        error
-                    );
+                for (const groupSetId of groupSetIdsForManifest(manifestItem)) {
+                    try {
+                        const groupCollection =
+                            await loadGroupSet(groupSetId);
+                        cards.push(
+                            ...buildCardsForManifest(
+                                manifestItem,
+                                groupCollection,
+                                pageDescriptions,
+                                familyForGroupSet(groupSetId)
+                            )
+                        );
+                    } catch (error) {
+                        console.error(
+                            `Could not load ${groupSetId}`,
+                            error
+                        );
+                    }
                 }
             }
 

@@ -16,6 +16,10 @@ const countryGroups = JSON.parse(fs.readFileSync(
     path.join(root, "src/data/country_groups.json"),
     "utf8"
 ));
+const subdivisionGroups = JSON.parse(fs.readFileSync(
+    path.join(root, "src/data/subdivision_groups.json"),
+    "utf8"
+));
 
 const capitals = dataset.capitals;
 const countrySources = flagSources.flags.filter(entry => entry.kind === "country");
@@ -94,4 +98,39 @@ test("capital aliases include multilingual names and common shortenings", () => 
         "Expected Wikidata multilingual aliases to produce a broad accepted-answer set"
     );
     assert.match(dataset.source.acceptedAnswers, /all available languages/);
+});
+
+
+test("US state capitals cover exactly the 50-state subdivision set", () => {
+    const stateCapitals = dataset.subdivisionCapitals?.us_states;
+    assert.ok(stateCapitals);
+    assert.equal(Object.keys(stateCapitals).length, 50);
+    assert.equal(subdivisionGroups.us_states.members.length, 50);
+
+    for (const state of subdivisionGroups.us_states.members) {
+        const entry = stateCapitals[state];
+        assert.ok(entry, "Missing state capital record for " + state);
+        assert.equal(typeof entry.capital, "string");
+        assert.ok(entry.capital.length > 0);
+        assert.ok(entry.accepted.includes(entry.capital));
+        assert.equal(entry.locations.length, 1);
+        assert.ok(Number.isFinite(entry.locations[0].lat));
+        assert.ok(Number.isFinite(entry.locations[0].lng));
+    }
+});
+
+test("well-known US state capitals are generated correctly", () => {
+    const states = dataset.subdivisionCapitals.us_states;
+    const expected = {
+        California: "Sacramento",
+        "New York": "Albany",
+        Nevada: "Carson City",
+        Texas: "Austin",
+        Alaska: "Juneau",
+        Georgia: "Atlanta"
+    };
+
+    for (const [state, capital] of Object.entries(expected)) {
+        assert.equal(states[state].capital, capital, state);
+    }
 });
