@@ -482,17 +482,6 @@
         }
     }
 
-    function roundRect(ctx, x, y, width, height, radius) {
-        const r = Math.min(radius, width / 2, height / 2);
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + width, y, x + width, y + height, r);
-        ctx.arcTo(x + width, y + height, x, y + height, r);
-        ctx.arcTo(x, y + height, x, y, r);
-        ctx.arcTo(x, y, x + width, y, r);
-        ctx.closePath();
-    }
-
     function loadImage(source) {
         return new Promise((resolve, reject) => {
             const image = new Image();
@@ -522,24 +511,6 @@
         ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
     }
 
-    function drawStatCard(ctx, x, y, width, label, value) {
-        ctx.save();
-        ctx.fillStyle = "rgba(255,255,255,.075)";
-        roundRect(ctx, x, y, width, 136, 20);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.10)";
-        ctx.lineWidth = 2;
-        roundRect(ctx, x, y, width, 136, 20);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255,255,255,.68)";
-        ctx.font = "650 25px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.fillText(label, x + 24, y + 40);
-        ctx.fillStyle = "#fff";
-        ctx.font = "850 44px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.fillText(value, x + 24, y + 94);
-        ctx.restore();
-    }
-
     function splitTextIntoLines(ctx, text, maxWidth, maxLines) {
         const words = String(text || "").split(/\s+/).filter(Boolean);
         const lines = [];
@@ -552,22 +523,8 @@
         if (line) lines.push(line);
         if (lines.length <= maxLines) return lines;
         const kept = lines.slice(0, maxLines);
-        kept[maxLines - 1] = `${kept[maxLines - 1].replace(/[....]+$/, "")}...`;
+        kept[maxLines - 1] = `${kept[maxLines - 1].replace(/[.]+$/, "")}...`;
         return kept;
-    }
-
-    function drawAdaptiveHeadline(ctx, text, x, top, maxWidth) {
-        let fontSize = 50;
-        let lines = [];
-        while (fontSize >= 38) {
-            ctx.font = `850 ${fontSize}px system-ui, -apple-system, Segoe UI, Arial`;
-            lines = splitTextIntoLines(ctx, text, maxWidth, 2);
-            if (lines.length <= 2 && !lines[lines.length - 1]?.endsWith("...")) break;
-            fontSize -= 2;
-        }
-        const lineHeight = fontSize + 8;
-        lines.forEach((line, index) => ctx.fillText(line, x, top + index * lineHeight));
-        return top + (lines.length - 1) * lineHeight;
     }
 
     function canvasToBlob(canvas) {
