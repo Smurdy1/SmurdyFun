@@ -1057,6 +1057,177 @@
             .qb-play { padding:10px 12px; font-size:15px; }
         }
 
+
+        /* 1.14.2 flatter browser controls */
+        #quiz-browser {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.09);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        #qb-library-tabs {
+            display: flex;
+            gap: 16px;
+            margin: 10px 0 0;
+            padding: 0;
+            border-radius: 0;
+            border-bottom: 1px solid #d8d8d8;
+            background: transparent;
+        }
+        .qb-library-tab {
+            min-height: 34px;
+            padding: 7px 0 6px;
+            border-radius: 0;
+            color: #444;
+            font-weight: 600;
+        }
+        .qb-library-tab:hover,
+        .qb-library-tab:focus-visible { background: transparent; color:#111; }
+        .qb-library-tab[aria-selected="true"] {
+            margin-bottom: -1px;
+            border-bottom: 2px solid #0077cc;
+            background: transparent;
+            color: #075f9e;
+            box-shadow: none;
+        }
+        .qb-library-count {
+            min-width: 0;
+            min-height: 0;
+            margin-left: 2px;
+            padding: 0;
+            border-radius: 0;
+            background: transparent !important;
+            color: inherit !important;
+            font-size: inherit;
+        }
+        .qb-library-count::before { content: "("; }
+        .qb-library-count::after { content: ")"; }
+
+        #qb-category-tabs,
+        #qb-mode-tabs,
+        #qb-family-tabs {
+            display: flex;
+            gap: 15px;
+            margin: 0;
+            padding: 10px 0 0;
+            border: 0;
+            border-bottom: 1px solid #d8d8d8;
+            border-radius: 0;
+            background: transparent;
+        }
+        .qb-category-tab,
+        .qb-mode-tab,
+        .qb-family-tab {
+            flex: 0 0 auto;
+            min-width: 0;
+            min-height: 35px;
+            padding: 7px 0 6px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: #444;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: none;
+        }
+        .qb-category-tab:hover:not(:disabled),
+        .qb-category-tab:focus-visible:not(:disabled),
+        .qb-mode-tab:hover:not(:disabled),
+        .qb-mode-tab:focus-visible:not(:disabled),
+        .qb-family-tab:hover,
+        .qb-family-tab:focus-visible { background: transparent; color:#111; }
+        .qb-category-tab[aria-selected="true"],
+        .qb-mode-tab[aria-selected="true"],
+        .qb-family-tab[aria-selected="true"] {
+            margin-bottom: -1px;
+            border-bottom: 2px solid #0077cc;
+            background: transparent;
+            color: #075f9e;
+            box-shadow: none;
+        }
+        .qb-category-tab:disabled,
+        .qb-mode-tab:disabled {
+            background: transparent;
+            color: #999;
+            opacity: .65;
+        }
+        .qb-coming-soon { display:none; }
+
+        #qb-search {
+            padding: 10px 0 11px;
+        }
+        #qb-filter {
+            border-radius: 5px !important;
+            border-color: #cfcfcf !important;
+        }
+        .qb-size-filter {
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+            color: #555;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        #qb-size-filter {
+            min-height: 38px;
+            border-radius: 5px;
+            border-color: #cfcfcf;
+            font-weight: 600;
+        }
+
+        .qb-card {
+            padding: 11px 2px;
+            border: 0;
+            border-bottom: 1px solid #dedede;
+            border-radius: 0;
+            background: transparent;
+            gap: 5px;
+        }
+        .qb-card:hover { background:#fafafa; }
+        .qb-card-featured {
+            border-color: #dedede;
+            background: transparent;
+        }
+        .qb-title { margin:0 0 3px; font-size:15px; font-weight:700; }
+        .qb-sub { color:#666; font-size:12px; }
+        .qb-card-context { margin-top:2px; color:#777; font-size:11px; }
+        .qb-tags, .qb-main-badge { display:none !important; }
+        .qb-play {
+            border-radius: 5px;
+            background:#005fa3;
+            font-weight:700;
+        }
+        .qb-favorite {
+            border-radius:4px !important;
+        }
+        #qb-directory-links {
+            background:#fff;
+        }
+        .qb-directory-primary {
+            display:inline;
+            width:auto;
+            padding:0;
+            border-radius:0;
+            background:transparent;
+            color:#075f9e;
+            font-size:13px;
+            font-weight:600;
+            text-decoration:underline;
+            text-underline-offset:3px;
+        }
+        .qb-directory-primary:hover,
+        .qb-directory-primary:focus { background:transparent; color:#054c80; }
+
+        @media (max-width:700px) {
+            #quiz-browser {
+                border-radius:8px !important;
+                box-shadow:0 2px 8px rgba(0,0,0,.08) !important;
+            }
+            #qb-mobile-collapse {
+                border-radius:0 0 7px 7px;
+                font-weight:700;
+            }
+        }
+
         /* improve filter input touch behavior */
         input#qb-filter { -webkit-tap-highlight-color: rgba(0,0,0,0.05); touch-action: manipulation; }
         `;
@@ -1067,7 +1238,7 @@
     function renderDirectoryLinks() {
         return `
             <nav id="qb-directory-links" aria-label="Browse geography quizzes">
-                <a class="qb-directory-primary" href="/quizzes/">Browse All Quizzes</a>
+                <a class="qb-directory-primary" href="/quizzes/">All quizzes</a>
                 <div class="qb-directory-popular" aria-label="Popular quiz pages">
                     <a href="/quizzes/click-country/world/">World</a>
                     <a href="/quizzes/click-country/europe/">Europe</a>
@@ -1102,9 +1273,7 @@
     const CATEGORY_ORDER = [
         "maps",
         "flags",
-        "capitals",
-        "cities",
-        "shapes"
+        "capitals"
     ];
 
     const MODE_PRESENTATION = {
@@ -1671,9 +1840,6 @@
                             ${available ? "" : "disabled"}
                         >
                             ${escapeHtml(info.title)}
-                            ${available
-                                ? ""
-                                : `<span class="qb-coming-soon">Coming soon!</span>`}
                         </button>
                     `;
                 }).join("")}
@@ -1714,9 +1880,6 @@
                                 ${available ? "" : "disabled"}
                             >
                                 ${escapeHtml(info.title)}
-                                ${available
-                                    ? ""
-                                    : `<span class="qb-coming-soon">Coming soon!</span>`}
                             </button>
                         `;
                     }).join("")}
@@ -1786,7 +1949,7 @@
                 />
                 ${activeLibraryView === "browse"
                     ? `<label class="qb-size-filter">
-                        <span>Set size</span>
+                        <span>Size</span>
                         <select id="qb-size-filter">
                             <option value="all"${activeSizeFilter === "all" ? " selected" : ""}>Any</option>
                             <option value="small"${activeSizeFilter === "small" ? " selected" : ""}>Small</option>
@@ -1975,35 +2138,31 @@
                     ? `${card.label} Capitals`
                     : card.label;
 
+        const countNoun = category === "flags"
+            ? "flags"
+            : category === "capitals"
+                ? "capitals"
+                : family === "Subdivisions"
+                    ? "subdivisions"
+                    : "countries";
+        const countText = card.memberCount
+            ? `${card.memberCount} ${countNoun}`
+            : "";
+
         return `
             <div
-                class="qb-card${showSuggested && card.featured ? " qb-card-featured" : ""}${favorite ? " qb-card-favorite" : ""}"
+                class="qb-card${favorite ? " qb-card-favorite" : ""}"
                 data-group="${escapeHtml(card.id)}"
             >
                 <div class="qb-card-layout">
                     <div class="qb-card-copy">
-                        <div class="qb-title">
-                            ${escapeHtml(displayLabel)}
-                            ${showSuggested && card.featured
-                                ? `<span class="qb-main-badge">Suggested</span>`
-                                : ""}
-                        </div>
+                        <div class="qb-title">${escapeHtml(displayLabel)}</div>
 
                         ${showContext
                             ? `<div class="qb-card-context">${escapeHtml(interaction)} / ${escapeHtml(family)}</div>`
                             : ""}
 
-                        <div class="qb-sub">
-                            ${escapeHtml(card.description)}
-                        </div>
-
-                        ${card.tags.length
-                            ? `<div class="qb-tags">
-                                ${card.tags.map(tag =>
-                                    `<span class="qb-tag">${escapeHtml(tag)}</span>`
-                                ).join("")}
-                               </div>`
-                            : ""}
+                        <div class="qb-sub">${escapeHtml(countText)}</div>
                     </div>
 
                     <div class="qb-card-actions">
@@ -2328,7 +2487,7 @@
                 );
                 link.style.opacity = ".58";
                 link.style.cursor = "wait";
-                link.textContent = "Loading map…";
+                link.textContent = "Loading map...";
             }
         }
     }
