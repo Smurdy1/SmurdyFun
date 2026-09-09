@@ -1162,7 +1162,6 @@
         .qb-title { margin:0 0 3px; font-size:15px; font-weight:700; }
         .qb-sub { color:#666; font-size:12px; }
         .qb-card-context { margin-top:2px; color:#777; font-size:11px; }
-        .qb-tags, .qb-main-badge { display:none !important; }
         .qb-play {
             border-radius: 5px;
             background:#005fa3;
