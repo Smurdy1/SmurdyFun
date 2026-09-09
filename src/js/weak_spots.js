@@ -19,7 +19,7 @@
     const PLAN_KEY = "smurdy-weak-spots-practice-v1";
     const FORMAT_VERSION = 4;
     const MAX_STORED = 150;
-    const MAX_VISIBLE = 18;
+    const MAX_VISIBLE = 20;
     const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 
     const MODE_DEFINITIONS = Object.freeze({
@@ -457,7 +457,7 @@
         if (!root?.document) return;
         const count = getAll().length;
         root.document.querySelectorAll("[data-weak-spots-count]").forEach(badge => {
-            badge.textContent = count ? String(count) : "";
+            badge.textContent = count ? "(" + String(count) + ")" : "";
             badge.hidden = count === 0;
         });
     }
@@ -477,15 +477,16 @@
 
         if (!entries.length) {
             list.innerHTML =
-                '<li class="weak-spots-empty"><strong>No weak spots yet.</strong>' +
-                "<span>Missed places are saved here by quiz type.</span></li>";
+                '<li class="weak-spots-empty">No weak spots yet.</li>';
         } else {
             list.innerHTML = entries.slice(0, MAX_VISIBLE).map(entry => (
                 '<li class="weak-spot-item">' +
                     '<div class="weak-spot-main">' +
                         '<span class="weak-spot-name">' + escapeHtml(entry.name) + "</span>" +
-                        '<span class="weak-spot-group">' + escapeHtml(humanizeGroup(entry.group)) + "</span>" +
-                        '<span class="weak-spot-mode">' + escapeHtml(modeLabel(entry.mode)) + "</span>" +
+                        '<span class="weak-spot-context">' +
+                            escapeHtml(humanizeGroup(entry.group)) + " / " +
+                            escapeHtml(modeLabel(entry.mode)) +
+                        "</span>" +
                     "</div>" +
                     '<div class="weak-spot-meta">' +
                         Number(entry.misses || 0) + " " +
@@ -495,6 +496,8 @@
             )).join("");
         }
 
+        const limitNote = dialog.querySelector("#weak-spots-limit-note");
+        if (limitNote) limitNote.hidden = entries.length <= MAX_VISIBLE;
         if (clearButton) clearButton.disabled = entries.length === 0;
         if (retryButton) {
             retryButton.disabled = entries.length === 0;
@@ -516,11 +519,11 @@
             '<div class="weak-spots-dialog-card">' +
                 '<header class="weak-spots-dialog-header">' +
                     '<div><h2 id="weak-spots-title">Weak Spots</h2></div>' +
-                    '<button id="weak-spots-close" type="button" aria-label="Close Weak Spots">×</button>' +
+                    '<button id="weak-spots-close" type="button">Close</button>' +
                 "</header>" +
                 '<ol id="weak-spots-list" class="weak-spots-list"></ol>' +
                 '<footer class="weak-spots-dialog-footer">' +
-                    "<span>Showing up to " + MAX_VISIBLE + " weak spots</span>" +
+                    '<span id="weak-spots-limit-note" hidden>Showing the first ' + MAX_VISIBLE + ' weak spots</span>' +
                     '<div class="weak-spots-dialog-actions">' +
                         '<button id="weak-spots-clear" type="button">Clear</button>' +
                         '<button id="weak-spots-retry" type="button">Retry Missed</button>' +
