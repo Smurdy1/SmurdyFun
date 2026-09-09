@@ -108,6 +108,31 @@ window.SmurdyQuizManifest = [
         }
     },
     {
+        id: "locate-capital",
+        title: "Locate the Capitals",
+        file: "manifest:locate-capital",
+        type: "locate",
+        category: "capitals",
+        interaction: "locate",
+        modality: "map",
+        families: ["countries", "subdivisions"],
+        status: "coming-soon",
+        difficulty: "Medium",
+        tags: ["Capitals", "Map", "Locate"],
+        groupSet: "country_groups",
+        additionalGroupSets: ["subdivision_groups"],
+        groupSetOverrides: {
+            us_states: "subdivision_groups"
+        },
+        borders: 1,
+        descriptionTemplate: "Locate the named capital city on the map.",
+        shortDescription: "See a capital city and locate it on the map.",
+        longDescription: "This {label} capitals quiz gives you a capital city and asks you to locate it on the map.",
+        config: {
+            comingSoon: true
+        }
+    },
+    {
         id: "type-flag",
         title: "Type the Flags",
         file: "manifest:type-flag",

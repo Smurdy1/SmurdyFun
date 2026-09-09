@@ -61,6 +61,16 @@ test("quiz definitions expose explicit modality adapters", () => {
     assert.equal(capitals.modality, "map");
     assert.equal(capitals.adapter.requiresMenuMap, true);
 
+    const locateCapitals = registry.get("locate-capital");
+    assert.equal(locateCapitals.category, "capitals");
+    assert.equal(locateCapitals.interaction, "locate");
+    assert.equal(locateCapitals.modality, "map");
+    assert.equal(locateCapitals.playable, false);
+    assert.deepEqual(
+        Array.from(locateCapitals.families),
+        ["countries", "subdivisions"]
+    );
+
     const flags = registry.get("type-flag");
     assert.equal(flags.category, "flags");
     assert.equal(flags.interaction, "type");

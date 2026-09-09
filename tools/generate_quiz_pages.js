@@ -6,6 +6,11 @@ const { expandFlagGroups } = require("../src/js/flag_catalog.js");
 const { rebuildSitemaps } = require("./rebuild_sitemaps.js");
 const pageShell = require("./quiz_page_shell.js");
 
+function manifestIsComingSoon(entry) {
+    return String(entry?.status || "").trim().toLowerCase() === "coming-soon" ||
+        Boolean(entry?.config?.comingSoon);
+}
+
 (async function main() {
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
@@ -64,6 +69,7 @@ const pageShell = require("./quiz_page_shell.js");
     // The mode folders are generated output. Removing only those folders clears
     // stale pages when a group's allowedTypes changes without touching unrelated files.
     for (const manifestEntry of manifest) {
+        if (manifestIsComingSoon(manifestEntry)) continue;
         if (manifestEntry.config && manifestEntry.config.flagQuiz) continue;
         const manifestId = getManifestId(manifestEntry);
         await fs.rm(path.join(outDir, slug(manifestId)), { recursive: true, force: true });
@@ -72,6 +78,7 @@ const pageShell = require("./quiz_page_shell.js");
     const pages = [];
     const pageRecords = [];
     const generationVariants = manifest
+        .filter(manifestEntry => !manifestIsComingSoon(manifestEntry))
         .filter(manifestEntry => !(manifestEntry.config && manifestEntry.config.flagQuiz))
         .flatMap(manifestEntry =>
             getGroupSetIdsForManifest(manifestEntry).map(activeGroupSetId => ({
@@ -1064,6 +1071,12 @@ async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
         const relatedSection = related
             ? `<section class="directory-section"><h2>Other ${familyNoun} modes</h2><div class="directory-related">${related}</div></section>`
             : "";
+        const plannedModesSection = modeId === "type-capital"
+            ? `<section class="directory-section"><h2>Capital modes</h2><div class="directory-mode-grid">
+      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a highlighted place and type its capital city.</span><span class="directory-card-meta">Available now</span></div>
+      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city, then locate it on the map.</span><span class="directory-coming-soon">Coming soon!</span></div>
+    </div></section>`
+            : "";
         const pageDescription = `${mode.description} Choose from ${records.length} available quiz sets.`;
         const html = `${directoryDocumentStart({ title: `${mode.heading} Geography Quizzes | Smurdy`, description: pageDescription, canonical: `${publicRoot}/quizzes/${modeId}/`, publicRoot })}
   <main class="directory-shell">
@@ -1071,6 +1084,7 @@ async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
     <h1 class="directory-title">${escapeHtml(mode.heading)} Quizzes</h1>
     <p class="directory-lead">${escapeHtml(pageDescription)}</p>
     ${groupedDirectorySections(records)}
+    ${plannedModesSection}
     ${relatedSection}
   </main>
   ${directoryFooter(publicRoot)}`;
@@ -1103,7 +1117,7 @@ async function writeUnifiedQuizIndex({ outDir, pageRecords, publicRoot }) {
     <h1 class="directory-title">All Geography Quizzes</h1>
     <p class="directory-lead">Choose a category and game mode. Each directory contains the complete list of available quiz sets.</p>
     <section class="directory-section"><h2>Country maps</h2><p class="directory-section-lead">Learn country names, shapes, locations, and borders.</p><div class="directory-mode-grid">${countryModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
-    <section class="directory-section"><h2>Capitals</h2><p class="directory-section-lead">Connect countries with their capital cities.</p><div class="directory-mode-grid">${capitalModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Capitals</h2><p class="directory-section-lead">Connect countries with their capital cities.</p><div class="directory-mode-grid">${capitalModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city and locate it on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
     <section class="directory-section"><h2>Subdivision maps</h2><p class="directory-section-lead">Practice states and other first-level subdivisions.</p><div class="directory-mode-grid">${subdivisionModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
     <section class="directory-section"><h2>Flags</h2><p class="directory-section-lead">Recognize flags and connect them with their places.</p><div class="directory-mode-grid">${renderModeDirectoryCard({ modeId: "type-flag", count: countFor("type-flag"), publicRoot })}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag and locate its country on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
   </main>
