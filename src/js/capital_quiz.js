@@ -37,15 +37,23 @@
             .trim();
     }
 
-    function capitalMapFromDataset(dataset) {
+    function capitalMapFromDataset(dataset, options = {}) {
+        const groupSet = String(options.groupSet || "country_groups");
+        const groupId = String(options.groupId || "world");
+
+        if (groupSet === "subdivision_groups") {
+            const group = dataset?.subdivisionCapitals?.[groupId];
+            return group && typeof group === "object" ? group : {};
+        }
+
         if (dataset && dataset.capitals && typeof dataset.capitals === "object") {
             return dataset.capitals;
         }
         return {};
     }
 
-    function buildIndexes(dataset) {
-        const capitals = capitalMapFromDataset(dataset);
+    function buildIndexes(dataset, options = {}) {
+        const capitals = capitalMapFromDataset(dataset, options);
         const byName = new Map();
         const byQid = new Map();
 
@@ -56,9 +64,11 @@
             }
         }
 
-        for (const [alias, canonical] of Object.entries(COUNTRY_NAME_OVERRIDES)) {
-            const record = capitals[canonical];
-            if (record) byName.set(normalize(alias), record);
+        if (String(options.groupSet || "country_groups") !== "subdivision_groups") {
+            for (const [alias, canonical] of Object.entries(COUNTRY_NAME_OVERRIDES)) {
+                const record = capitals[canonical];
+                if (record) byName.set(normalize(alias), record);
+            }
         }
 
         return { byName, byQid };
@@ -74,8 +84,8 @@
         ).trim();
     }
 
-    function resolveRecord(dataset, countryName, feature = null) {
-        const indexes = buildIndexes(dataset);
+    function resolveRecord(dataset, countryName, feature = null, options = {}) {
+        const indexes = buildIndexes(dataset, options);
         const direct = indexes.byName.get(normalize(countryName));
         if (direct) return direct;
 
@@ -145,7 +155,7 @@
     function createController(browserRoot) {
         let loadPromise = null;
         let dataset = null;
-        let indexes = null;
+        const indexCache = new Map();
 
         async function load() {
             if (dataset) return dataset;
@@ -164,7 +174,7 @@
                             throw new Error("Invalid capitals dataset");
                         }
                         dataset = value;
-                        indexes = buildIndexes(dataset);
+                        indexCache.clear();
                         return dataset;
                     })
                     .finally(() => {
@@ -185,27 +195,44 @@
             }
         }
 
-        function getRecord(countryName) {
-            if (!dataset) return null;
-            if (!indexes) indexes = buildIndexes(dataset);
+        function currentScope() {
+            const quiz = browserRoot.SmurdyQuiz || {};
+            const groupSet = String(quiz.currentGroupSet || "country_groups");
+            const groupId = String(quiz.currentGroupId || "world");
+            return { groupSet, groupId };
+        }
 
-            const direct = indexes.byName.get(normalize(countryName));
+        function indexesForCurrentScope() {
+            if (!dataset) return { byName: new Map(), byQid: new Map() };
+            const scope = currentScope();
+            const key = scope.groupSet + ":" + scope.groupId;
+            if (!indexCache.has(key)) {
+                indexCache.set(key, buildIndexes(dataset, scope));
+            }
+            return indexCache.get(key);
+        }
+
+        function getRecord(targetName) {
+            if (!dataset) return null;
+            const indexes = indexesForCurrentScope();
+
+            const direct = indexes.byName.get(normalize(targetName));
             if (direct) return direct;
 
-            const qid = featureWikidataId(getFeature(countryName));
+            const qid = featureWikidataId(getFeature(targetName));
             return qid ? (indexes.byQid.get(qid) || null) : null;
         }
 
-        function getCapital(countryName) {
-            return String(getRecord(countryName)?.capital || "").trim();
+        function getCapital(targetName) {
+            return String(getRecord(targetName)?.capital || "").trim();
         }
 
-        function getAcceptedAnswers(countryName) {
-            return acceptedAnswers(getRecord(countryName));
+        function getAcceptedAnswers(targetName) {
+            return acceptedAnswers(getRecord(targetName));
         }
 
-        function isAcceptedAnswer(countryName, guess) {
-            return isAccepted(getRecord(countryName), guess);
+        function isAcceptedAnswer(targetName, guess) {
+            return isAccepted(getRecord(targetName), guess);
         }
 
         function clearCapitalMarker() {
@@ -219,9 +246,9 @@
             } catch (_) {}
         }
 
-        function showCapitalMarker(countryName) {
+        function showCapitalMarker(targetName) {
             const map = browserRoot.SmurdyQuiz?.map;
-            const record = getRecord(countryName);
+            const record = getRecord(targetName);
             const location = primaryLocation(record);
             if (!map || !location) return false;
 
@@ -287,6 +314,7 @@
 
     return Object.freeze({
         DATA_PATH,
+        capitalMapFromDataset,
         SOURCE_ID,
         LAYER_ID,
         COUNTRY_NAME_OVERRIDES,
