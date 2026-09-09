@@ -6,12 +6,12 @@ const { expandFlagGroups } = require("../src/js/flag_catalog.js");
 const { rebuildSitemaps } = require("./rebuild_sitemaps.js");
 const pageShell = require("./quiz_page_shell.js");
 
-(function manifestIsComingSoon(entry) {
+function manifestIsComingSoon(entry) {
     return String(entry?.status || "").trim().toLowerCase() === "coming-soon" ||
         Boolean(entry?.config?.comingSoon);
 }
 
-async function main() {
+(async function main() {
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
     const groupsPath = path.join(repoRoot, "src", "data", "country_groups.json");
