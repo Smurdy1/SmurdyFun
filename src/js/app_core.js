@@ -1037,8 +1037,9 @@ const SmurdyQuiz = {
             }
 
             const requestedGroupSet =
-                manifestDef?.groupSet ||
+                manifestDef?.groupSetOverrides?.[this.currentGroupId] ||
                 this.currentGroupSet ||
+                manifestDef?.groupSet ||
                 quizGroupSet;
             await this.setCurrentGroupSet(requestedGroupSet);
 
