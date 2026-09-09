@@ -26,9 +26,9 @@ function printHelp() {
     console.log([
         "Usage: node tools/build_capitals.js [--check]",
         "",
-        "Builds src/data/capitals.json from Smurdy's country list plus Wikidata P36",
-        "(capital), P625 (coordinate location), and all available labels/aliases for",
-        "accepted answers. A small manual overrides file handles real-world edge cases.",
+        "Builds src/data/capitals.json from Smurdy's country and US-state lists plus",
+        "Wikidata P36 (capital), P625 (coordinate location), and all available",
+        "labels/aliases for accepted answers. Manual overrides handle country edge cases.",
         "",
         "Options:",
         "  --check  Build in memory and fail if capitals.json is out of date",
@@ -246,6 +246,10 @@ async function buildDataset() {
         .filter(entry => entry.kind === "country")
         .slice()
         .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    const stateSources = (flagSources.flags || [])
+        .filter(entry => entry.kind === "us-state")
+        .slice()
+        .sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
     const flagsByName = new Map(countryFlags.map(entry => [entry.name, entry]));
     const flagsByCode = new Map();
@@ -255,16 +259,21 @@ async function buildDataset() {
         flagsByCode.get(code).push(entry);
     }
 
-    const missingQids = sources.filter(source => !source.wikidataId);
+    const missingQids = [...sources, ...stateSources]
+        .filter(source => !source.wikidataId);
     if (missingQids.length) {
         throw new Error(
-            "Country sources missing Wikidata IDs:\n" +
+            "Capital sources missing Wikidata IDs:\n" +
             missingQids.map(source => "- " + source.name).join("\n")
         );
     }
 
     const countryEntities = await fetchEntities(
         sources.map(source => source.wikidataId),
+        "claims"
+    );
+    const stateEntities = await fetchEntities(
+        stateSources.map(source => source.wikidataId),
         "claims"
     );
 
@@ -278,6 +287,10 @@ async function buildDataset() {
             : capitalIdsForCountry(entity);
         for (const id of ids) requestedCapitalIds.add(id);
     }
+    for (const source of stateSources) {
+        const entity = stateEntities.get(source.wikidataId);
+        for (const id of capitalIdsForCountry(entity)) requestedCapitalIds.add(id);
+    }
 
     const capitalEntities = await fetchEntities(
         [...requestedCapitalIds],
@@ -286,6 +299,7 @@ async function buildDataset() {
     );
 
     const output = {};
+    const stateOutput = {};
     const errors = [];
 
     for (const source of sources) {
@@ -397,6 +411,57 @@ async function buildDataset() {
         };
     }
 
+    for (const source of stateSources) {
+        const stateEntity = stateEntities.get(source.wikidataId);
+        const capitalIds = capitalIdsForCountry(stateEntity);
+
+        if (!capitalIds.length) {
+            errors.push(source.name + ": no usable Wikidata P36 state capital");
+            continue;
+        }
+        if (capitalIds.length !== 1) {
+            errors.push(
+                source.name + ": expected one current state capital, found " +
+                capitalIds.length + " (" + capitalIds.join(", ") + ")"
+            );
+            continue;
+        }
+
+        const id = capitalIds[0];
+        const entity = capitalEntities.get(id);
+        const candidate = {
+            id,
+            name: labelForEntity(entity),
+            coordinates: coordinateForCapital(entity),
+            wikidataTerms: wikidataTermsForEntity(entity)
+        };
+
+        if (!candidate.name) {
+            errors.push(source.name + ": capital " + id + " has no label");
+            continue;
+        }
+        if (!candidate.coordinates) {
+            errors.push(
+                source.name + ": capital " + candidate.name +
+                " has no P625 coordinates"
+            );
+            continue;
+        }
+
+        stateOutput[source.name] = {
+            code: String(source.code || "").toLowerCase(),
+            wikidataId: source.wikidataId,
+            capital: candidate.name,
+            accepted: buildAccepted(candidate.name, [candidate], null),
+            locations: [{
+                name: candidate.name,
+                wikidataId: candidate.id,
+                lat: candidate.coordinates.lat,
+                lng: candidate.coordinates.lng
+            }]
+        };
+    }
+
     if (errors.length) {
         throw new Error(
             "Capital dataset validation failed:\n" +
@@ -407,6 +472,7 @@ async function buildDataset() {
     return {
         source: {
             countryList: "src/data/flag_sources.json",
+            subdivisionList: "src/data/flag_sources.json (kind: us-state)",
             seedCapitals: "src/data/country_flags.json",
             capitalProperty: "Wikidata P36",
             coordinatesProperty: "Wikidata P625",
@@ -414,7 +480,10 @@ async function buildDataset() {
             license: "CC0"
         },
         generatedBy: "tools/build_capitals.js",
-        capitals: output
+        capitals: output,
+        subdivisionCapitals: {
+            us_states: stateOutput
+        }
     };
 }
 
@@ -445,7 +514,9 @@ async function main() {
     await fs.writeFile(OUTPUT_PATH, serialized);
     console.log(
         "Wrote " + Object.keys(dataset.capitals).length +
-        " capital records to src/data/capitals.json"
+        " country capitals and " +
+        Object.keys(dataset.subdivisionCapitals.us_states || {}).length +
+        " US state capitals to src/data/capitals.json"
     );
 }
 
