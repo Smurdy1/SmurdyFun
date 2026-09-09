@@ -412,7 +412,7 @@ html:not(.smurdy-quiz-active) #quiz-target {
 /* Weak Spots and post-quiz review */
 .weak-spots-menu-button{display:inline-flex;min-height:42px;margin-top:12px;padding:9px 13px;align-items:center;gap:8px;border:1px solid var(--smurdy-line);border-radius:8px;background:#f5f5f5;color:#111;cursor:pointer;font-size:14px;font-weight:700}
 .weak-spots-menu-button:hover{background:#eaeaea}
-.weak-spots-count{min-width:22px;padding:2px 6px;border-radius:999px;background:var(--smurdy-blue);color:#fff;font-size:12px;line-height:18px;text-align:center}
+.weak-spots-count{min-width:22px;padding:2px 6px;border-radius:4px;background:var(--smurdy-blue);color:#fff;font-size:12px;line-height:18px;text-align:center}
 #weak-spots-dialog{width:min(560px,calc(100vw - 28px));max-height:min(680px,calc(100dvh - 28px));padding:0;overflow:hidden;border:1px solid rgba(0,0,0,.14);border-radius:12px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.26);color:var(--smurdy-text)}
 #weak-spots-dialog::backdrop{background:rgba(0,0,0,.42)}
 .weak-spots-dialog-card{display:flex;max-height:min(680px,calc(100dvh - 28px));flex-direction:column}
@@ -424,7 +424,7 @@ html:not(.smurdy-quiz-active) #quiz-target {
 .weak-spot-item{padding:12px 0;border-bottom:1px solid var(--smurdy-line)}
 .weak-spot-item:last-child{border-bottom:0}
 .weak-spot-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-.weak-spot-name{font-weight:750;line-height:1.3}
+.weak-spot-name{font-weight:700;line-height:1.3}
 .weak-spot-group,.weak-spot-mode{display:inline-flex;min-height:24px;padding:3px 8px;align-items:center;border-radius:6px;font-size:12px;font-weight:650;line-height:1.2}
 .weak-spot-group{background:#f1f3f5;color:#4c5157}
 .weak-spot-mode{border:1px solid rgba(0,119,204,.22);background:rgba(0,119,204,.07);color:#075f9e}
@@ -439,14 +439,14 @@ html:not(.smurdy-quiz-active) #quiz-target {
 #weak-spots-retry:hover{background:var(--smurdy-blue-dark)}
 #quiz-review{margin-top:12px;padding-top:12px;border-top:1px solid var(--smurdy-line)}
 .quiz-review-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.quiz-review-heading{display:block;font-size:15px;font-weight:800;line-height:1.3}
+.quiz-review-heading{display:block;font-size:15px;font-weight:700;line-height:1.3}
 .quiz-review-summary{display:block;margin-top:2px;color:var(--smurdy-muted);font-size:12px;line-height:1.35}
-#quiz-review-retry{min-height:38px;padding:8px 11px;flex:0 0 auto;border:1px solid var(--smurdy-blue);border-radius:8px;background:var(--smurdy-blue);color:#fff;cursor:pointer;font-size:13px;font-weight:750}
+#quiz-review-retry{min-height:38px;padding:8px 11px;flex:0 0 auto;border:1px solid var(--smurdy-blue);border-radius:8px;background:var(--smurdy-blue);color:#fff;cursor:pointer;font-size:13px;font-weight:700}
 #quiz-review-retry:hover{background:var(--smurdy-blue-dark)}
 .quiz-review-list{display:grid;max-height:170px;margin:10px 0 0;padding:0;overflow:auto;gap:6px;list-style:none}
 .quiz-review-country{display:block;width:100%;padding:8px 10px;border:1px solid var(--smurdy-line);border-radius:7px;background:#fafafa;color:#111;cursor:pointer;text-align:left}
 .quiz-review-country:hover{background:#f0f0f0}
-.quiz-review-country-name{display:block;font-size:13px;font-weight:750;line-height:1.3}
+.quiz-review-country-name{display:block;font-size:13px;font-weight:700;line-height:1.3}
 .quiz-review-country-detail{display:block;margin-top:2px;color:var(--smurdy-muted);font-size:11px;line-height:1.35}
 @media(max-width:700px){
  #quiz-panel:has(#quiz-review:not([hidden])){max-height:min(48dvh,430px);overflow:auto;align-items:stretch}
@@ -481,7 +481,7 @@ html:not(.smurdy-quiz-active) #quiz-target {
     color:#fff;
     cursor:pointer;
     font-size:12px;
-    font-weight:750;
+    font-weight:700;
 }
 @media(max-width:700px){
     #weak-spots-practice-next{align-items:stretch;flex-direction:column}
@@ -547,7 +547,7 @@ html:not(.smurdy-quiz-active) #quiz-target {
     margin-top: 0;
     padding: 3px 8px;
     flex: 0 0 auto;
-    border-radius: 999px;
+    border-radius: 4px;
     background: #edf6fc;
     color: #075f9e;
     font-size: 12px;
@@ -598,7 +598,7 @@ html:not(.smurdy-quiz-active) #quiz-target {
 /* Weak Spots visual hierarchy */
 #weak-spots-dialog .weak-spot-item{display:block}
 #weak-spots-dialog .weak-spot-main{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-#weak-spots-dialog .weak-spot-name{min-width:0;font-weight:750;line-height:1.3}
+#weak-spots-dialog .weak-spot-name{min-width:0;font-weight:700;line-height:1.3}
 #weak-spots-dialog .weak-spot-group,#weak-spots-dialog .weak-spot-mode{display:inline-flex;min-height:24px;padding:3px 8px;align-items:center;border-radius:6px;font-size:12px;font-weight:650;line-height:1.2;white-space:nowrap}
 #weak-spots-dialog .weak-spot-group{background:#f1f3f5;color:#4c5157}
 #weak-spots-dialog .weak-spot-mode{border:1px solid rgba(0,119,204,.22);background:rgba(0,119,204,.07);color:#075f9e}
