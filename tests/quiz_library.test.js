@@ -183,7 +183,8 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
     assert.match(
         allQuizzes,
         /<h2>Capitals<\/h2>[\s\S]*?directory-card-title">Locate/
-    );    assert.doesNotMatch(allQuizzes, /Coming soon!/);
+    );
+    assert.doesNotMatch(allQuizzes, /Coming soon!/);
     assert.match(allQuizzes, /<h2>Country maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Subdivision maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Flags<\/h2>/);
