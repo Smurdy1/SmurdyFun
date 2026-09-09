@@ -362,18 +362,19 @@
             .smurdy-review-toggle {
                 display: block;
                 margin: 12px auto 0;
-                padding: 9px 14px;
-                border: 1px solid rgba(0,0,0,.18);
-                border-radius: 9px;
-                background: rgba(255,255,255,.92);
-                color: #111;
+                padding: 7px 2px;
+                border: 0;
+                border-bottom: 1px solid rgba(0,0,0,.28);
+                border-radius: 0;
+                background: transparent;
+                color: #075f9e;
                 font: inherit;
                 font-size: .9rem;
-                font-weight: 750;
+                font-weight: 600;
                 line-height: 1.2;
                 cursor: pointer;
             }
-            .smurdy-review-toggle:hover { background: rgba(0,0,0,.045); }
+            .smurdy-review-toggle:hover { border-bottom-color: #075f9e; }
             .smurdy-review-toggle:focus-visible {
                 outline: 3px solid rgba(0,119,204,.28);
                 outline-offset: 2px;
@@ -381,8 +382,8 @@
             [data-smurdy-share] {
                 width: 100%;
                 margin-top: 18px;
-                padding-top: 16px;
-                border-top: 1px solid rgba(0,0,0,.12);
+                padding-top: 15px;
+                border-top: 1px solid rgba(0,0,0,.14);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -392,40 +393,32 @@
                 display: flex;
                 min-width: 0;
                 flex-direction: column;
-                gap: 2px;
                 text-align: left;
             }
-            [data-smurdy-share] .smurdy-share-title { font-weight: 800; line-height: 1.2; }
-            [data-smurdy-share] .smurdy-share-subtitle {
-                color: rgba(0,0,0,.62);
-                font-size: .92rem;
-                line-height: 1.35;
+            [data-smurdy-share] .smurdy-share-title {
+                font-weight: 700;
+                line-height: 1.2;
             }
+            [data-smurdy-share] .smurdy-share-subtitle { display: none; }
             [data-smurdy-share] .smurdy-share-button {
                 flex: 0 0 auto;
-                padding: 11px 16px;
-                border: 0;
-                border-radius: 10px;
-                background: #111;
+                padding: 9px 13px;
+                border: 1px solid #005fa3;
+                border-radius: 5px;
+                background: #005fa3;
                 color: #fff;
                 font: inherit;
-                font-weight: 800;
+                font-weight: 700;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,0,0,.18);
-                transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
             }
-            [data-smurdy-share] .smurdy-share-button:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 16px rgba(0,0,0,.22);
-            }
+            [data-smurdy-share] .smurdy-share-button:hover { background: #004b82; }
             [data-smurdy-share] .smurdy-share-button:focus-visible {
                 outline: 3px solid rgba(0,119,204,.28);
                 outline-offset: 2px;
             }
             [data-smurdy-share] .smurdy-share-button:disabled {
                 cursor: default;
-                opacity: .7;
-                transform: none;
+                opacity: .65;
             }
             @media (max-width: 700px) {
                 [data-smurdy-share] { align-items: stretch; flex-direction: column; }
@@ -451,10 +444,10 @@
             copy.className = "smurdy-share-copy";
             const title = document.createElement("div");
             title.className = "smurdy-share-title";
-            title.textContent = "Challenge a friend";
+            title.textContent = "Share this result";
             const subtitle = document.createElement("div");
             subtitle.className = "smurdy-share-subtitle";
-            subtitle.textContent = "Share your result and see if they can beat it.";
+            subtitle.textContent = "";
             copy.append(title, subtitle);
 
             const button = document.createElement("button");
@@ -559,7 +552,7 @@
         if (line) lines.push(line);
         if (lines.length <= maxLines) return lines;
         const kept = lines.slice(0, maxLines);
-        kept[maxLines - 1] = `${kept[maxLines - 1].replace(/[.…]+$/, "")}…`;
+        kept[maxLines - 1] = `${kept[maxLines - 1].replace(/[....]+$/, "")}...`;
         return kept;
     }
 
@@ -569,7 +562,7 @@
         while (fontSize >= 38) {
             ctx.font = `850 ${fontSize}px system-ui, -apple-system, Segoe UI, Arial`;
             lines = splitTextIntoLines(ctx, text, maxWidth, 2);
-            if (lines.length <= 2 && !lines[lines.length - 1]?.endsWith("…")) break;
+            if (lines.length <= 2 && !lines[lines.length - 1]?.endsWith("...")) break;
             fontSize -= 2;
         }
         const lineHeight = fontSize + 8;
@@ -592,57 +585,74 @@
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Could not create the share image canvas.");
 
-        const background = ctx.createLinearGradient(0, 0, 1200, 630);
-        background.addColorStop(0, "#0d0d0d");
-        background.addColorStop(.58, "#171717");
-        background.addColorStop(1, "#222");
-        ctx.fillStyle = background;
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, 1200, 630);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "rgba(255,255,255,.025)";
-        for (let x = 0; x <= 1200; x += 86) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 630); ctx.stroke();
-        }
-        for (let y = 0; y <= 630; y += 86) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1200, y); ctx.stroke();
-        }
-        ctx.fillStyle = "rgba(255,255,255,.055)";
-        roundRect(ctx, 44, 44, 1112, 542, 28);
-        ctx.fill();
+        ctx.fillStyle = "#0077cc";
+        ctx.fillRect(0, 0, 14, 630);
 
         const logo = await loadExistingSmurdyLogo(document);
-        if (logo) {
-            ctx.fillStyle = "rgba(255,255,255,.96)";
-            roundRect(ctx, 82, 78, 86, 70, 13);
-            ctx.fill();
-            drawContainedImage(ctx, logo, 91, 85, 68, 56);
+        if (logo) drawContainedImage(ctx, logo, 68, 54, 86, 86);
+
+        ctx.fillStyle = "#171717";
+        ctx.font = "700 36px Arial, Helvetica, sans-serif";
+        ctx.fillText("Smurdy", logo ? 180 : 70, 91);
+
+        ctx.fillStyle = "#626262";
+        ctx.font = "400 22px Arial, Helvetica, sans-serif";
+        ctx.fillText("Geography quiz result", logo ? 180 : 70, 124);
+
+        ctx.fillStyle = "#171717";
+        let fontSize = 48;
+        let lines = [];
+        while (fontSize >= 36) {
+            ctx.font = "700 " + fontSize + "px Arial, Helvetica, sans-serif";
+            lines = splitTextIntoLines(ctx, result.shareHeadline, 1040, 2);
+            if (lines.length <= 2 && !lines[lines.length - 1]?.endsWith("...")) break;
+            fontSize -= 2;
         }
-        ctx.fillStyle = "#fff";
-        ctx.font = "850 34px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.fillText("Smurdy", logo ? 194 : 88, 111);
-        ctx.fillStyle = "rgba(255,255,255,.68)";
-        ctx.font = "650 22px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.fillText("Geography quiz result", logo ? 194 : 88, 143);
+        const lineHeight = fontSize + 7;
+        lines.forEach((line, index) => ctx.fillText(line, 70, 210 + index * lineHeight));
 
-        ctx.fillStyle = "#fff";
-        const headlineBottom = drawAdaptiveHeadline(ctx, result.shareHeadline, 88, 225, 1024);
-        ctx.fillStyle = "rgba(255,255,255,.82)";
-        ctx.font = "750 28px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.fillText(result.modeLabel, 90, Math.max(322, headlineBottom + 52));
+        ctx.fillStyle = "#555";
+        ctx.font = "600 25px Arial, Helvetica, sans-serif";
+        ctx.fillText(result.modeLabel, 72, 310);
 
-        const cardY = 365;
-        drawStatCard(ctx, 88, cardY, 306, "Time", result.timeText);
-        drawStatCard(ctx, 420, cardY, 306, "Accuracy", result.accuracyText);
-        drawStatCard(ctx, 752, cardY, 306, "Completed", result.progressText);
-        ctx.fillStyle = "#fff";
-        ctx.font = "850 28px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.textAlign = "left";
-        ctx.fillText("Can you beat this?", 88, 558);
-        ctx.fillStyle = "rgba(255,255,255,.72)";
-        ctx.font = "700 24px system-ui, -apple-system, Segoe UI, Arial";
-        ctx.textAlign = "right";
-        ctx.fillText("Play at smurdy.fun", 1110, 558);
-        ctx.textAlign = "left";
+        ctx.strokeStyle = "#d6d6d6";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(70, 348);
+        ctx.lineTo(1130, 348);
+        ctx.stroke();
+
+        const stats = [
+            ["Time", result.timeText],
+            ["Accuracy", result.accuracyText],
+            ["Completed", result.progressText]
+        ];
+        const xs = [72, 420, 770];
+        stats.forEach(([label, value], index) => {
+            if (index > 0) {
+                ctx.strokeStyle = "#dddddd";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(xs[index] - 26, 382);
+                ctx.lineTo(xs[index] - 26, 490);
+                ctx.stroke();
+            }
+            ctx.fillStyle = "#666";
+            ctx.font = "400 22px Arial, Helvetica, sans-serif";
+            ctx.fillText(label, xs[index], 410);
+            ctx.fillStyle = "#111";
+            ctx.font = "700 45px Arial, Helvetica, sans-serif";
+            ctx.fillText(String(value), xs[index], 470);
+        });
+
+        const displayUrl = String(result.url || "https://smurdy.fun/")
+            .replace(/^https?:\/\//i, "");
+        ctx.fillStyle = "#075f9e";
+        ctx.font = "600 22px Arial, Helvetica, sans-serif";
+        ctx.fillText(displayUrl, 72, 565);
+
         return canvasToBlob(canvas);
     }
 
