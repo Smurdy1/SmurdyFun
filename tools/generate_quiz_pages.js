@@ -147,7 +147,13 @@ function manifestIsComingSoon(entry) {
                 modeKey
             });
             const pageTitle = renderTemplate(pageOverride.title || defaultPageTitle, context);
-            const pageHeading = renderTemplate(pageOverride.h1 || pageTitle, context);
+            const defaultHeading = pageTitle.replace(/\s*\|\s*Smurdy$/, "");
+            const pageHeading = renderTemplate(
+                Object.prototype.hasOwnProperty.call(pageOverride, "h1")
+                    ? pageOverride.h1
+                    : defaultHeading,
+                context
+            );
 
             const lead = renderTemplate(
                 pageOverride.lead ||
@@ -159,7 +165,9 @@ function manifestIsComingSoon(entry) {
             );
 
             const overviewHeading = renderTemplate(
-                pageOverride.overviewHeading || `What this ${groupLabel} quiz covers`,
+                Object.prototype.hasOwnProperty.call(pageOverride, "overviewHeading")
+                    ? pageOverride.overviewHeading
+                    : `What this ${groupLabel} quiz covers`,
                 context
             );
 
@@ -219,45 +227,58 @@ function manifestIsComingSoon(entry) {
 
                         // smurdy-indexing-links-v1
             const defaultModeSections = getModeDistinctiveSections(manifestEntry);
-            const modeSections = [
-                {
+            const standardModeSections = {
+                skills: {
                     heading: renderTemplate(modeCopy.skillsHeading || defaultModeSections.skillsHeading, context),
                     body: renderTemplate(modeCopy.skills || defaultModeSections.skills, context)
                 },
-                {
+                strategy: {
                     heading: renderTemplate(modeCopy.strategyHeading || defaultModeSections.strategyHeading, context),
                     body: renderTemplate(modeCopy.strategy || defaultModeSections.strategy, context)
                 },
-                {
-                    heading: renderTemplate(modeCopy.bestForHeading || defaultModeSections.bestForHeading, context),
-                    body: renderTemplate(modeCopy.bestFor || defaultModeSections.bestFor, context)
-                },
-                {
+                mistakes: {
                     heading: renderTemplate(modeCopy.mistakesHeading || defaultModeSections.mistakesHeading, context),
                     body: renderTemplate(modeCopy.mistakes || defaultModeSections.mistakes, context)
                 }
-            ].filter(section => section.heading && section.body);
-
+            };
+            const requestedModeSections = Array.isArray(pageOverride.modeSections)
+                ? pageOverride.modeSections
+                : [];
+            const modeSections = requestedModeSections
+                .map(key => standardModeSections[key])
+                .filter(section => section && section.heading && section.body);
             const modeSectionsHtml = modeSections.map(section => `<section class="content-section mode-specific">
               <h2>${escapeHtml(section.heading)}</h2>
               <p>${escapeHtml(section.body)}</p>
             </section>`).join("\n");
 
-const metaDescription = pageOverride.metaDescription
-                ? renderTemplate(pageOverride.metaDescription, context)
-                : buildMetaDescription(
-                    `${lead} ${howToPlay} ${modeSections[0] ? modeSections[0].body : overview}`,
-                    pageTitle
+            const bestForNote = pageOverride.hideBestForNote
+                ? ""
+                : renderTemplate(
+                    pageOverride.bestForNote ||
+                    modeCopy.bestFor ||
+                    defaultModeSections.bestFor,
+                    context
                 );
 
-            const keywords = buildKeywords({
-                manifestEntry,
-                modeCopy,
-                groupCopy,
-                groupLabel,
-                unitPlural,
-                notable
-            });
+            const casualExample = renderTemplate(
+                pageOverride.exampleSentence || "",
+                context
+            );
+
+            const showChallenge = Object.prototype.hasOwnProperty.call(pageOverride, "showChallenge")
+                ? Boolean(pageOverride.showChallenge)
+                : defaultSectionVisibility(pageKey, groupId, "challenge");
+            const showStudyTip = Object.prototype.hasOwnProperty.call(pageOverride, "showStudyTip")
+                ? Boolean(pageOverride.showStudyTip)
+                : defaultSectionVisibility(pageKey, groupId, "studyTip");
+
+            const metaDescription = pageOverride.metaDescription
+                ? renderTemplate(pageOverride.metaDescription, context)
+                : buildMetaDescription(
+                    `${lead} ${howToPlay} ${overview}`,
+                    pageTitle
+                );
 
             const relPath = `${slug(manifestId)}/${slug(groupId)}`;
             const outPathDir = path.join(outDir, relPath);
@@ -345,15 +366,8 @@ const metaDescription = pageOverride.metaDescription
 const entryListHtml = entries.length
                 ? `<details class="included-list">
                     <summary>${escapeHtml(capitalizeWords(unitPlural))} included in this quiz (${entryCount})</summary>
-                    <p>${entries.map(escapeHtml).join(", ")}.</p>
+                    <ul class="included-grid">${entries.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
                   </details>`
-                : "";
-
-            const exampleListHtml = notable.length
-                ? `<section class="examples" aria-labelledby="example-heading">
-                    <h2 id="example-heading">Example ${escapeHtml(unitPlural)}</h2>
-                    <ul>${notable.map(name => `<li>${escapeHtml(name)}</li>`).join("")}</ul>
-                  </section>`
                 : "";
 
             const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
@@ -395,7 +409,6 @@ const entryListHtml = entries.length
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeHtml(metaDescription)}"/>
-  <meta name="keywords" content="${escapeHtml(keywords.join(", "))}"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${escapeHtml(pageUrlRaw)}"/>
   <link rel="icon" type="image/png" sizes="16x16" href="${publicRoot}/assets/images/favicon-16.png?v=20260825-logo-1"/>
@@ -428,7 +441,7 @@ ${JSON.stringify({
 }, null, 2)}
   </script>
   ${sharedStylesHtml}
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260903-final-unity-1"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260909-editorial-1"/>
 </head>
 <body data-smurdy-quiz-page data-quiz-id="${escapeHtml(manifestId)}" data-quiz-group="${escapeHtml(groupId)}" data-quiz-modality="map">
   ${brandHtml}
@@ -444,31 +457,32 @@ ${JSON.stringify({
     ${launchHtml}
 
     <section class="content-section">
-      <h2>${escapeHtml(overviewHeading)}</h2>
+      ${overviewHeading ? `<h2>${escapeHtml(overviewHeading)}</h2>` : ""}
       <p>${escapeHtml(overview)}</p>
+      ${casualExample ? `<p class="casual-example">${escapeHtml(casualExample)}</p>` : ""}
     </section>
 
 ${pageSpecificSectionHtml}
 
     <section class="content-section">
-      <h2>${escapeHtml(modeCopy.heading || "How this map quiz works")}</h2>
+      <h2>${escapeHtml(pageOverride.howToHeading || modeCopy.heading || "How this map quiz works")}</h2>
       <p>${escapeHtml(howToPlay)}</p>
-      <p class="tip"><strong>Gameplay tip:</strong> ${escapeHtml(gameplayTip)}</p>
+      ${bestForNote ? `<p class="mode-note">${escapeHtml(bestForNote)}</p>` : ""}
+      <p class="tip"><strong>Tip:</strong> ${escapeHtml(gameplayTip)}</p>
     </section>
 
     ${modeSectionsHtml}
 
-    <section class="content-section">
+    ${showChallenge ? `<section class="content-section">
       <h2>${escapeHtml(challengeHeading)}</h2>
       <p>${escapeHtml(challenge)}</p>
-    </section>
+    </section>` : ""}
 
-    <section class="content-section">
+    ${showStudyTip ? `<section class="content-section">
       <h2>${escapeHtml(studyTipHeading)}</h2>
       <p>${escapeHtml(studyTip)}</p>
-    </section>
+    </section>` : ""}
 
-    ${exampleListHtml}
     ${entryListHtml}
 
     ${actionsHtml}
@@ -719,18 +733,20 @@ function getModeDisplayName(entry) {
 
 function buildPageTitle({ groupLabel, unitPluralTitle, manifestId, modeKey }) {
     if (manifestId === "type-capital") {
-        return `${groupLabel} Capitals Quiz – Type the Capitals | Smurdy`;
+        if (groupLabel === "World") return "Type the World Capitals Quiz | Smurdy";
+        if (groupLabel === "US States") return "Type the US State Capitals Quiz | Smurdy";
+        return `Type the Capitals: ${groupLabel} Quiz | Smurdy`;
     }
-    if (manifestId === "find-point" || modeKey === "find-point") {
-        return `${groupLabel} Find the Point Map Quiz | Smurdy`;
+    if (manifestId === "find-point" || manifestId === "find-point-subdivision" || modeKey === "find-point") {
+        return `Find the ${manifestId.includes("subdivision") ? "Subdivision" : "Country"} from a Point: ${groupLabel} Quiz | Smurdy`;
     }
-    if (manifestId === "find-country" || modeKey === "find") {
-        return `${groupLabel} No-Borders Map Quiz – Find the ${unitPluralTitle} | Smurdy`;
+    if (manifestId === "find-country" || manifestId === "find-subdivision" || modeKey === "find") {
+        return `Find the ${unitPluralTitle}: ${groupLabel} No-Borders Quiz | Smurdy`;
     }
-    if (manifestId === "type-country" || modeKey === "type") {
-        return `${groupLabel} Map Quiz – Type the ${unitPluralTitle} | Smurdy`;
+    if (manifestId === "type-country" || manifestId === "type-subdivision" || modeKey === "type") {
+        return `Type the ${unitPluralTitle}: ${groupLabel} Map Quiz | Smurdy`;
     }
-    return `${groupLabel} Map Quiz – Click the ${unitPluralTitle} | Smurdy`;
+    return `Click the ${unitPluralTitle}: ${groupLabel} Map Quiz | Smurdy`;
 }
 
 function inferModeInstructions(entry, context) {
@@ -748,6 +764,29 @@ function inferModeInstructions(entry, context) {
         return `Type the ${context.unitName} that contains the point shown on the map.`;
     }
     return `Click the correct ${context.unitName} when its name appears.`;
+}
+
+const CHALLENGE_GROUPS = new Set([
+    "world", "europe", "africa", "asia", "balkans", "caribbean_islands",
+    "former_soviet_union", "tiny_countries", "middle_east", "west_africa",
+    "us_states", "spanish_speaking", "pacific_islands"
+]);
+const STUDY_TIP_GROUPS = new Set([
+    "world", "africa", "south_america", "southeast_asia", "latin_america",
+    "central_america_and_caribbean", "eastern_europe", "mena",
+    "south_and_central_asia", "small_island_countries", "us_states"
+]);
+
+function defaultSectionVisibility(pageKey, groupId, section) {
+    if (section === "challenge") {
+        if (pageKey === "click-country/world") return false;
+        return CHALLENGE_GROUPS.has(groupId);
+    }
+    if (section === "studyTip") {
+        if (pageKey === "type-capital/world") return false;
+        return STUDY_TIP_GROUPS.has(groupId);
+    }
+    return false;
 }
 
 const RELATED_GROUP_HINTS = {
@@ -895,35 +934,34 @@ function buildPageNavigationHtml({
 
     if (otherQuizzes.length) {
         blocks.push(`<div class="link-block">
-          <h3>Try another mode for ${escapeHtml(groupLabel)}</h3>
-          <div class="chip-list">${otherQuizzes.map(quiz =>
-              `<a class="chip" href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a>`
-          ).join("")}</div>
+          <h3>Same set, other modes</h3>
+          <ul class="link-list">${otherQuizzes.map(quiz =>
+              `<li><a href="${publicRoot}/quizzes/${slug(quiz.id)}/${slug(groupId)}/">${escapeHtml(quiz.title)}</a></li>`
+          ).join("")}</ul>
         </div>`);
     }
 
-    if (relatedGroups.length) {
+    const seen = new Set();
+    const otherSets = [...relatedGroups, ...popularGroups].filter(region => {
+        const key = `${region.manifestId || manifestId}:${region.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    }).slice(0, 10);
+
+    if (otherSets.length) {
         blocks.push(`<div class="link-block">
-          <h3>Related regions in this mode</h3>
-          <div class="chip-list">${relatedGroups.map(region =>
-              `<a class="chip" href="${publicRoot}/quizzes/${slug(region.manifestId || manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)} map quiz</a>`
-          ).join("")}</div>
+          <h3>Other sets</h3>
+          <ul class="link-list">${otherSets.map(region =>
+              `<li><a href="${publicRoot}/quizzes/${slug(region.manifestId || manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)}</a></li>`
+          ).join("")}</ul>
         </div>`);
     }
 
-    if (popularGroups.length) {
-        blocks.push(`<div class="link-block">
-          <h3>Popular map sets</h3>
-          <div class="chip-list">${popularGroups.map(region =>
-              `<a class="chip" href="${publicRoot}/quizzes/${slug(manifestId)}/${slug(region.id)}/">${escapeHtml(region.label)}</a>`
-          ).join("")}</div>
-        </div>`);
-    }
-
-    return `<section class="link-section" aria-labelledby="explore-more-heading">
-      <h2 id="explore-more-heading">Explore more geography quizzes</h2>
+    return `<section class="link-section" aria-labelledby="more-quizzes-heading">
+      <h2 id="more-quizzes-heading">More quizzes</h2>
       ${blocks.join("\n")}
-      <p class="browse-all-line"><a href="${publicRoot}/quizzes/">Browse the complete Smurdy quiz directory</a></p>
+      <p class="browse-all-line"><a href="${publicRoot}/quizzes/">All quizzes</a></p>
     </section>`;
 }
 
@@ -996,7 +1034,7 @@ function directoryDocumentStart({ title, description, canonical, publicRoot }) {
   <meta name="description" content="${escapeHtml(description)}"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="${escapeHtml(canonical)}"/>
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_directory.css?v=20260907-ui-polish-1"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_directory.css?v=20260909-editorial-1"/>
   <link rel="icon" type="image/png" sizes="32x32" href="${publicRoot}/assets/images/favicon-32.png?v=20260825-logo-1"/>
 </head>
 <body>
@@ -1042,11 +1080,11 @@ function groupedDirectorySections(records) {
     );
     const subdivisions = records.filter(record => record.groupId === "us_states");
     const sections = [];
-    if (main.length) sections.push(["Main sets", "Start with the world or one continent.", main]);
-    if (subdivisions.length) sections.push(["Subdivision sets", "Practice geography below the country level.", subdivisions]);
-    if (regional.length) sections.push(["Regional sets", "Focus on a smaller geographic region.", regional]);
-    if (specialty.length) sections.push(["Specialty sets", "Practice political, historical, island, and size-based groups.", specialty]);
-    return sections.map(([heading, lead, values]) => `<section class="directory-section"><h2>${heading}</h2><p class="directory-section-lead">${lead}</p>${renderRecordCards(values)}</section>`).join("");
+    if (main.length) sections.push(["Main sets", main]);
+    if (subdivisions.length) sections.push(["Subdivision sets", subdivisions]);
+    if (regional.length) sections.push(["Regional sets", regional]);
+    if (specialty.length) sections.push(["Specialty sets", specialty]);
+    return sections.map(([heading, values]) => `<section class="directory-section"><h2>${heading}</h2>${renderRecordCards(values)}</section>`).join("");
 }
 
 async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
@@ -1073,8 +1111,8 @@ async function writeUnifiedModeIndexes({ outDir, pageRecords, publicRoot }) {
             : "";
         const plannedModesSection = modeId === "type-capital"
             ? `<section class="directory-section"><h2>Capital modes</h2><div class="directory-mode-grid">
-      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a highlighted place and type its capital city.</span><span class="directory-card-meta">Available now</span></div>
-      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city, then locate it on the map.</span><span class="directory-coming-soon">Coming soon!</span></div>
+      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a highlighted place and type its capital city.</span></div>
+      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city, then locate it on the map.</span></div>
     </div></section>`
             : "";
         const pageDescription = `${mode.description} Choose from ${records.length} available quiz sets.`;
@@ -1115,11 +1153,11 @@ async function writeUnifiedQuizIndex({ outDir, pageRecords, publicRoot }) {
   <main class="directory-shell">
     ${directoryBreadcrumbs([{ label: "All quizzes" }], publicRoot)}
     <h1 class="directory-title">All Geography Quizzes</h1>
-    <p class="directory-lead">Choose a category and game mode. Each directory contains the complete list of available quiz sets.</p>
-    <section class="directory-section"><h2>Country maps</h2><p class="directory-section-lead">Learn country names, shapes, locations, and borders.</p><div class="directory-mode-grid">${countryModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
-    <section class="directory-section"><h2>Capitals</h2><p class="directory-section-lead">Connect countries with their capital cities.</p><div class="directory-mode-grid">${capitalModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city and locate it on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
-    <section class="directory-section"><h2>Subdivision maps</h2><p class="directory-section-lead">Practice states and other first-level subdivisions.</p><div class="directory-mode-grid">${subdivisionModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
-    <section class="directory-section"><h2>Flags</h2><p class="directory-section-lead">Recognize flags and connect them with their places.</p><div class="directory-mode-grid">${renderModeDirectoryCard({ modeId: "type-flag", count: countFor("type-flag"), publicRoot })}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag and locate its country on the map.</span><span class="directory-coming-soon">Coming soon!</span></div></div></section>
+    <p class="directory-lead">Choose a category or mode.</p>
+    <section class="directory-section"><h2>Country maps</h2><p class="directory-section-lead">Country names, shapes, locations, and borders.</p><div class="directory-mode-grid">${countryModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Capitals</h2><p class="directory-section-lead">Country and state capitals.</p><div class="directory-mode-grid">${capitalModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a capital city and locate it on the map.</span></div></div></section>
+    <section class="directory-section"><h2>Subdivision maps</h2><p class="directory-section-lead">States and other first-level subdivisions.</p><div class="directory-mode-grid">${subdivisionModes.map(modeId => renderModeDirectoryCard({ modeId, count: countFor(modeId), publicRoot })).join("")}</div></section>
+    <section class="directory-section"><h2>Flags</h2><p class="directory-section-lead">Country, territory, and state flags.</p><div class="directory-mode-grid">${renderModeDirectoryCard({ modeId: "type-flag", count: countFor("type-flag"), publicRoot })}<div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag and locate its country on the map.</span></div></div></section>
   </main>
   ${directoryFooter(publicRoot)}`;
     await fs.writeFile(path.join(outDir, "index.html"), html, "utf8");
