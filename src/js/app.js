@@ -62,7 +62,14 @@
     const cleanDefinition = cleanQuizId
         ? quizDefinitions?.get?.(cleanQuizId)
         : null;
+    const cleanManifest = cleanQuizId
+        ? quizDefinitions?.getManifest?.(cleanQuizId)
+        : null;
+    const groupSetOverride = String(
+        cleanManifest?.groupSetOverrides?.[cleanGroupId] || ""
+    );
     const cleanUsesSubdivisions = Boolean(
+        groupSetOverride === "subdivision_groups" ||
         cleanDefinition?.family === "subdivisions" ||
         (cleanQuizId && cleanQuizId.includes("subdivision"))
     );
@@ -73,6 +80,7 @@
         quizGroupId: cleanGroupId,
         quizGroupSet:
             urlParams.get("groupSet") ||
+            groupSetOverride ||
             (cleanUsesSubdivisions ? "subdivision_groups" : "country_groups"),
         cleanQuizId
     };
