@@ -125,7 +125,7 @@ test("flag pages include the full landing and results experience", () => {
     );
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
 
-    assert.match(html, /What this quiz covers/);
+    assert.match(html, /Flags packed into one continent/);
     assert.match(html, /Flags to review|data-flag-review/);
     assert.match(html, /data-flag-progress-bar/);
     assert.match(html, /data-flag-time/);
@@ -139,7 +139,7 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(directory, /directory-card-title">North America/);
     assert.match(directory, /directory-card-title">US States/);
     assert.match(directory, /directory-card-title">Locate/);
-    assert.match(directory, /Coming soon!/);
+    assert.doesNotMatch(directory, /Coming soon!/);
     assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
     assert.match(html, /data-flag-restart>Restart/);
     assert.match(html, /data-flag-retry hidden>Retry Missed/);
