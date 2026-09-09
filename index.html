@@ -29,7 +29,7 @@
         rel="stylesheet"
         href="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.css"
     />
-    <link rel="stylesheet" href="/styles/style.css?v=20260907-ui-polish-1" />
+    <link rel="stylesheet" href="/styles/style.css?v=20260909-editorial-1" />
     <link rel="canonical" href="https://smurdy.fun/" />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8056486411795353"
      crossorigin="anonymous"></script>
@@ -47,26 +47,15 @@
         </a>
          <h1 id="quiz-target">Smurdy Geography Quizzes</h1>
          <div id="quiz-desc">
-             <h2 class="about-header">About Smurdy</h2>
              <p class="home-summary">
-                 Free geography quizzes for learning countries, capitals, and US states through
-                 clicking, typing, no-borders, and point-finding modes.
+                 Free geography quizzes for countries, capitals, flags, and US states.
              </p>
-             <details class="home-about-details">
-                 <summary>About, contact, and privacy</summary>
-                 <div class="home-about-details-body">
-                     <p>
-                         Smurdy is an independent geography project built to make
-                         repeated map practice quick and easy to start.
-                         <a href="/about/">Learn more about Smurdy</a>.
-                     </p>
-                     <p>
-                         Found a bug or have a suggestion?
-                         <a href="/contact/">Visit the contact page</a>.
-                     </p>
-                     <p><a href="/privacy/">Privacy Policy</a></p>
-                 </div>
-             </details>
+             <nav class="home-site-links" aria-label="Smurdy links">
+                 <a href="/about/">About</a>
+                 <a href="/contact/">Contact</a>
+                 <a href="/privacy/">Privacy</a>
+                 <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a>
+             </nav>
              <button class="weak-spots-menu-button" type="button" data-weak-spots-open>Weak Spots <span class="weak-spots-count" data-weak-spots-count hidden></span></button>
 </div>
  
@@ -74,7 +63,7 @@
  
          <div id="quiz-buttons">
              <!-- suggestion is an anchor to the feedback form so it behaves like a normal link -->
-             <a id="quiz-suggest" class="qb-btn primary" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Give Suggestions</a>
+             <a id="quiz-suggest" class="qb-btn" href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener" style="display:none">Feedback</a>
              <!-- keep these present for the app JS (hidden on the homepage) -->
              <a id="quiz-back" class="qb-btn" href="/" style="display:none">Back</a>
              <button id="quiz-giveup" style="display:none">Give Up</button>
@@ -85,7 +74,7 @@
          <div id="quiz-browser" data-smurdy-directory="smurdy-browser-directory-v1" aria-label="Quiz browser">
         <nav id="qb-directory-fallback" aria-label="Browse geography quizzes">
             <strong>Explore geography quizzes</strong>
-            <a href="/quizzes/">Browse All Quizzes</a>
+            <a href="/quizzes/">All quizzes</a>
             <div>
                 <a href="/quizzes/click-country/world/">World</a>
                 <a href="/quizzes/click-country/europe/">Europe</a>
@@ -101,13 +90,13 @@
      <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
      <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
      <script src="/src/js/flag_catalog.js?v=20260908-landing-copy-1" defer></script>
-     <script src="/src/js/weak_spots.js?v=20260909-state-capitals-1" defer></script>
-     <script src="/src/js/quiz_library.js?v=20260908-capitals-1" defer></script>
-     <script src="/src/js/capital_quiz.js?v=20260909-state-capitals-1" defer></script>
-     <script src="/src/js/manifest.js?v=20260909-locate-capitals-1" defer></script>
-     <script src="/src/js/quiz_definitions.js?v=20260908-capitals-1" defer></script>
-     <script src="/src/js/app.js?v=20260909-state-capitals-1" defer></script>
-     <script src="/src/js/browse.js?v=20260909-state-capitals-1" defer></script>
+     <script src="/src/js/weak_spots.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/quiz_library.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/capital_quiz.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/manifest.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/quiz_definitions.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/app.js?v=20260909-editorial-1" defer></script>
+     <script src="/src/js/browse.js?v=20260909-editorial-1" defer></script>
 <!-- smurdy-global-map-control-visibility-v1 -->
 <script>
 (() => {
