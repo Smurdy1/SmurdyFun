@@ -147,8 +147,7 @@ test("US state capitals landing page uses the shared capitals mode", () => {
         "utf8"
     );
 
-    assert.match(html, /US State Capitals Quiz/);
-    assert.match(html, /Type All 50 State Capitals/);
+    assert.match(html, /Type the US State Capitals Quiz/);
     assert.match(html, /50 states/);
     assert.match(html, /data-quiz-id="type-capital"/);
     assert.match(html, /data-quiz-group="us_states"/);
