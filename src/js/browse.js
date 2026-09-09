@@ -303,7 +303,7 @@
         .qb-title { font-weight:700; color:#111; margin:0 0 6px 0; font-size:15px; }
         .qb-sub { color:#666; font-size:13px; margin:0; }
         .qb-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-        .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:999px; color:#444; }
+        .qb-tag { font-size:11px; padding:5px 8px; background:#eee; border-radius:4px; color:#444; }
         .qb-play { margin-left:8px; padding:8px 10px; background:#005fa3; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:700; text-decoration:none; display:inline-block; }
         .qb-play:hover,
         .qb-play:focus-visible { background:#004b82; }
@@ -332,7 +332,7 @@
             text-decoration: none;
             text-align: center;
             font-size: 15px;
-            font-weight: 800;
+            font-weight: 700;
         }
         .qb-directory-primary:hover,
         .qb-directory-primary:focus {
@@ -407,7 +407,7 @@
             padding: 7px 6px;
             font: inherit;
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 700;
             cursor: pointer;
         }
 
@@ -430,7 +430,7 @@
             min-height: 18px;
             margin-left: 3px;
             padding: 0 5px;
-            border-radius: 999px;
+            border-radius: 4px;
             background: #dfe4e8;
             color: #555;
             font-size: 10px;
@@ -504,7 +504,7 @@
             padding: 8px 12px;
             font: inherit;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             transition: background .12s ease, border-color .12s ease;
@@ -569,7 +569,7 @@
             padding: 8px 12px;
             font: inherit;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
         }
@@ -629,7 +629,7 @@
             padding: 9px 1px 8px;
             font: inherit;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
         }
@@ -763,11 +763,11 @@
             display: inline-block;
             margin-left: 7px;
             padding: 3px 7px;
-            border-radius: 999px;
+            border-radius: 4px;
             background: #0077cc;
             color: #fff;
             font-size: 9px;
-            font-weight: 850;
+            font-weight: 700;
             line-height: 1.2;
             vertical-align: 2px;
             white-space: nowrap;
