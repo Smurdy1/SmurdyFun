@@ -56,6 +56,8 @@ test("quiz definitions expose explicit modality adapters", () => {
     assert.equal(capitals.category, "capitals");
     assert.equal(capitals.interaction, "type");
     assert.equal(capitals.family, "countries");
+    assert.deepEqual(Array.from(capitals.families), ["countries", "subdivisions"]);
+    assert.equal(capitals.manifest.groupSetOverrides.us_states, "subdivision_groups");
     assert.equal(capitals.modality, "map");
     assert.equal(capitals.adapter.requiresMenuMap, true);
 
@@ -126,4 +128,20 @@ test("map and flag landing pages use the shared shell and Favorite control", () 
     assert.match(capitals, /Latin America Capitals Quiz/);
     assert.match(capitals, /Type the Capitals/);
     assert.match(flags, /data-quiz-modality="flag"/);
+});
+
+
+test("US state capitals landing page uses the shared capitals mode", () => {
+    const html = fs.readFileSync(
+        path.join(root, "quizzes/type-capital/us_states/index.html"),
+        "utf8"
+    );
+
+    assert.match(html, /US State Capitals Quiz/);
+    assert.match(html, /Type All 50 State Capitals/);
+    assert.match(html, /50 states/);
+    assert.match(html, /data-quiz-id="type-capital"/);
+    assert.match(html, /data-quiz-group="us_states"/);
+    assert.match(html, />Type the Capitals<\/a>/);
+    assert.match(html, /aria-current="page">US States<\/span>/);
 });
