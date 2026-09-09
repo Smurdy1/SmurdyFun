@@ -177,9 +177,15 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
     );
 
     assert.match(manifest, /id: "locate-flag"/);
+    assert.match(manifest, /id: "locate-capital"/);
+    assert.match(manifest, /title: "Locate the Capitals"/);
     assert.match(manifest, /status: "coming-soon"/);
     assert.match(manifest, /families: \["countries", "subdivisions"\]/);
     assert.match(allQuizzes, /styles\/quiz_directory\.css/);
+    assert.match(
+        allQuizzes,
+        /<h2>Capitals<\/h2>[\s\S]*?directory-card-title">Locate<[\s\S]*?Coming soon!/
+    );
     assert.match(allQuizzes, /<h2>Country maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Subdivision maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Flags<\/h2>/);
@@ -187,6 +193,20 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
     assert.match(modeHub, /<h2>Main sets<\/h2>/);
     assert.match(modeHub, /<h2>Regional sets<\/h2>/);
     assert.doesNotMatch(allQuizzes, /<ul>/);
+
+    const capitalHub = fs.readFileSync(
+        path.resolve(__dirname, "../quizzes/type-capital/index.html"),
+        "utf8"
+    );
+    assert.match(capitalHub, /<h2>Capital modes<\/h2>/);
+    assert.match(
+        capitalHub,
+        /directory-card-title">Locate<[\s\S]*?Coming soon!/
+    );
+    assert.equal(
+        fs.existsSync(path.resolve(__dirname, "../quizzes/locate-capital")),
+        false
+    );
 });
 
 
