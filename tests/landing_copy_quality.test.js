@@ -56,10 +56,11 @@ test("known awkward group names render naturally", () => {
         spanishCapital,
         /Practice the capitals of Spanish-speaking countries/
     );
-    assert.equal(
-        modeParagraph(spanishCapital, "When this mode helps"),
-        "Use this when you know the countries in this set and want to add capital-city recall without losing the geographic context of the map."
+    assert.match(
+        spanishCapital,
+        /Use this when you know the countries in this set and want to add capital-city recall without losing the geographic context of the map\./
     );
+    assert.doesNotMatch(spanishCapital, /<h2>When this mode helps<\/h2>/);
     assert.doesNotMatch(
         spanishCapital,
         /countries in Spanish-Speaking Countries/
@@ -82,13 +83,12 @@ test("known awkward group names render naturally", () => {
 
 test("subdivision prose refers to the parent geography, not the group title", () => {
     const clickStates = read("quizzes/click-subdivision/us_states/index.html");
-    assert.match(clickStates, /inside the United States/);
-    assert.match(clickStates, /right part of the United States/);
+    assert.match(clickStates, /internal map of the United States/);
     assert.doesNotMatch(clickStates, /inside US States/);
 
     const findStates = read("quizzes/find-subdivision/us_states/index.html");
-    assert.match(findStates, /inside the United States/);
     assert.match(findStates, /outer shape of the United States/);
+    assert.doesNotMatch(findStates, /inside US States/);
 });
 
 test("generated landing pages do not leak unresolved prose placeholders", () => {

@@ -34,18 +34,29 @@ function pluralUnit(group) {
 }
 
 function pageTitle(group) {
-    return `${group.shortLabel} Flag Quiz - Type the ${group.unitName === "state" ? "States" : "Countries"} | Smurdy`;
+    if (group.shortLabel === "World") return "Type the World Flags Quiz | Smurdy";
+    if (group.shortLabel === "US States") return "Type the US State Flags Quiz | Smurdy";
+    return `Type the Flags: ${group.shortLabel} Quiz | Smurdy`;
 }
 
 function flagList(groupId) {
     return flagApi.selectFlags(sources, groupId, groups, countryGroups, aliases);
 }
 
-function previewHtml(flags, notable) {
-    const selected = notable
-        .map(name => flags.find(flag => flagApi.acceptedAnswers(name, aliases).has(flagApi.normalizeAnswer(flag.name))))
-        .filter(Boolean);
-    return `<ul class="flag-preview-list">${selected.map(flag => `
+function previewHtml(flags, notable, groupId, desiredCount) {
+    const selected = [];
+    const seen = new Set();
+    const add = flag => {
+        if (!flag || seen.has(flag.name)) return;
+        seen.add(flag.name);
+        selected.push(flag);
+    };
+    notable.forEach(name => add(flags.find(flag =>
+        flagApi.acceptedAnswers(name, aliases).has(flagApi.normalizeAnswer(flag.name))
+    )));
+    flags.forEach(add);
+    const count = Math.max(2, Math.min(flags.length, desiredCount || 4));
+    return `<ul class="flag-preview-list">${selected.slice(0, count).map(flag => `
         <li><img src="${escapeHtml(flag.src)}" alt="Flag of ${escapeHtml(flag.name)}" loading="lazy"><span>${escapeHtml(flag.name)}</span></li>`).join("")}
     </ul>`;
 }
@@ -66,10 +77,91 @@ function relatedMapLinks(groupId, group) {
     ];
 }
 
-function chips(items) {
-    return `<div class="chip-list">${items.map(([label, href]) =>
-        `<a class="chip" href="${escapeHtml(href)}">${escapeHtml(label)}</a>`
-    ).join("")}</div>`;
+function linkList(items) {
+    return `<ul class="link-list">${items.map(([label, href]) =>
+        `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`
+    ).join("")}</ul>`;
+}
+
+const FLAG_EDITORIAL = {
+    world: {
+        overviewHeading: "",
+        exampleSentence: "A single round can jump from Japan to Brazil, then Ghana, Estonia, and Samoa.",
+        previewCount: 4,
+        showChallenge: true,
+        showStudyTip: false
+    },
+    europe: {
+        overviewHeading: "Flags packed into one continent",
+        exampleSentence: "France and Italy are easy anchors, while Romania, Chad, Slovenia, Slovakia, and the Nordic crosses demand closer comparison.",
+        previewCount: 3,
+        showChallenge: true,
+        showStudyTip: true
+    },
+    asia: {
+        overviewHeading: "The Asia set",
+        exampleSentence: "Japan, India, Kazakhstan, Thailand, and the Gulf states bring very different flag patterns into the same round.",
+        previewCount: 5,
+        extraHeading: "Color alone is not enough",
+        extraBody: "Red appears constantly across this set, so symbols, stripe direction, scripts, and proportions matter more than a quick color match.",
+        showChallenge: false,
+        showStudyTip: true
+    },
+    africa: {
+        overviewHeading: "African flags",
+        exampleSentence: "Ghana, Kenya, South Africa, Botswana, and the two Congos are useful reference points for several recurring color families.",
+        previewCount: 4,
+        showChallenge: true,
+        showStudyTip: false
+    },
+    south_america: {
+        overviewHeading: "",
+        exampleSentence: "Brazil is unmistakable, but Colombia, Ecuador, and Venezuela reward attention to small details and proportions.",
+        previewCount: 3,
+        showChallenge: true,
+        showStudyTip: false
+    },
+    spanish_speaking: {
+        overviewHeading: "The same 20-country language set",
+        exampleSentence: "Spain, Mexico, Argentina, Guatemala, and Equatorial Guinea make the range of designs pretty wide.",
+        previewCount: 5,
+        showChallenge: false,
+        showStudyTip: true
+    },
+    tiny_countries: {
+        overviewHeading: "Small countries, unrelated flag families",
+        exampleSentence: "Monaco, San Marino, Liechtenstein, Nauru, and Tuvalu have almost nothing geographic in common besides being small.",
+        previewCount: 4,
+        extraHeading: "Do not overlearn by continent",
+        extraBody: "This set is deliberately scattered, so regional shortcuts help less than they do in a normal continent quiz.",
+        showChallenge: false,
+        showStudyTip: false
+    },
+    pacific_islands: {
+        overviewHeading: "Pacific island flags",
+        exampleSentence: "Fiji, Palau, Kiribati, Samoa, and the Marshall Islands are spread across a huge area but repeat several visual themes.",
+        previewCount: 5,
+        showChallenge: true,
+        showStudyTip: true
+    },
+    us_states: {
+        overviewHeading: "All 50 state flags",
+        exampleSentence: "California, Maryland, New Mexico, Colorado, and Alaska stand out quickly; many seal-on-blue flags do not.",
+        previewCount: 5,
+        extraHeading: "The seal-on-blue problem",
+        extraBody: "A large part of the difficulty comes from states whose flags use a detailed seal on a blue field. Those are better learned from the seal or lettering than from the overall layout.",
+        showChallenge: false,
+        showStudyTip: true
+    }
+};
+
+function editorialForFlagGroup(groupId) {
+    return FLAG_EDITORIAL[groupId] || {
+        overviewHeading: "About this set",
+        previewCount: 4,
+        showChallenge: ["balkans", "caribbean_islands", "former_soviet_union", "eastern_europe"].includes(groupId),
+        showStudyTip: ["middle_east", "southeast_asia", "latin_america", "small_island_countries"].includes(groupId)
+    };
 }
 
 function quizPage(groupId, group) {
@@ -87,7 +179,8 @@ function quizPage(groupId, group) {
     const mapLinks = relatedMapLinks(groupId, group);
     const answerLabel = group.unitName === "state" ? "State name" : "Country or territory name";
     const placeholder = group.unitName === "state" ? "Enter the state name..." : "Enter the country or territory...";
-    const heading = `${group.shortLabel} Flag Quiz`;
+    const editorial = editorialForFlagGroup(groupId);
+    const heading = title.replace(/\s*\|\s*Smurdy$/, "");
     const sharedStylesHtml = pageShell.renderSharedStyles();
     const brandHtml = pageShell.renderBrand({ className: "flag-brand" });
     const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({
@@ -116,7 +209,6 @@ function quizPage(groupId, group) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
-  <meta name="keywords" content="${escapeHtml(`${group.shortLabel} flag quiz, type the flags, learn ${group.shortLabel} flags, geography quiz`)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${escapeHtml(canonical)}">
   <meta property="og:type" content="website">
@@ -135,7 +227,7 @@ function quizPage(groupId, group) {
         isPartOf: { "@type": "WebSite", name: "Smurdy", url: baseUrl }
     })}</script>
   ${sharedStylesHtml}
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260903-review-pagination-1">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260909-editorial-1">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/favicon-48.png?v=20260825-logo-1">
@@ -157,46 +249,43 @@ function quizPage(groupId, group) {
       </header>
 
       <section class="flag-info content-section">
-        <h2>What this quiz covers</h2>
+        ${editorial.overviewHeading ? `<h2>${escapeHtml(editorial.overviewHeading)}</h2>` : ""}
         <p>${escapeHtml(group.overview)}</p>
+        ${editorial.exampleSentence ? `<p class="casual-example">${escapeHtml(editorial.exampleSentence)}</p>` : ""}
       </section>
       <section class="flag-info content-section">
         <h2>How the flag quiz works</h2>
         <p>One flag appears at a time. Type the ${escapeHtml(group.unitName)} it represents, or choose Give Up to reveal the answer. The round continues through all ${flags.length} ${escapeHtml(units)}.</p>
-        <p class="flag-tip"><strong>Gameplay tip:</strong> Check the stripe direction, color order, symbols, and proportions before answering.</p>
+        <p class="flag-tip"><strong>Tip:</strong> Check the stripe direction, color order, symbols, and proportions before answering.</p>
       </section>
-      <section class="flag-info content-section">
-        <h2>What you'll practice</h2>
-        <p>This mode builds visual recognition and name recall together. You have to produce the full place name instead of choosing it from a list.</p>
-      </section>
-      <section class="flag-info content-section">
-        <h2>A good way to start</h2>
-        <p>Identify the broad design family first, then use the smallest distinctive feature to separate it from similar flags.</p>
-      </section>
-      <section class="flag-info content-section">
-        <h2>What makes this set challenging</h2>
+      ${editorial.extraHeading && editorial.extraBody ? `<section class="flag-info content-section">
+        <h2>${escapeHtml(editorial.extraHeading)}</h2>
+        <p>${escapeHtml(editorial.extraBody)}</p>
+      </section>` : ""}
+      ${editorial.showChallenge ? `<section class="flag-info content-section">
+        <h2>What gets difficult</h2>
         <p>${escapeHtml(group.challenge)}</p>
-      </section>
-      <section class="flag-info content-section">
-        <h2>Study tip</h2>
+      </section>` : ""}
+      ${editorial.showStudyTip ? `<section class="flag-info content-section">
+        <h2>One way to learn this set</h2>
         <p>${escapeHtml(group.studyTip)}</p>
-      </section>
+      </section>` : ""}
       <section class="flag-info flag-examples" aria-labelledby="flag-examples-heading">
-        <h2 id="flag-examples-heading">Example flags in this quiz</h2>
-        ${previewHtml(flags, group.notable || [])}
+        <h2 id="flag-examples-heading">A few flags from this set</h2>
+        ${previewHtml(flags, group.notable || [], groupId, editorial.previewCount)}
       </section>
       <details class="included-list">
         <summary>${escapeHtml(units[0].toUpperCase() + units.slice(1))} included in this quiz (${flags.length})</summary>
-        <p>${flags.map(flag => escapeHtml(flag.name)).join(", ")}.</p>
+        <ul class="included-grid">${flags.map(flag => `<li>${escapeHtml(flag.name)}</li>`).join("")}</ul>
       </details>
       ${actionsHtml}
-      <section class="flag-links" aria-labelledby="explore-more-heading">
-        <h2 id="explore-more-heading">Explore more geography quizzes</h2>
-        <h3>Practice the same set on a map</h3>
-        ${chips(mapLinks)}
-        <h3>Try another flag set</h3>
-        ${chips(relatedFlags)}
-        <p class="browse-all-line"><a href="/quizzes/">Browse the complete Smurdy quiz directory</a></p>
+      <section class="flag-links" aria-labelledby="more-flags-heading">
+        <h2 id="more-flags-heading">More quizzes</h2>
+        <h3>Same set on a map</h3>
+        ${linkList(mapLinks)}
+        <h3>Other flag sets</h3>
+        ${linkList(relatedFlags.slice(0, 12))}
+        <p class="browse-all-line"><a href="/quizzes/">All quizzes</a></p>
       </section>
     </article>
 
@@ -230,12 +319,12 @@ function quizPage(groupId, group) {
   ${footerHtml}
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
-  <script src="/src/js/quiz_completion.js?v=20260903-review-pagination-1" defer></script>
-  <script src="/src/js/quiz_launch_intent.js?v=20260903-flag-parity-1" defer></script>
-  <script src="/src/js/flag_catalog.js?v=20260908-landing-copy-1" defer></script>
-  <script src="/src/js/weak_spots.js?v=20260903-flag-parity-1" defer></script>
-  <script src="/src/js/quiz_library.js?v=20260828-quiz-library-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260903-review-pagination-1" defer></script>
+  <script src="/src/js/quiz_completion.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/quiz_launch_intent.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/flag_catalog.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/weak_spots.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/quiz_library.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260909-editorial-1" defer></script>
   ${landingScriptsHtml}
 </body>
 </html>`;
@@ -256,8 +345,8 @@ function directoryPage() {
             <span class="directory-card-description">${escapeHtml(group.description)}</span>
             <span class="directory-card-meta">${group.memberCount} flags</span>
           </a>`).join("");
-    const section = (heading, lead, entries) => entries.length
-        ? `<section class="directory-section"><h2>${heading}</h2><p class="directory-section-lead">${lead}</p><div class="directory-card-grid">${cards(entries)}</div></section>`
+    const section = (heading, entries) => entries.length
+        ? `<section class="directory-section"><h2>${heading}</h2><div class="directory-card-grid">${cards(entries)}</div></section>`
         : "";
     const total = Object.keys(groups).length;
 
@@ -267,7 +356,7 @@ function directoryPage() {
   <title>Flag Quizzes - World, Regions, and US States | Smurdy</title>
   <meta name="description" content="Choose from ${total} free flag quizzes covering the world, regions, specialty country sets, and US states.">
   <meta name="robots" content="index, follow"><link rel="canonical" href="${baseUrl}/quizzes/type-flag/">
-  <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260907-ui-polish-1">
+  <link rel="stylesheet" href="/styles/quiz_directory.css?v=20260909-editorial-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
 </head><body>
   <header class="directory-header"><a class="directory-brand" href="/" aria-label="Smurdy home"><img src="/assets/images/smurdeye-transparent.png?v=20260825-logo-1" alt=""><span>Smurdy</span></a></header>
@@ -275,15 +364,15 @@ function directoryPage() {
     <nav class="directory-breadcrumbs" aria-label="Breadcrumb"><a href="/">Smurdy</a><span aria-hidden="true">›</span><a href="/quizzes/">All quizzes</a><span aria-hidden="true">›</span><span>Flags</span></nav>
     <h1 class="directory-title">Flag Quizzes</h1>
     <p class="directory-lead">Choose a flag set, then type the country, territory, or subdivision it represents.</p>
-    ${section("Main sets", "Start with the world or one continent.", main)}
-    ${section("Regional sets", "Focus on the same regional groups available in the map quizzes.", regional)}
-    ${section("Specialty sets", "Practice political, language-based, historical, island, and size-based country groups.", specialty)}
-    ${section("Subdivisions", "Practice flags for states, provinces, and other first-level subdivisions.", subdivisionEntries)}
+    ${section("Main sets", main)}
+    ${section("Regional sets", regional)}
+    ${section("Specialty sets", specialty)}
+    ${section("Subdivisions", subdivisionEntries)}
     <section class="directory-section"><h2>Flag modes</h2><div class="directory-mode-grid">
-      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a flag and type the place it represents.</span><span class="directory-card-meta">Available now</span></div>
-      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag, then locate its place on the map.</span><span class="directory-coming-soon">Coming soon!</span></div>
+      <div class="directory-card directory-mode-card"><span class="directory-card-title">Type</span><span class="directory-card-description">See a flag and type the place it represents.</span></div>
+      <div class="directory-card directory-mode-card directory-card-disabled" aria-disabled="true"><span class="directory-card-title">Locate</span><span class="directory-card-description">See a flag, then locate its place on the map.</span></div>
     </div></section>
-    <section class="directory-section"><h2>How to learn flags with Smurdy</h2><p class="directory-section-lead">Start with a smaller regional set, retry the flags you miss, and move to the world set once you can switch between regions comfortably.</p><div class="directory-related"><a class="directory-chip" href="/quizzes/">Browse all geography quizzes</a><a class="directory-chip" href="/">Back to home</a></div></section>
+    <section class="directory-section"><h2>Elsewhere</h2><div class="directory-related"><a class="directory-chip" href="/quizzes/">All quizzes</a><a class="directory-chip" href="/">Home</a></div></section>
   </main>
   <footer class="directory-footer">Smurdy geography quizzes. <a href="/">Home</a> / <a href="/about/">About</a> / <a href="/contact/">Contact</a> / <a href="/privacy/">Privacy</a></footer>
 </body></html>`;

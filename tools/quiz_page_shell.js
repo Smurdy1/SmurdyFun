@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260909-state-capitals-1";
+const ASSET_VERSION = "20260909-editorial-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -61,7 +61,7 @@ function renderPrimaryLaunch({ className = "", buttonClass = "" } = {}) {
     const primaryClass = classNames("quiz-button", buttonClass, "primary");
 
     return `<div class="${escapeHtml(containerClass)}" data-smurdy-quiz-primary-action>
-      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Open quiz</button>
+      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Play</button>
     </div>`;
 }
 
@@ -81,15 +81,15 @@ function renderLandingActions({
     const baseButtonClass = classNames("quiz-button", buttonClass);
     const primaryClass = classNames(baseButtonClass, "primary");
     const favoriteClass = classNames(baseButtonClass, "favorite");
-    const secondaryClass = classNames(baseButtonClass, "secondary");
+    const textLinkClass = classNames(baseButtonClass, "quiz-text-link");
     const home = includeHome
-        ? `\n      <a class="${escapeHtml(secondaryClass)}" href="${escapeHtml(joinRoot(root, "/"))}">Back to home</a>`
+        ? `\n      <a class="${escapeHtml(textLinkClass)}" href="${escapeHtml(joinRoot(root, "/"))}">Home</a>`
         : "";
 
     return `<div class="${escapeHtml(containerClass)}" data-smurdy-quiz-actions>
-      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Open quiz</button>
+      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Play</button>
       <button class="${escapeHtml(favoriteClass)}" type="button" data-smurdy-quiz-favorite aria-pressed="false">☆ Add to favorites</button>
-      <a class="${escapeHtml(secondaryClass)}" href="${escapeHtml(joinRoot(root, "/quizzes/"))}">Browse all quizzes</a>${home}
+      <a class="${escapeHtml(textLinkClass)}" href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>${home}
     </div>`;
 }
 

@@ -548,7 +548,7 @@
             "h1": "Europe Without Borders Quiz: Find All 44 Countries",
             "metaDescription": "Find all 44 countries of Europe on a map without borders. Use coastlines, peninsulas, islands, and regional memory in this difficult Europe map quiz.",
             "lead": "Find all 44 countries of Europe after the political borders disappear. This no-borders map quiz replaces outline matching with a harder test of coastlines, distance, and your mental map of Europe.",
-            "overviewHeading": "What the Europe no-borders quiz includes",
+            "overviewHeading": "Europe without the lines",
             "overview": "The quiz includes 44 European countries, from Iceland and Portugal to Ukraine and Cyprus, plus the continent's microstates. Western Europe, the Nordic countries, the Baltics, Central Europe, the Balkans, and Eastern Europe all appear in one borderless round.",
             "howToPlay": "The quiz names one European country at a time, but no country outlines are shown. Click where the country belongs using the continent's outer coastline, major peninsulas, islands, and the remembered positions of neighboring countries. Complete all 44 locations to finish.",
             "gameplayTip": "Place the large peninsulas first in your head, then estimate smaller inland countries relative to them.",
@@ -556,8 +556,14 @@
             "challenge": "Europe has many small countries concentrated in Central Europe, the Balkans, and the Benelux region. When their outlines vanish, a click can be only a short distance away yet land in a different country, so regional order matters more than shape recognition.",
             "studyTipHeading": "A practical way to learn borderless Europe",
             "studyTip": "Use the Iberian, Italian, Balkan, and Scandinavian peninsulas as the main frame. Then learn compact chains such as Portugal-Spain-France, the Baltic states from north to south, and the western Balkan countries in geographic order.",
-            "sectionHeading": "Use Europe's seas as coordinates",
-            "sectionBody": "The Mediterranean, Baltic, Black, Adriatic, and North seas divide Europe into recognizable zones even when political lines are hidden. Ask which sea is nearest, whether the target lies north or south of it, and how far it sits from a distinctive coastline."
+            "sectionHeading": "The small-country problem",
+            "sectionBody": "A blank European map leaves very little room for error around Luxembourg, Kosovo, Montenegro, and the countries packed around the Balkans.",
+            "exampleSentence": "Italy and the Iberian Peninsula stay easy to orient around; Benelux, the Balkans, and the microstates do not.",
+            "modeSections": [
+                "strategy"
+            ],
+            "showChallenge": false,
+            "showStudyTip": false
         },
         "click-country/eurasia": {
             "title": "Eurasia Map Quiz: Click All 95 Countries | Smurdy",
@@ -596,7 +602,7 @@
             "h1": "South America Without Borders Quiz: Find 12 Countries",
             "metaDescription": "Find all 12 countries of South America on a blank map without borders. Use coastlines, Brazil, the Andes, and relative position in this geography quiz.",
             "lead": "Find all 12 sovereign countries of South America with the internal borders removed. Use the continent's coastline, Brazil's central position, the Andes, and your memory of neighboring countries to place every answer.",
-            "overviewHeading": "The 12 countries in this borderless South America quiz",
+            "overviewHeading": "Borders are gone, coastlines aren't",
             "overview": "The set includes every sovereign country in South America, from Colombia and Venezuela in the north to Chile and Argentina in the south. Brazil dominates the center and east, while Bolivia and Paraguay form the continent's two landlocked answers.",
             "howToPlay": "A South American country name appears on a map with no internal political lines. Click its approximate location using the outer coastline and your mental map, then continue until all 12 sovereign countries are complete.",
             "gameplayTip": "Use Brazil as the central reference, then decide whether the target lies along the Pacific, Atlantic, Caribbean, or inland.",
@@ -605,14 +611,18 @@
             "studyTipHeading": "How to memorize the blank South America map",
             "studyTip": "Learn the five Pacific-side countries from north to south, then the northern Atlantic coast, the Southern Cone, and the two landlocked countries. Finish by checking every answer against Brazil, which borders most of the continent.",
             "sectionHeading": "Why French Guiana is not an answer",
-            "sectionBody": "French Guiana appears on the northeastern coast between Suriname and Brazil, but it is an overseas department of France rather than a sovereign country. This quiz therefore includes Guyana and Suriname among its 12 answers, but not French Guiana."
+            "sectionBody": "French Guiana appears on the northeastern coast between Suriname and Brazil, but it is an overseas department of France rather than a sovereign country. This quiz therefore includes Guyana and Suriname among its 12 answers, but not French Guiana.",
+            "exampleSentence": "Chile's coastline, Brazil's scale, and the northern coast around Colombia and Venezuela give you most of the anchors you need.",
+            "modeSections": [],
+            "showChallenge": false,
+            "showStudyTip": true
         },
         "find-subdivision/us_states": {
             "title": "US States Without Borders Quiz: Find All 50 States | Smurdy",
             "h1": "US States Without Borders Quiz: Find All 50 States",
             "metaDescription": "Find all 50 US states on a map without state borders. Practice American geography using coastlines, regions, and relative location in this difficult quiz.",
             "lead": "Find all 50 US states after the internal state lines disappear. This no-borders states quiz tests whether you know each location from coastlines, regional order, and a mental map of the United States.",
-            "overviewHeading": "What the 50-state no-borders quiz covers",
+            "overviewHeading": "The state lines are gone",
             "overview": "The quiz includes all 50 states across the contiguous United States, Alaska, and Hawaii. State outlines are hidden during play, so the challenge focuses on absolute and relative location rather than matching familiar shapes.",
             "howToPlay": "A state name appears while the internal borders of the United States are hidden. Click where the state belongs using coastlines, the national outline, regional position, and nearby geographic anchors, then continue through all 50 states.",
             "gameplayTip": "First identify the region, then estimate the state's position within that region instead of aiming from the whole national map.",
@@ -621,14 +631,20 @@
             "studyTipHeading": "How to study the states without borders",
             "studyTip": "Build four regional chains: the Pacific and Mountain West, the Great Plains, the Mississippi and Great Lakes states, and the Atlantic coast. Practice each chain in geographic order before mixing all 50 states together.",
             "sectionHeading": "Why Washington, DC is not included",
-            "sectionBody": "Washington, DC is a federal district, not one of the 50 states, and it is not represented as a quiz area on this map. The included-place total therefore stays at exactly 50: the 48 contiguous states plus Alaska and Hawaii."
+            "sectionBody": "Washington, DC is a federal district, not one of the 50 states, and it is not represented as a quiz area on this map. The included-place total therefore stays at exactly 50: the 48 contiguous states plus Alaska and Hawaii.",
+            "exampleSentence": "Florida, Michigan, and California still give you strong shapes to work from. Kansas or Iowa give you much less.",
+            "modeSections": [
+                "strategy"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
         },
         "click-country/europe": {
             "title": "Europe Map Quiz: Click All 44 Countries | Smurdy",
             "h1": "Europe Map Quiz: Click All 44 Countries",
             "metaDescription": "Learn all 44 countries of Europe with an interactive click map quiz. Use visible borders, shapes, coastlines, and neighbors to practice European geography.",
             "lead": "Learn all 44 countries of Europe by clicking each one on a map with political borders visible. This mode emphasizes country shapes, neighboring borders, and fast location recall across every European region.",
-            "overviewHeading": "Countries and regions in the Europe map quiz",
+            "overviewHeading": "Europe in this quiz",
             "overview": "The 44-country set covers the British Isles, Western and Central Europe, Scandinavia, the Baltics, Eastern Europe, the Balkans, the Mediterranean, and Europe's sovereign microstates. It is designed as the main bordered-map route for learning the continent.",
             "howToPlay": "The quiz gives you a country name and keeps every European border visible. Click the matching shape, learn from any mistake, and continue until you have located all 44 countries.",
             "gameplayTip": "Compare the target's border shape with its neighbors before clicking, especially in dense regions where several countries meet.",
@@ -637,14 +653,20 @@
             "studyTipHeading": "A region-by-region Europe study plan",
             "studyTip": "Begin with distinctive outer shapes such as Portugal, Italy, Greece, Norway, and the United Kingdom. Add Central Europe, the Baltics, and the Balkans as separate clusters, then combine them in the full 44-country quiz.",
             "sectionHeading": "Learn Europe through border relationships",
-            "sectionBody": "Visible borders make this quiz ideal for learning which countries touch. Notice Portugal west of Spain, the Baltic states in north-to-south order, the countries surrounding Germany, and the chain running down the western Balkans. Those relationships remain useful in harder modes."
+            "sectionBody": "Visible borders make this quiz ideal for learning which countries touch. Notice Portugal west of Spain, the Baltic states in north-to-south order, the countries surrounding Germany, and the chain running down the western Balkans. Those relationships remain useful in harder modes.",
+            "exampleSentence": "France, Italy, and Spain make useful anchors before you get into places such as Andorra, Slovenia, or North Macedonia.",
+            "modeSections": [
+                "strategy"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
         },
         "click-country/south_america": {
             "title": "South America Map Quiz: Click All 12 Countries | Smurdy",
             "h1": "South America Map Quiz: Click All 12 Countries",
             "metaDescription": "Learn all 12 countries of South America with an interactive map quiz. Click each visible country outline and practice borders, neighbors, and locations.",
             "lead": "Learn the 12 sovereign countries of South America by clicking their visible map outlines. The compact set is ideal for practicing country shapes, shared borders, coastlines, and regional order.",
-            "overviewHeading": "Countries included in the South America click quiz",
+            "overviewHeading": "A compact full-continent quiz",
             "overview": "This quiz covers all 12 sovereign South American countries. The map runs from Colombia, Venezuela, Guyana, and Suriname in the north through Brazil and the inland states to Chile, Argentina, and Uruguay in the south.",
             "howToPlay": "Read the country name, find its bordered shape on the South America map, and click it. Continue through all 12 answers, using coastlines and neighboring countries whenever a shape is unfamiliar.",
             "gameplayTip": "Locate Brazil first as the continent's largest anchor, then compare the target with the countries around its border.",
@@ -653,11 +675,17 @@
             "studyTipHeading": "The fastest way to learn the South America map",
             "studyTip": "Memorize the Pacific coast from Colombia to Chile, then learn the northern Atlantic countries and the Southern Cone. Add Bolivia and Paraguay last as the two landlocked countries, always relating them back to Brazil.",
             "sectionHeading": "Use Brazil to organize the continent",
-            "sectionBody": "Brazil borders every sovereign South American country except Chile and Ecuador. That makes one question especially useful: does the target touch Brazil? Combining that fact with the Pacific and Atlantic coastlines quickly narrows most answers."
+            "sectionBody": "Brazil borders every sovereign South American country except Chile and Ecuador. That makes one question especially useful: does the target touch Brazil? Combining that fact with the Pacific and Atlantic coastlines quickly narrows most answers.",
+            "exampleSentence": "Brazil is the obvious anchor, while Chile, Uruguay, Paraguay, and the Guianas force you to read the edges more carefully.",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": false,
+            "showStudyTip": true
         },
         "type-capital/us_states": {
-            "title": "US State Capitals Quiz – Type All 50 State Capitals | Smurdy",
-            "h1": "US State Capitals Quiz – Type All 50 State Capitals",
+            "title": "Type the US State Capitals Quiz | Smurdy",
+            "h1": "Type the US State Capitals Quiz",
             "metaDescription": "Practice all 50 US state capitals on an interactive map. Each state is highlighted, you type its capital, and the capital city is briefly marked after every answer.",
             "lead": "Learn all 50 US state capitals with the same state map used by Smurdy's other US geography quizzes.",
             "overviewHeading": "What the US state capitals quiz covers",
@@ -667,7 +695,152 @@
             "studyTipHeading": "How to learn the 50 state capitals",
             "studyTip": "Learn capitals by region first, then mix the full set. The Northeast and Midwest are useful clusters because several states and capitals are packed closely together.",
             "sectionHeading": "Why Washington, DC is not included",
-            "sectionBody": "Washington, DC is the capital of the United States, not a state capital. This quiz covers exactly the 50 states, so the answer set contains 50 state capitals."
+            "sectionBody": "Washington, DC is the capital of the United States, not a state capital. This quiz covers exactly the 50 states, so the answer set contains 50 state capitals.",
+            "exampleSentence": "Albany, Sacramento, Carson City, Juneau, and Austin are all in the same 50-answer set.",
+            "modeSections": [],
+            "showChallenge": true,
+            "showStudyTip": true
+        },
+        "click-country/world": {
+            "overviewHeading": "",
+            "exampleSentence": "One round can jump from Argentina to Kyrgyzstan to Fiji with no warning.",
+            "showChallenge": false,
+            "showStudyTip": true,
+            "hideBestForNote": true
+        },
+        "click-country/africa": {
+            "overviewHeading": "The Africa set",
+            "exampleSentence": "Nigeria, Ethiopia, South Africa, and the Democratic Republic of the Congo are good large anchors for filling in the harder neighbors.",
+            "modeSections": [],
+            "showChallenge": true,
+            "showStudyTip": true
+        },
+        "click-country/spanish_speaking": {
+            "overviewHeading": "The 20-country set",
+            "exampleSentence": "Mexico, Spain, and Equatorial Guinea make the geographic spread of the set pretty obvious.",
+            "modeSections": [],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "type-country/asia": {
+            "overviewHeading": "Asia by name",
+            "exampleSentence": "Kazakhstan, Thailand, the Philippines, and the smaller Central Asian countries test very different kinds of recall.",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "type-country/tiny_countries": {
+            "overviewHeading": "",
+            "exampleSentence": "Monaco, San Marino, Liechtenstein, Tuvalu, and Nauru are small enough that location context matters as much as outline shape.",
+            "sectionHeading": "Typing tiny places is its own problem",
+            "sectionBody": "A country can be visually obvious once you notice it and still be hard to name quickly. This set is good at separating those two skills.",
+            "modeSections": [
+                "skills"
+            ],
+            "showChallenge": false,
+            "showStudyTip": true
+        },
+        "find-country/africa": {
+            "overviewHeading": "Africa without borders",
+            "exampleSentence": "The Mediterranean coast, the Horn, Madagascar, and South Africa are useful reference points before you work inland.",
+            "modeSections": [
+                "strategy"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "find-point/world": {
+            "overviewHeading": "Points can land almost anywhere",
+            "exampleSentence": "A point in Canada is one thing; a point near the edge of Rwanda, Belgium, or El Salvador is another.",
+            "modeSections": [
+                "skills"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "find-point/europe": {
+            "overviewHeading": "",
+            "sectionHeading": "Near-border points",
+            "sectionBody": "Europe makes this mode noticeably harder because a small movement can cross several national borders in a compact part of the map.",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": false,
+            "showStudyTip": false
+        },
+        "type-capital/world": {
+            "overviewHeading": "201 capitals, one map",
+            "exampleSentence": "A round can move from Ottawa to Abuja, then Bishkek, Suva, and Montevideo.",
+            "howToHeading": "How this one works",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "type-capital/africa": {
+            "overviewHeading": "African capitals",
+            "exampleSentence": "Nairobi and Addis Ababa are familiar anchors; Brazzaville and Kinshasa are a pair worth learning together.",
+            "sectionHeading": "A few easy swaps",
+            "sectionBody": "The two Congos are especially easy to reverse, and several countries have capitals that are less famous than another city in the same country.",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": false,
+            "showStudyTip": true
+        },
+        "type-capital/europe": {
+            "overviewHeading": "",
+            "exampleSentence": "Madrid and Rome usually come quickly; Ljubljana, Bratislava, Podgorica, and Chisinau are better tests of full recall.",
+            "modeSections": [
+                "strategy"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "type-capital/spanish_speaking": {
+            "overviewHeading": "Capitals across three continents",
+            "exampleSentence": "The set runs from Mexico City and Santo Domingo to Madrid and Malabo.",
+            "modeSections": [],
+            "showChallenge": false,
+            "showStudyTip": true
+        },
+        "type-capital/caribbean_islands": {
+            "overviewHeading": "Caribbean capitals",
+            "exampleSentence": "Havana, Santo Domingo, Kingston, Nassau, and Bridgetown all appear here.",
+            "modeSections": [
+                "skills"
+            ],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "click-subdivision/us_states": {
+            "overviewHeading": "The 50-state map",
+            "exampleSentence": "California and Texas are easy anchors; the Northeast and the cluster around Missouri demand much closer reading.",
+            "modeSections": [],
+            "showChallenge": true,
+            "showStudyTip": false
+        },
+        "type-subdivision/us_states": {
+            "overviewHeading": "",
+            "exampleSentence": "You may recognize Oklahoma, West Virginia, or Connecticut instantly and still need an extra second to pull the name out.",
+            "modeSections": [
+                "mistakes"
+            ],
+            "showChallenge": false,
+            "showStudyTip": true
+        },
+        "find-point-subdivision/us_states": {
+            "overviewHeading": "How well do you know state boundaries?",
+            "exampleSentence": "A point near New York City, Kansas City, or the Four Corners can punish a rough mental map very quickly.",
+            "modeSections": [
+                "skills",
+                "mistakes"
+            ],
+            "showChallenge": false,
+            "showStudyTip": false
         }
     }
 }

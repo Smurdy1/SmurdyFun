@@ -121,10 +121,8 @@ test("quiz browser exposes library views and search filters", () => {
     assert.match(browse, /Array\.from\(new Set\(tags\)\)\.slice\(0, 2\)/);
     assert.doesNotMatch(browse, /All Modes/);
     assert.doesNotMatch(browse, /All Types/);
-    assert.match(
-        browse,
-        /showSuggested && card\.featured/
-    );
+    assert.doesNotMatch(browse, /qb-main-badge/);
+    assert.doesNotMatch(browse, /linear-gradient/i);
     assert.match(browse, /SmurdyQuizLibrary\?\.recordPlayed/);
     assert.match(home, /src\/js\/quiz_library\.js/);
     assert.match(
@@ -184,8 +182,9 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
     assert.match(allQuizzes, /styles\/quiz_directory\.css/);
     assert.match(
         allQuizzes,
-        /<h2>Capitals<\/h2>[\s\S]*?directory-card-title">Locate<[\s\S]*?Coming soon!/
+        /<h2>Capitals<\/h2>[\s\S]*?directory-card-title">Locate/
     );
+    assert.doesNotMatch(allQuizzes, /Coming soon!/);
     assert.match(allQuizzes, /<h2>Country maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Subdivision maps<\/h2>/);
     assert.match(allQuizzes, /<h2>Flags<\/h2>/);
@@ -199,10 +198,8 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
         "utf8"
     );
     assert.match(capitalHub, /<h2>Capital modes<\/h2>/);
-    assert.match(
-        capitalHub,
-        /directory-card-title">Locate<[\s\S]*?Coming soon!/
-    );
+    assert.match(capitalHub, /directory-card-title">Locate</);
+    assert.doesNotMatch(capitalHub, /Coming soon!/);
     assert.equal(
         fs.existsSync(path.resolve(__dirname, "../quizzes/locate-capital")),
         false

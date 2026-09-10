@@ -106,9 +106,9 @@ test("flag routes load the shared runner and declare the correct set", () => {
         const html = fs.readFileSync(path.join(root, relativePath), "utf8");
         assert.match(html, new RegExp(`data-flag-set=["']${setId}["']`));
         assert.match(html, /src\/js\/flag_quiz\.js/);
-        assert.match(html, /flag_quiz\.js\?v=20260903-review-pagination-1/);
+        assert.match(html, /flag_quiz\.js\?v=20260909-editorial-1/);
         assert.match(html, /quiz_session\.js\?v=20260903-session-1/);
-        assert.match(html, /quiz_completion\.js\?v=20260903-review-pagination-1/);
+        assert.match(html, /quiz_completion\.js\?v=20260909-editorial-1/);
         assert.match(html, /quiz_launch_intent\.js/);
         assert.match(html, /flag_catalog\.js/);
     }
@@ -125,13 +125,14 @@ test("flag pages include the full landing and results experience", () => {
     );
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
 
-    assert.match(html, /What this quiz covers/);
+    assert.match(html, /Flags packed into one continent/);
     assert.match(html, /Flags to review|data-flag-review/);
     assert.match(html, /data-flag-progress-bar/);
     assert.match(html, /data-flag-time/);
     assert.match(html, /data-smurdy-quiz-favorite/);
     assert.match(html, /data-flag-retry/);
     assert.match(html, /Countries included in this quiz \(44\)/);
+    assert.match(html, /class="included-grid"/);
     assert.match(directory, /<h2>Main sets<\/h2>/);
     assert.match(directory, /<h2>Regional sets<\/h2>/);
     assert.match(directory, /directory-card-title">Middle East/);
@@ -139,7 +140,7 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(directory, /directory-card-title">North America/);
     assert.match(directory, /directory-card-title">US States/);
     assert.match(directory, /directory-card-title">Locate/);
-    assert.match(directory, /Coming soon!/);
+    assert.doesNotMatch(directory, /Coming soon!/);
     assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
     assert.match(html, /data-flag-restart>Restart/);
     assert.match(html, /data-flag-retry hidden>Retry Missed/);

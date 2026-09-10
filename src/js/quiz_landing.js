@@ -118,7 +118,7 @@
     }
 
     async function launchMapQuiz() {
-        const originalText = launchButton?.textContent || "Open quiz";
+        const originalText = launchButton?.textContent || "Play";
         if (launchButton?.disabled) return;
         if (launchButton) {
             launchButton.disabled = true;

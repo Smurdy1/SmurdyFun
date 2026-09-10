@@ -105,7 +105,8 @@ test("shared landing shell separates the primary launch from the full action row
     assert.match(actions, /data-smurdy-quiz-launch/);
     assert.match(actions, /data-smurdy-quiz-favorite/);
     assert.match(actions, /☆ Add to favorites/);
-    assert.match(actions, /Back to home/);
+    assert.match(actions, />Home</);
+    assert.match(actions, />All quizzes</);
     assert.doesNotMatch(shell.renderFooter(), /·/);
 });
 
@@ -129,13 +130,13 @@ test("map and flag landing pages use the shared shell and Favorite control", () 
         assert.match(html, /data-smurdy-quiz-primary-action/);
         assert.equal((html.match(/data-smurdy-quiz-launch/g) || []).length, 2);
         assert.equal((html.match(/data-smurdy-quiz-favorite/g) || []).length, 1);
-        assert.match(html, /Back to home/);
+        assert.match(html, />Home</);
         assert.match(html, /src\/js\/quiz_definitions\.js/);
         assert.match(html, /src\/js\/quiz_landing\.js/);
     }
     assert.match(map, /data-quiz-modality="map"/);
     assert.match(capitals, /data-quiz-modality="map"/);
-    assert.match(capitals, /Latin America Capitals Quiz/);
+    assert.match(capitals, /Type the Capitals: Latin America Quiz/);
     assert.match(capitals, /Type the Capitals/);
     assert.match(flags, /data-quiz-modality="flag"/);
 });
@@ -147,8 +148,7 @@ test("US state capitals landing page uses the shared capitals mode", () => {
         "utf8"
     );
 
-    assert.match(html, /US State Capitals Quiz/);
-    assert.match(html, /Type All 50 State Capitals/);
+    assert.match(html, /Type the US State Capitals Quiz/);
     assert.match(html, /50 states/);
     assert.match(html, /data-quiz-id="type-capital"/);
     assert.match(html, /data-quiz-group="us_states"/);
