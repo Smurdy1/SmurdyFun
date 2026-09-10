@@ -5,6 +5,28 @@ window.runNameQuiz = function runNameQuiz(config) {
     if (!window._smurdyQuizRunner) window._smurdyQuizRunner = {};
     const RUN = window._smurdyQuizRunner;
 
+    // Replacing a script tag does not destroy timers or listeners created by the old run.
+    // Dispose the previous in-page run before creating another one.
+    if (typeof RUN._disposeActiveRun === "function") {
+        try { RUN._disposeActiveRun(); } catch (_) {}
+    }
+
+    const runId = (Number(RUN._runId) || 0) + 1;
+    RUN._runId = runId;
+    RUN._activeRunId = runId;
+    let disposed = false;
+    const pendingTimeouts = new Set();
+
+    function scheduleRunTimeout(callback, delay) {
+        const timeoutId = window.setTimeout(() => {
+            pendingTimeouts.delete(timeoutId);
+            if (disposed || RUN._activeRunId !== runId) return;
+            callback();
+        }, delay);
+        pendingTimeouts.add(timeoutId);
+        return timeoutId;
+    }
+
     // Declare shared UI references before setQuizPanelMode() is first called.
     // Previously that first call hit the temporal dead zone and silently failed.
     let inputEl = null;
@@ -68,6 +90,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     try {
         const giveUpBtn = document.getElementById("quiz-giveup");
 
+        RUN._giveUpRunId = runId;
         RUN.giveUpCurrentQuestion = () => {
             try {
                 if (!currentName || locked) return;
@@ -374,6 +397,36 @@ window.runNameQuiz = function runNameQuiz(config) {
     let lastCompletionResult = null;
 
     let timerInterval = null;
+    let lastTimerDisplay = "";
+
+    function disposeRun() {
+        if (disposed) return;
+        disposed = true;
+
+        if (timerInterval !== null) {
+            window.clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        for (const timeoutId of pendingTimeouts) window.clearTimeout(timeoutId);
+        pendingTimeouts.clear();
+        try { quizSession.stopClock(); } catch (_) {}
+        try { removeTypingUI(); } catch (_) {}
+
+        try {
+            if (RUN._clickHandler && SQ.map && typeof SQ.map.off === "function") {
+                SQ.map.off("click", RUN._clickHandler);
+                RUN._clickHandler = null;
+            }
+        } catch (_) {}
+
+        if (RUN._giveUpRunId === runId) {
+            RUN.giveUpCurrentQuestion = null;
+            RUN._giveUpRunId = null;
+        }
+        if (RUN._activeRunId === runId) RUN._activeRunId = null;
+    }
+
+    RUN._disposeActiveRun = disposeRun;
 
     function getAnalyticsContext() {
         const pathMatch = window.location.pathname.match(
@@ -1221,11 +1274,13 @@ window.runNameQuiz = function runNameQuiz(config) {
     }
 
     function setTimerText(ms) {
-        const el = document.getElementById("quiz-timer");
         const txt = formatElapsed(ms);
-        if (el) el.textContent = txt;
+        if (txt === lastTimerDisplay) return;
+        lastTimerDisplay = txt;
+        const el = document.getElementById("quiz-timer");
+        if (el && el.textContent !== txt) el.textContent = txt;
         const s = document.getElementById("stats-timer");
-        if (s) s.textContent = txt;
+        if (s && s.textContent !== txt) s.textContent = txt;
     }
  
     function startTimer() {
@@ -1233,9 +1288,10 @@ window.runNameQuiz = function runNameQuiz(config) {
         quizSession.startClock();
         setTimerText(0);
  
-        timerInterval = setInterval(() => {
+        timerInterval = window.setInterval(() => {
+            if (disposed || RUN._activeRunId !== runId) return;
             setTimerText(quizSession.getElapsedMs());
-        }, 100);
+        }, 1000);
     }
  
     function stopTimer() {
@@ -1573,6 +1629,7 @@ window.runNameQuiz = function runNameQuiz(config) {
     // ---- end helpers ----
      
     async function nextQuestion() {
+        if (disposed || RUN._activeRunId !== runId) return;
         const remaining = getRemaining();
  
         if (remaining.length === 0) {
@@ -1625,6 +1682,7 @@ window.runNameQuiz = function runNameQuiz(config) {
             // ensure the layer exists (creates on first use)
             ensureFindPointLayer();
             const picked = await pickRandomLandPoint(candidates);
+            if (disposed || RUN._activeRunId !== runId) return;
             if (picked) {
                 currentName = picked.name;
                 showPointAt(picked.lnglat);
@@ -1694,7 +1752,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         if (mode === "click") {
             try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
             // second clear on next tick guards against async core behavior
-            setTimeout(() => {
+            scheduleRunTimeout(() => {
                 try { if (typeof SQ.setTargetByName === "function") SQ.setTargetByName(null); } catch (_) {}
             }, 8);
         }
@@ -1823,7 +1881,7 @@ window.runNameQuiz = function runNameQuiz(config) {
         updateCounter();
         updateAccuracy();
 
-        setTimeout(() => {
+        scheduleRunTimeout(() => {
             if (!persistCompletedHighlights) {
                 clearStates();
             }
@@ -1870,7 +1928,7 @@ window.runNameQuiz = function runNameQuiz(config) {
 
         updateAccuracy();
 
-        setTimeout(() => {
+        scheduleRunTimeout(() => {
             clearStates();
             repaintCompleted();
             nextQuestion();
