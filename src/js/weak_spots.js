@@ -457,7 +457,7 @@
         if (!root?.document) return;
         const count = getAll().length;
         root.document.querySelectorAll("[data-weak-spots-count]").forEach(badge => {
-            badge.textContent = count ? "(" + String(count) + ")" : "";
+            badge.textContent = count ? String(count) : "";
             badge.hidden = count === 0;
         });
     }

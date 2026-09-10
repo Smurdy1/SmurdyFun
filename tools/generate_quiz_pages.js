@@ -447,7 +447,7 @@ ${JSON.stringify({
 }, null, 2)}
   </script>
   ${sharedStylesHtml}
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260910-polish-1"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260910-ui-detail-1"/>
 </head>
 <body data-smurdy-quiz-page data-quiz-id="${escapeHtml(manifestId)}" data-quiz-group="${escapeHtml(groupId)}" data-quiz-modality="map">
   ${brandHtml}
