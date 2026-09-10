@@ -1,4 +1,4 @@
-body.smurdy-quiz-landing .content-section + .content-section {
+body.smurdy-quiz-landing .content-section + .content-section:not(.page-specific) {
     padding-top: 2px;
 }
 
@@ -49,8 +49,8 @@ body.smurdy-quiz-landing .casual-example {
 
 body.smurdy-quiz-landing .page-specific {
     max-width: 74ch;
-    margin-top: 31px;
-    padding-top: 15px;
+    margin-top: 26px;
+    padding-top: 18px;
     border-top: 1px solid #d8d8d8;
 }
 

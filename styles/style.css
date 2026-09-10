@@ -712,13 +712,13 @@ html:not(.smurdy-quiz-active) #quiz-target {
 
 /* Counts are one of the places where a badge has real semantic value. */
 .weak-spots-count {
-    min-width: 19px;
-    padding: 1px 5px;
-    border-radius: 4px;
+    min-width: 22px;
+    padding: 1px 6px;
+    border-radius: 999px;
     background: var(--smurdy-blue);
     color: #fff;
     font-size: 11px;
-    line-height: 17px;
+    line-height: 18px;
     text-align: center;
 }
 
