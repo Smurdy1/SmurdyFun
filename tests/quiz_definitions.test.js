@@ -129,10 +129,11 @@ test("map and flag landing pages use one shared Play action", () => {
         assert.equal((html.match(/data-smurdy-quiz-launch/g) || []).length, 1);
         assert.equal((html.match(/data-smurdy-quiz-favorite/g) || []).length, 1);
         assert.match(html, />Home</);
-        assert.doesNotMatch(
-            html,
-            /data-smurdy-quiz-actions[\s\S]*?>All quizzes<\/a>/
+        const actionRow = html.match(
+            /<div class="quiz-actions[^>]*data-smurdy-quiz-actions>[\s\S]*?<\/div>/
         );
+        assert.ok(actionRow);
+        assert.doesNotMatch(actionRow[0], />All quizzes</);
         assert.match(html, /src\/js\/quiz_definitions\.js/);
         assert.match(html, /src\/js\/quiz_landing\.js/);
     }
