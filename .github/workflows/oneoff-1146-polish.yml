@@ -19,7 +19,9 @@ jobs:
         with:
           node-version: 22
       - name: Apply polish source changes
-        run: node tools/apply_1146_polish.js
+        run: |
+          node tools/apply_1146_polish.js
+          sed -i 's/quiz_landing.css?v=20260909-editorial-1/quiz_landing.css?v=20260910-polish-1/g' tools/generate_quiz_pages.js
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
       - name: Regenerate quiz pages
