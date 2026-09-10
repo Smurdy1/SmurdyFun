@@ -131,6 +131,29 @@ test("quiz browser exposes library views and search filters", () => {
     );
 });
 
+test("homepage browser hierarchy stays flat but clearly labeled", () => {
+    const home = fs.readFileSync(
+        path.resolve(__dirname, "../index.html"),
+        "utf8"
+    );
+    const hierarchy = fs.readFileSync(
+        path.resolve(__dirname, "../styles/browser_hierarchy.css"),
+        "utf8"
+    );
+
+    assert.match(home, /styles\/browser_hierarchy\.css/);
+    assert.match(home, /Pick a quiz below, save favorites, or use Weak Spots/);
+    assert.doesNotMatch(home, /id="quiz-suggest"/);
+    assert.match(hierarchy, /content: "QUIZ TYPE"/);
+    assert.match(hierarchy, /content: "MODE"/);
+    assert.match(hierarchy, /content: "CONTENT"/);
+    assert.match(
+        hierarchy,
+        /\.qb-directory-primary[\s\S]*?margin: 0 auto/
+    );
+    assert.doesNotMatch(hierarchy, /border-radius:\s*999/);
+});
+
 test("saved flag cards are distinct and browser play links launch them directly", () => {
     const browse = fs.readFileSync(
         path.resolve(__dirname, "../src/js/browse.js"),
@@ -198,7 +221,7 @@ test("quiz directories share one design and flags expose the planned taxonomy", 
         "utf8"
     );
     assert.match(capitalHub, /<h2>Capital modes<\/h2>/);
-    assert.match(capitalHub, /directory-card-title">Locate</);
+    assert.match(capitalHub, /directory-card-title">Locate/);
     assert.doesNotMatch(capitalHub, /Coming soon!/);
     assert.equal(
         fs.existsSync(path.resolve(__dirname, "../quizzes/locate-capital")),

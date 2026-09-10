@@ -56,13 +56,9 @@ function renderLandingBreadcrumbs({
     </nav>`;
 }
 
-function renderPrimaryLaunch({ className = "", buttonClass = "" } = {}) {
-    const containerClass = classNames("quiz-actions", "quiz-primary-action", className);
-    const primaryClass = classNames("quiz-button", buttonClass, "primary");
-
-    return `<div class="${escapeHtml(containerClass)}" data-smurdy-quiz-primary-action>
-      <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Play</button>
-    </div>`;
+function renderPrimaryLaunch() {
+    // Landing pages are short enough that a second Play button is redundant.
+    return "";
 }
 
 function renderLandingActions({
@@ -88,8 +84,7 @@ function renderLandingActions({
 
     return `<div class="${escapeHtml(containerClass)}" data-smurdy-quiz-actions>
       <button class="${escapeHtml(primaryClass)}" type="button" data-smurdy-quiz-launch>Play</button>
-      <button class="${escapeHtml(favoriteClass)}" type="button" data-smurdy-quiz-favorite aria-pressed="false">☆ Add to favorites</button>
-      <a class="${escapeHtml(textLinkClass)}" href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>${home}
+      <button class="${escapeHtml(favoriteClass)}" type="button" data-smurdy-quiz-favorite aria-pressed="false">☆ Add to favorites</button>${home}
     </div>`;
 }
 
