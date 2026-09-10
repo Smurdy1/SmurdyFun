@@ -122,7 +122,7 @@ button, input { font: inherit; }
 .flag-summary {
     margin-top: 22px;
     padding: 17px 0 15px;
-    border-top: 3px solid var(--brand);
+    border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
     text-align: left;
 }
