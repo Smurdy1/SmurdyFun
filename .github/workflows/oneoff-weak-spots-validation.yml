@@ -1,0 +1,47 @@
+name: One-off Weak Spots validation
+
+on:
+  push:
+    branches:
+      - feature/weak-spots-fluid-review
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/weak-spots-fluid-review
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Check Weak Spots syntax
+        run: node --check src/js/weak_spots.js
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate whitespace
+        run: git diff --check main...HEAD
+
+      - name: Remove one-off workflow
+        if: success()
+        run: |
+          rm .github/workflows/oneoff-weak-spots-validation.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Remove one-off Weak Spots validation"
+          git push origin HEAD:feature/weak-spots-fluid-review
