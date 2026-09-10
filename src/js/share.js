@@ -2,7 +2,7 @@
     "use strict";
 
     const SITE_ORIGIN = "https://smurdy.fun";
-    const SHARE_ASSET_VERSION = "20260910-sharing-1";
+    const SHARE_ASSET_VERSION = "20260910-sharing-2";
     const MODE_LABELS = {
         "click-country": "Click the Countries",
         "type-country": "Type the Countries",
@@ -289,22 +289,106 @@
         }
     }
 
+    function elementIsVisible(element) {
+        if (!element || element.hidden || element.getAttribute("aria-hidden") === "true") return false;
+        try {
+            const style = window.getComputedStyle(element);
+            return style.display !== "none" && style.visibility !== "hidden";
+        } catch (_) {
+            return true;
+        }
+    }
+
+    function ensureInlineSlot(host) {
+        let slot = Array.from(host.children || []).find(child =>
+            child.hasAttribute?.("data-smurdy-page-share-slot")
+        );
+        if (!slot) {
+            slot = document.createElement("div");
+            slot.className = "smurdy-page-share-inline-slot";
+            slot.dataset.smurdyPageShareSlot = "";
+            host.appendChild(slot);
+        }
+        return slot;
+    }
+
+    function resolveTriggerMount() {
+        const browser = document.getElementById("quiz-browser");
+        if (elementIsVisible(browser)) {
+            const browserHeader = browser.querySelector("#qb-header");
+            return {
+                host: browserHeader || browser,
+                variant: browserHeader ? "browser-header" : "panel-footer"
+            };
+        }
+
+        const quizPanel = document.getElementById("quiz-panel");
+        if (elementIsVisible(quizPanel)) {
+            const quizButtons = quizPanel.querySelector("#quiz-buttons");
+            return {
+                host: quizButtons || quizPanel,
+                variant: quizButtons ? "quiz-actions" : "panel-footer"
+            };
+        }
+
+        const landingActions = document.querySelector("[data-smurdy-quiz-actions]");
+        if (landingActions) {
+            return { host: landingActions, variant: "landing-actions" };
+        }
+
+        const main = document.querySelector("main");
+        if (main) {
+            return { host: ensureInlineSlot(main), variant: "inline" };
+        }
+
+        return { host: ensureInlineSlot(document.body), variant: "inline" };
+    }
+
+    function mountTrigger(trigger) {
+        if (!trigger?.isConnected && !document.body) return;
+        const mount = resolveTriggerMount();
+        if (!mount?.host) return;
+
+        trigger.className = `smurdy-page-share-trigger smurdy-page-share-trigger--${mount.variant}`;
+        if (trigger.parentNode !== mount.host) mount.host.appendChild(trigger);
+    }
+
     function install() {
         if (!document.body || document.querySelector("[data-smurdy-page-share-trigger]")) return;
         const trigger = document.createElement("button");
         trigger.type = "button";
-        trigger.className = "smurdy-page-share-trigger";
         trigger.dataset.smurdyPageShareTrigger = "";
         trigger.textContent = "Share";
         trigger.setAttribute("aria-haspopup", "dialog");
         trigger.setAttribute("aria-label", "Share this page");
-        document.body.appendChild(trigger);
+        mountTrigger(trigger);
 
         let dialog = null;
         trigger.addEventListener("click", () => {
             if (!dialog) dialog = createDialog();
             void openShareDialog(dialog, trigger);
         });
+
+        let mountQueued = false;
+        const queueMount = () => {
+            if (mountQueued) return;
+            mountQueued = true;
+            requestAnimationFrame(() => {
+                mountQueued = false;
+                mountTrigger(trigger);
+            });
+        };
+
+        const observer = new MutationObserver(queueMount);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["hidden", "aria-hidden", "style", "class"]
+        });
+        window.addEventListener("resize", queueMount);
+        window.addEventListener("popstate", queueMount);
+        window.addEventListener("hashchange", queueMount);
     }
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", install, { once: true });

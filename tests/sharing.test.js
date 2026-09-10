@@ -98,3 +98,21 @@ test("page sharing offers native sharing, copy link, and direct social destinati
     assert.match(source, /mailto:/);
     assert.match(source, /data-smurdy-page-share-preview-title/);
 });
+
+test("page share trigger lives in page flow and prefers active panel controls", () => {
+    const source = read("src/js/share.js");
+    const styles = read("styles/share.css");
+
+    assert.match(source, /document\.getElementById\("quiz-browser"\)/);
+    assert.match(source, /browser\.querySelector\("#qb-header"\)/);
+    assert.match(source, /document\.getElementById\("quiz-panel"\)/);
+    assert.match(source, /quizPanel\.querySelector\("#quiz-buttons"\)/);
+    assert.match(source, /\[data-smurdy-quiz-actions\]/);
+    assert.match(source, /MutationObserver/);
+
+    const triggerRule = styles.match(/\.smurdy-page-share-trigger\s*\{([\s\S]*?)\}/);
+    assert.ok(triggerRule, "share trigger CSS rule is missing");
+    assert.match(triggerRule[1], /position:\s*static/);
+    assert.doesNotMatch(triggerRule[1], /position:\s*(?:fixed|absolute)/);
+    assert.doesNotMatch(styles, /\.smurdy-page-share-trigger[^{}]*\{[^}]*\b(?:right|bottom):/s);
+});
