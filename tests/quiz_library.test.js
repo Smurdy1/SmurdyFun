@@ -131,7 +131,7 @@ test("quiz browser exposes library views and search filters", () => {
     );
 });
 
-test("homepage browser hierarchy stays flat but clearly labeled", () => {
+test("homepage browser hierarchy stays flat without explanatory micro-labels", () => {
     const home = fs.readFileSync(
         path.resolve(__dirname, "../index.html"),
         "utf8"
@@ -144,9 +144,12 @@ test("homepage browser hierarchy stays flat but clearly labeled", () => {
     assert.match(home, /styles\/browser_hierarchy\.css/);
     assert.match(home, /Pick a quiz below, save favorites, or use Weak Spots/);
     assert.doesNotMatch(home, /id="quiz-suggest"/);
-    assert.match(hierarchy, /content: "QUIZ TYPE"/);
-    assert.match(hierarchy, /content: "MODE"/);
-    assert.match(hierarchy, /content: "CONTENT"/);
+    assert.doesNotMatch(hierarchy, /content:\s*["'](?:QUIZ TYPE|MODE|CONTENT)["']/);
+    assert.doesNotMatch(hierarchy, /::before/);
+    assert.match(
+        hierarchy,
+        /#qb-mode-tabs,[\s\S]*?#qb-family-tabs[\s\S]*?border-top:\s*1px solid #ececec/
+    );
     assert.match(
         hierarchy,
         /\.qb-directory-primary[\s\S]*?margin: 0 auto/
