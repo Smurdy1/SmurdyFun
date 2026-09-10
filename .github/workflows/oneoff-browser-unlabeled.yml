@@ -20,4 +20,4 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Validate whitespace
-        run: git diff --check main...HEAD
+        run: git diff --check origin/main...HEAD
