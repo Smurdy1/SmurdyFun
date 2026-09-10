@@ -1,0 +1,650 @@
+name: One-off smurdyTest hardening
+
+on:
+  push:
+    branches:
+      - harden/smurdy-test-tools
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: harden/smurdy-test-tools
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply test-tool hardening
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected exactly one match, found {count}: {old[:90]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          def replace_all(path, old, new, minimum=1):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count < minimum:
+                  raise SystemExit(f"{path}: expected at least {minimum} matches, found {count}: {old!r}")
+              p.write_text(text.replace(old, new))
+
+          # Map runner: only recognized, explicitly enabled test runs are active.
+          replace_once(
+              "src/js/quiz_runner.js",
+              '''    // Exact opt-in shortcut for regression testing. It is never enabled during
+    // normal play and its quiz events are excluded from analytics.
+    const smurdyTestMode = (() => {
+        try {
+            return new URLSearchParams(window.location.search).get("smurdyTest") || "";
+        } catch (_) {
+            return "";
+        }
+    })();
+    const lastAnswerTestMode = smurdyTestMode === "last-answer";
+    const reviewTestMode = smurdyTestMode === "review";
+    const anyTestMode = Boolean(smurdyTestMode);''',
+              '''    // Test shortcuts are centrally authorized and captured for the full run.
+    // Captured test runs stay statless even if the URL is edited mid-quiz.
+    const testRun = window.SmurdyTestTools?.capture?.() || {
+        mode: "",
+        active: false,
+        statless: false,
+        buildScenario: () => null
+    };
+    const lastAnswerTestMode = testRun.mode === "last-answer";
+    const reviewTestMode = testRun.mode === "review";
+    const anyTestMode = Boolean(testRun.active);'''
+          )
+          replace_once(
+              "src/js/quiz_runner.js",
+              '''        disabled: () => anyTestMode''',
+              '''        disabled: () => testRun.statless'''
+          )
+          replace_once(
+              "src/js/quiz_runner.js",
+              '''        if (!reviewTestMode) {''',
+              '''        if (!testRun.statless) {'''
+          )
+          replace_once(
+              "src/js/quiz_runner.js",
+              '''        if (!retryWeakSpots || anyTestMode || !currentName || hadMiss) return;''',
+              '''        if (!retryWeakSpots || testRun.statless || !currentName || hadMiss) return;'''
+          )
+
+          old_sequence = '''    function startQuestionSequence() {
+        const questionPromise = nextQuestion();
+        if (!lastAnswerTestMode && !reviewTestMode) return questionPromise;
+
+        return Promise.resolve(questionPromise).then(() => {
+            if (!currentName || quizSession.snapshot().completedCount > 0) return;
+
+            if (reviewTestMode) {
+                const names = getNames();
+                quizSession.seed({
+                    total: names.length,
+                    completedItems: names,
+                    misses: names.slice(0, Math.min(3, names.length)).map((name, index) => {
+                        const displayName = getCanonicalDisplayName(name);
+                        return {
+                            key: normalizeName(displayName),
+                            name: displayName,
+                            count: index + 1,
+                            guesses: [],
+                            gaveUp: index === 2 ? 1 : 0,
+                            item: name
+                        };
+                    }),
+                    attempts: names.length + 3,
+                    correctAnswers: names.length,
+                    firstTryCorrect: Math.max(0, names.length - 3)
+                });
+                updateCounter();
+                updateAccuracy();
+                return nextQuestion();
+            }
+
+            const currentKey = normalizeName(currentName);
+            quizSession.seed({
+                total: getNames().length,
+                completedItems: getNames().filter(name => normalizeName(name) !== currentKey),
+                attempts: 0,
+                correctAnswers: 0,
+                firstTryCorrect: 0
+            });
+            repaintCompleted();
+            updateCounter();
+            updateAccuracy();
+            SQ.setResultText("Test mode: answer this final place.");
+        }).catch(error => {
+            console.error("Could not prepare quiz test mode", error);
+        });
+    }'''
+          new_sequence = '''    function startQuestionSequence() {
+        const questionPromise = nextQuestion();
+        if (!anyTestMode) return questionPromise;
+
+        return Promise.resolve(questionPromise).then(() => {
+            if (!currentName || quizSession.snapshot().completedCount > 0) return;
+
+            const scenario = testRun.buildScenario(getNames(), currentName, {
+                keyOf: name => normalizeName(getCanonicalDisplayName(name)),
+                nameOf: name => getCanonicalDisplayName(name),
+                itemLabel: "place"
+            });
+            if (!scenario?.seed) return;
+
+            quizSession.seed(scenario.seed);
+            updateCounter();
+            updateAccuracy();
+
+            if (scenario.complete) return nextQuestion();
+
+            quizSession.setCurrent(currentName);
+            repaintCompleted();
+            SQ.setResultText(scenario.message || "Test mode: answer this final place.");
+        }).catch(error => {
+            console.error("Could not prepare quiz test mode", error);
+        });
+    }'''
+          replace_once("src/js/quiz_runner.js", old_sequence, new_sequence)
+
+          # Flag runner: use the same scenarios and suppress every persistent/test statistic side effect.
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''        let currentFlag = null;
+        let timerInterval = null;
+        const quizSession = root.SmurdyQuizSession?.createSession?.({''',
+              '''        let currentFlag = null;
+        let timerInterval = null;
+        const testRun = root.SmurdyTestTools?.capture?.() || {
+            mode: "",
+            active: false,
+            statless: false,
+            buildScenario: () => null
+        };
+        const quizSession = root.SmurdyQuizSession?.createSession?.({'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''            total: () => flags.length
+        });''',
+              '''            total: () => flags.length,
+            disabled: () => testRun.statless
+        });'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''        function clearWeakSpot(current) {
+            try {''',
+              '''        function clearWeakSpot(current) {
+            if (testRun.statless) return;
+            try {'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''        function recordMiss(current, guess, gaveUp) {
+            try {''',
+              '''        function recordMiss(current, guess, gaveUp) {
+            if (testRun.statless) return;
+            try {'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''            analyticsReporter.begin(reason);
+            startTimer();
+            showQuestion();
+        }''',
+              '''            analyticsReporter.begin(reason);
+            startTimer();
+            showQuestion();
+
+            if (testRun.active && currentFlag && quizSession.snapshot().completedCount === 0) {
+                const scenario = testRun.buildScenario(flags, currentFlag, {
+                    keyOf: flag => flag?.id || "",
+                    nameOf: flag => flag?.name || "",
+                    dataOf: flag => ({ src: flag?.src || "" }),
+                    itemLabel: "flag"
+                });
+                if (scenario?.seed) {
+                    quizSession.seed(scenario.seed);
+                    updateStats();
+                    if (scenario.complete) {
+                        showQuestion();
+                    } else {
+                        quizSession.setCurrent(currentFlag);
+                        result.textContent = scenario.message || "Test mode: answer this final flag.";
+                        result.className = "flag-result";
+                    }
+                }
+            }
+        }'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''                weakSpotsPracticeStage = getWeakSpotsPracticeStage();''',
+              '''                weakSpotsPracticeStage = testRun.statless ? null : getWeakSpotsPracticeStage();'''
+          )
+          replace_once(
+              "src/js/flag_quiz.js",
+              '''                try { root.SmurdyQuizLibrary?.recordPlayed?.("type-flag", setId); } catch (_) {}''',
+              '''                if (!testRun.statless) {
+                    try { root.SmurdyQuizLibrary?.recordPlayed?.("type-flag", setId); } catch (_) {}
+                }'''
+          )
+
+          # Analytics: direct calls are also blocked while a captured test run is statless.
+          replace_once(
+              "src/js/analytics.js",
+              '''    function track(eventName, parameters = {}) {
+        if (!/^[a-z][a-z0-9_]{0,39}$/.test(eventName)) {''',
+              '''    function testRunIsStatless() {
+        try { return Boolean(window.SmurdyTestTools?.isStatless?.()); } catch (_) { return false; }
+    }
+
+    function track(eventName, parameters = {}) {
+        if (testRunIsStatless()) return;
+        if (!/^[a-z][a-z0-9_]{0,39}$/.test(eventName)) {'''
+          )
+
+          # Completion reporter has its own central guard so future renderers inherit the protection.
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''        const getAnalytics = () => options.analytics || options.root?.SmurdyAnalytics || root?.SmurdyAnalytics;
+
+        function answerPayload(correct) {''',
+              '''        const getAnalytics = () => options.analytics || options.root?.SmurdyAnalytics || root?.SmurdyAnalytics;
+        const statlessTestRun = () => {
+            try {
+                return Boolean(
+                    options.root?.SmurdyTestTools?.isStatless?.() ||
+                    root?.SmurdyTestTools?.isStatless?.()
+                );
+            } catch (_) {
+                return false;
+            }
+        };
+
+        function answerPayload(correct) {'''
+          )
+          replace_all(
+              "src/js/quiz_completion.js",
+              '''            if (isDisabled()) return;''',
+              '''            if (isDisabled() || statlessTestRun()) return;''',
+              minimum=3
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''        const result = {
+            ...snapshot,
+            quizId,''',
+              '''        const testMode = (() => {
+            try { return String(root?.SmurdyTestTools?.getActiveMode?.() || ""); } catch (_) { return ""; }
+        })();
+        const result = {
+            ...snapshot,
+            quizId,'''
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''            itemPlural,
+            misses,''',
+              '''            itemPlural,
+            testMode,
+            isTestRun: Boolean(testMode),
+            misses,'''
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''    function buildShareText(result) {
+        return [
+            `I finished ${result.quizLabel} on Smurdy`,''',
+              '''    function buildShareText(result) {
+        const lines = [
+            `I finished ${result.quizLabel} on Smurdy`,'''
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''            `Can you beat it? ${result.url}`
+        ].join("\\n");
+    }''',
+              '''            `Can you beat it? ${result.url}`
+        ];
+        if (result.isTestRun) lines.unshift("TEST RUN: development shortcut, not recorded");
+        return lines.join("\\n");
+    }'''
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''        title.textContent = options.title || "Results";''',
+              '''        title.textContent = result.isTestRun
+            ? `${options.title || "Results"} (test run)`
+            : (options.title || "Results");'''
+          )
+          replace_once(
+              "src/js/quiz_completion.js",
+              '''        ctx.fillText("Geography quiz result", logo ? 180 : 70, 124);
+
+        ctx.fillStyle = "#171717";''',
+              '''        ctx.fillText("Geography quiz result", logo ? 180 : 70, 124);
+        if (result.isTestRun) {
+            ctx.fillStyle = "#8a1e1e";
+            ctx.font = "700 22px Arial, Helvetica, sans-serif";
+            ctx.fillText("TEST RUN", 970, 91);
+        }
+
+        ctx.fillStyle = "#171717";'''
+          )
+
+          # Weak Spots cannot be changed by any statless test renderer, including future modes.
+          replace_once(
+              "src/js/weak_spots.js",
+              '''    function recordMiss(details = {}) {
+        const name = String(details.name || "").trim();''',
+              '''    function testRunIsStatless() {
+        try { return Boolean(root?.SmurdyTestTools?.isStatless?.()); } catch (_) { return false; }
+    }
+
+    function recordMiss(details = {}) {
+        if (testRunIsStatless()) return null;
+        const name = String(details.name || "").trim();'''
+          )
+          replace_once(
+              "src/js/weak_spots.js",
+              '''    function recordRetrySuccess(details = {}) {
+        const name = String(details.name || "").trim();''',
+              '''    function recordRetrySuccess(details = {}) {
+        if (testRunIsStatless()) return null;
+        const name = String(details.name || "").trim();'''
+          )
+
+          # Test routes should not pollute the Recent quizzes list. Favorites stay user-controlled.
+          replace_once(
+              "src/js/quiz_library.js",
+              '''    const library = createQuizLibrary({
+        storage: browserStorage,
+        onChange(snapshot) {''',
+              '''    const library = createQuizLibrary({
+        storage: browserStorage,
+        suppressRecentWrites: () => Boolean(root.SmurdyTestTools?.isStatless?.()),
+        onChange(snapshot) {'''
+          )
+          replace_once(
+              "src/js/quiz_library.js",
+              '''        storage = null,
+        now = () => Date.now(),
+        onChange = () => {}''',
+              '''        storage = null,
+        now = () => Date.now(),
+        onChange = () => {},
+        suppressRecentWrites = () => false'''
+          )
+          replace_once(
+              "src/js/quiz_library.js",
+              '''        function recordPlayed(manifestId, groupId) {
+            const key = quizKey(manifestId, groupId);''',
+              '''        function recordPlayed(manifestId, groupId) {
+            try {
+                if (suppressRecentWrites()) return getSnapshot();
+            } catch (_) {}
+            const key = quizKey(manifestId, groupId);'''
+          )
+
+          # Load test tools before anything that can record quiz activity.
+          replace_once(
+              "index.html",
+              '''     <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>''',
+              '''     <script src="/src/js/test_tools.js?v=20260910-test-tools-1" defer></script>
+     <script src="/src/js/analytics.js?v=20260910-test-tools-1" defer></script>'''
+          )
+          replace_once("index.html", '''/src/js/weak_spots.js?v=20260910-ui-detail-1''', '''/src/js/weak_spots.js?v=20260910-test-tools-1''')
+          replace_once("index.html", '''/src/js/quiz_library.js?v=20260909-editorial-1''', '''/src/js/quiz_library.js?v=20260910-test-tools-1''')
+          replace_once("index.html", '''/src/js/app.js?v=20260910-memory-1''', '''/src/js/app.js?v=20260910-test-tools-1''')
+
+          replace_once("src/js/app.js", '''const ASSET_VERSION = "20260910-memory-1";''', '''const ASSET_VERSION = "20260910-test-tools-1";''')
+          replace_once("src/js/app_core.js", '''/src/js/quiz_completion.js?v=20260908-capitals-1''', '''/src/js/quiz_completion.js?v=20260910-test-tools-1''')
+          replace_once("src/js/app_core.js", '''/src/js/quiz_runner.js?v=20260910-memory-1''', '''/src/js/quiz_runner.js?v=20260910-test-tools-1''')
+          replace_once("src/js/quiz_landing.js", '''/src/js/quiz_library.js?v=20260903-final-unity-1''', '''/src/js/quiz_library.js?v=20260910-test-tools-1''')
+          replace_once("src/js/quiz_landing.js", '''/src/js/analytics.js?v=20260823-quiz-analytics-1''', '''/src/js/analytics.js?v=20260910-test-tools-1''')
+
+          # Static landing pages load the guard before launch/runtime scripts.
+          replace_once("tools/quiz_page_shell.js", '''const ASSET_VERSION = "20260910-memory-1";''', '''const ASSET_VERSION = "20260910-test-tools-1";''')
+          replace_once(
+              "tools/quiz_page_shell.js",
+              '''    const scripts = [
+        `/src/js/manifest.js?v=${ASSET_VERSION}`,''',
+              '''    const scripts = [
+        `/src/js/test_tools.js?v=${ASSET_VERSION}`,
+        `/src/js/manifest.js?v=${ASSET_VERSION}`,'''
+          )
+          replace_once(
+              "tools/generate_flag_pages.js",
+              '''  <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>''',
+              '''  <script src="/src/js/test_tools.js?v=20260910-test-tools-1" defer></script>
+  <script src="/src/js/analytics.js?v=20260910-test-tools-1" defer></script>'''
+          )
+          replace_once("tools/generate_flag_pages.js", '''/src/js/quiz_completion.js?v=20260909-editorial-1''', '''/src/js/quiz_completion.js?v=20260910-test-tools-1''')
+          replace_once("tools/generate_flag_pages.js", '''/src/js/weak_spots.js?v=20260910-ui-detail-1''', '''/src/js/weak_spots.js?v=20260910-test-tools-1''')
+          replace_once("tools/generate_flag_pages.js", '''/src/js/quiz_library.js?v=20260909-editorial-1''', '''/src/js/quiz_library.js?v=20260910-test-tools-1''')
+          replace_once("tools/generate_flag_pages.js", '''/src/js/flag_quiz.js?v=20260909-editorial-1''', '''/src/js/flag_quiz.js?v=20260910-test-tools-1''')
+
+          # Existing test expectations now point at the shared guard rather than the raw query param.
+          replace_once(
+              "tests/progress_total.test.js",
+              '''test("last-answer test mode is analytics-free and opt-in", () => {
+    assert.match(runner, /get\\("smurdyTest"\\)/);
+    assert.match(runner, /smurdyTestMode === "last-answer"/);
+    assert.match(runner, /const anyTestMode = Boolean\\(smurdyTestMode\\)/);
+    assert.match(
+        runner,
+        /createAnalyticsReporter\\([\\s\\S]*?disabled:\\s*\\(\\)\\s*=>\\s*anyTestMode/
+    );
+    assert.match(runner, /function beginAnalyticsRun[\\s\\S]*?analyticsReporter\\.begin\\(startReason\\)/);
+    assert.match(runner, /function recordAnalyticsAnswer[\\s\\S]*?analyticsReporter\\.answer\\(correct\\)/);
+    assert.match(runner, /function completeAnalyticsRun[\\s\\S]*?analyticsReporter\\.complete\\(completionResult\\)/);
+    assert.match(runner, /Test mode: answer this final place\\./);
+});''',
+              '''test("map test modes use the shared statless test runner", () => {
+    assert.match(runner, /SmurdyTestTools\\?\\.capture/);
+    assert.doesNotMatch(runner, /URLSearchParams\\(window\\.location\\.search\\)\\.get\\("smurdyTest"\\)/);
+    assert.match(runner, /testRun\\.mode === "last-answer"/);
+    assert.match(runner, /testRun\\.mode === "review"/);
+    assert.match(
+        runner,
+        /createAnalyticsReporter\\([\\s\\S]*?disabled:\\s*\\(\\)\\s*=>\\s*testRun\\.statless/
+    );
+    assert.match(runner, /testRun\\.buildScenario\\(getNames\\(\\), currentName/);
+    assert.match(runner, /Test mode: answer this final place\\./);
+});'''
+          )
+
+          replace_once("tests/runtime_memory.test.js", '''assert.match(read("src/js/app.js"), /20260910-memory-1/);''', '''assert.match(read("src/js/app.js"), /20260910-test-tools-1/);''')
+          replace_once("tests/runtime_memory.test.js", '''assert.match(read("tools/quiz_page_shell.js"), /20260910-memory-1/);''', '''assert.match(read("tools/quiz_page_shell.js"), /20260910-test-tools-1/);''')
+          replace_once("tests/runtime_memory.test.js", '''assert.match(read("src/js/app_core.js"), /quiz_runner\\.js\\?v=20260910-memory-1/);''', '''assert.match(read("src/js/app_core.js"), /quiz_runner\\.js\\?v=20260910-test-tools-1/);''')
+
+          Path("tests/test_tools.test.js").write_text(r'''const fs = require("node:fs");
+const path = require("node:path");
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { createSmurdyTestTools } = require("../src/js/test_tools.js");
+
+function storage() {
+    const values = new Map();
+    return {
+        getItem(key) { return values.has(key) ? values.get(key) : null; },
+        setItem(key, value) { values.set(key, String(value)); },
+        removeItem(key) { values.delete(key); }
+    };
+}
+
+function rootFor(url) {
+    const parsed = new URL(url);
+    return {
+        sessionStorage: storage(),
+        location: {
+            hostname: parsed.hostname,
+            search: parsed.search,
+            href: parsed.href
+        }
+    };
+}
+
+const repoRoot = path.resolve(__dirname, "..");
+const read = file => fs.readFileSync(path.join(repoRoot, file), "utf8");
+
+test("production query strings cannot activate test shortcuts by themselves", () => {
+    const root = rootFor("https://smurdy.fun/quizzes/type-country/world/?smurdyTest=last-answer");
+    const tools = createSmurdyTestTools(root);
+    assert.equal(tools.getRequestedMode(), "");
+    assert.equal(tools.capture().active, false);
+    assert.equal(tools.isStatless(), false);
+});
+
+test("localhost accepts recognized test modes but ignores unknown ones", () => {
+    const local = createSmurdyTestTools(rootFor("http://localhost:8000/quizzes/type-country/world/?smurdyTest=last-answer"));
+    assert.equal(local.capture().mode, "last-answer");
+    assert.equal(local.isStatless(), true);
+
+    const unknown = createSmurdyTestTools(rootFor("http://localhost:8000/?smurdyTest=instant-win"));
+    assert.equal(unknown.getRequestedMode(), "");
+    assert.equal(unknown.capture().active, false);
+    assert.equal(unknown.isStatless(), false);
+});
+
+test("explicit production opt-in works and a captured test stays statless", () => {
+    const root = rootFor("https://smurdy.fun/quizzes/find-point/world/?smurdyTest=review");
+    const tools = createSmurdyTestTools(root);
+    tools.enable();
+    const run = tools.capture();
+    assert.equal(run.mode, "review");
+    assert.equal(run.statless, true);
+
+    root.location.search = "";
+    tools.disable();
+    assert.equal(tools.isStatless(), true);
+    assert.equal(tools.capture(), run);
+});
+
+test("last-answer scenario leaves exactly the current item unfinished", () => {
+    const tools = createSmurdyTestTools(rootFor("http://localhost/?smurdyTest=last-answer"));
+    const run = tools.capture();
+    const items = [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }];
+    const scenario = run.buildScenario(items, items[1], {
+        keyOf: item => item.id,
+        nameOf: item => item.name,
+        itemLabel: "flag"
+    });
+    assert.equal(scenario.complete, false);
+    assert.equal(scenario.seed.total, 3);
+    assert.deepEqual(scenario.seed.completedItems.map(item => item.id), ["a", "c"]);
+    assert.equal(scenario.message, "Test mode: answer this final flag.");
+});
+
+test("review scenario is renderer-neutral and preserves flag review data", () => {
+    const tools = createSmurdyTestTools(rootFor("http://localhost/?smurdyTest=review"));
+    const run = tools.capture();
+    const items = [
+        { id: "a", name: "A", src: "/a.svg" },
+        { id: "b", name: "B", src: "/b.svg" },
+        { id: "c", name: "C", src: "/c.svg" },
+        { id: "d", name: "D", src: "/d.svg" }
+    ];
+    const scenario = run.buildScenario(items, items[0], {
+        keyOf: item => item.id,
+        nameOf: item => item.name,
+        dataOf: item => ({ src: item.src })
+    });
+    assert.equal(scenario.complete, true);
+    assert.equal(scenario.seed.completedItems.length, 4);
+    assert.equal(scenario.seed.misses.length, 3);
+    assert.deepEqual(scenario.seed.misses.map(item => item.count), [1, 2, 3]);
+    assert.equal(scenario.seed.misses[2].gaveUp, 1);
+    assert.deepEqual(scenario.seed.misses[0].data, { src: "/a.svg" });
+});
+
+test("map, flag, analytics, Weak Spots, and recents all use the shared statless guard", () => {
+    const mapRunner = read("src/js/quiz_runner.js");
+    const flagRunner = read("src/js/flag_quiz.js");
+    const analytics = read("src/js/analytics.js");
+    const completion = read("src/js/quiz_completion.js");
+    const weakSpots = read("src/js/weak_spots.js");
+    const library = read("src/js/quiz_library.js");
+
+    assert.match(mapRunner, /SmurdyTestTools\\?\\.capture/);
+    assert.match(flagRunner, /SmurdyTestTools\\?\\.capture/);
+    assert.match(flagRunner, /testRun\\.buildScenario\\(flags, currentFlag/);
+    assert.match(flagRunner, /dataOf: flag => \\(\\{ src: flag\\?\\.src/);
+    assert.match(analytics, /SmurdyTestTools\\?\\.isStatless/);
+    assert.match(completion, /statlessTestRun/);
+    assert.match(weakSpots, /testRunIsStatless/);
+    assert.match(library, /suppressRecentWrites/);
+});
+
+test("generated quiz pages load test tools before quiz runtimes", () => {
+    const mapPage = read("quizzes/click-country/world/index.html");
+    const flagPage = read("quizzes/type-flag/world/index.html");
+    assert.ok(mapPage.indexOf("test_tools.js") >= 0);
+    assert.ok(mapPage.indexOf("test_tools.js") < mapPage.indexOf("quiz_landing.js"));
+    assert.ok(flagPage.indexOf("test_tools.js") >= 0);
+    assert.ok(flagPage.indexOf("test_tools.js") < flagPage.indexOf("analytics.js"));
+    assert.ok(flagPage.indexOf("test_tools.js") < flagPage.indexOf("flag_quiz.js"));
+});
+''')
+          PY
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Regenerate pages
+        env:
+          SITEMAP_LASTMOD: 2026-09-10
+        run: npm run pages:generate
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check src/js/test_tools.js
+          node --check src/js/quiz_runner.js
+          node --check src/js/flag_quiz.js
+          node --check src/js/analytics.js
+          node --check src/js/quiz_completion.js
+          node --check src/js/weak_spots.js
+          node --check src/js/quiz_library.js
+          node --check src/js/quiz_landing.js
+          node --check src/js/app.js
+          node --check src/js/app_core.js
+          node --check tools/quiz_page_shell.js
+          node --check tools/generate_flag_pages.js
+          node --check tools/generate_quiz_pages.js
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate whitespace
+        run: git diff --check
+
+      - name: Commit validated hardening
+        shell: bash
+        run: |
+          rm -f .github/workflows/oneoff-test-tools-hardening.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Harden statless smurdyTest shortcuts"
+          git push origin HEAD:harden/smurdy-test-tools
