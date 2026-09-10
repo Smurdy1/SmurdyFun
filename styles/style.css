@@ -698,3 +698,34 @@ html:not(.smurdy-quiz-active) #quiz-target {
     #quiz-buttons button,
     #quiz-buttons .qb-btn.primary { border-radius: 5px; }
 }
+
+/* 1.14.6 meaningful surfaces: a little depth where floating actually means something. */
+#quiz-panel {
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .12);
+}
+
+#weak-spots-dialog {
+    border-radius: 10px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .20);
+}
+
+/* Counts are one of the places where a badge has real semantic value. */
+.weak-spots-count {
+    min-width: 19px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--smurdy-blue);
+    color: #fff;
+    font-size: 11px;
+    line-height: 17px;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    #quiz-panel,
+    #quiz-bottom {
+        border-radius: 9px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, .11);
+    }
+}

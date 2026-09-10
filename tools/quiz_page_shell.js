@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260909-editorial-1";
+const ASSET_VERSION = "20260910-polish-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)

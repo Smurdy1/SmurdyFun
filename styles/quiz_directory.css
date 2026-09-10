@@ -131,3 +131,26 @@ a:focus-visible, summary:focus-visible { outline: 3px solid rgba(0, 119, 204, .2
     .directory-mode-grid { grid-template-columns: 1fr; }
     .directory-related { grid-template-columns: 1fr 1fr; }
 }
+
+/* 1.14.6 directory hierarchy */
+.directory-section { margin-top: 34px; }
+.directory-section + .directory-section {
+    margin-top: 38px;
+    padding-top: 27px;
+}
+.directory-section h2 {
+    font-size: 22px;
+    line-height: 1.2;
+}
+
+/* The universal starting sets can be found a little faster without becoming cards. */
+.directory-card[href$="/world/"] .directory-card-title,
+.directory-card[href$="/europe/"] .directory-card-title,
+.directory-card[href$="/asia/"] .directory-card-title {
+    color: var(--directory-blue-dark);
+    font-size: 17px;
+}
+
+.directory-card:hover .directory-card-title {
+    text-decoration-thickness: 1px;
+}

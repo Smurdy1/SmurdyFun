@@ -114,3 +114,17 @@ html body #quiz-browser .qb-directory-primary {
         font-size: 12px;
     }
 }
+
+/* 1.14.6 surface balance: the browser is a floating map surface, its controls are not cards. */
+html body #quiz-browser {
+    border-radius: 10px !important;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .12) !important;
+}
+
+html body #quiz-browser #qb-library-tabs {
+    padding-bottom: 4px;
+}
+
+html body #quiz-browser #qb-category-tabs {
+    margin-top: 12px !important;
+}

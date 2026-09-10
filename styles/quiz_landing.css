@@ -31,3 +31,41 @@ body.smurdy-quiz-landing .mode-note {
 body.smurdy-quiz-landing .page-specific {
     margin-top: 30px;
 }
+
+/* 1.14.6 authored landing rhythm */
+body.smurdy-quiz-landing .lead,
+body.smurdy-quiz-landing .quiz-lead,
+body.smurdy-quiz-landing .flag-lead {
+    max-width: 68ch;
+    font-size: 19px;
+}
+
+body.smurdy-quiz-landing .casual-example {
+    max-width: 66ch;
+    margin-top: 10px !important;
+    color: #4a4a4a;
+    font-style: italic;
+}
+
+body.smurdy-quiz-landing .page-specific {
+    max-width: 74ch;
+    margin-top: 31px;
+    padding-top: 15px;
+    border-top: 1px solid #d8d8d8;
+}
+
+body.smurdy-quiz-landing .page-specific h2 {
+    margin-bottom: 6px;
+    font-size: 19px;
+}
+
+body.smurdy-quiz-landing .link-section,
+body.smurdy-quiz-landing .flag-links {
+    margin-top: 38px;
+}
+
+@media (max-width: 700px) {
+    body.smurdy-quiz-landing .lead,
+    body.smurdy-quiz-landing .quiz-lead,
+    body.smurdy-quiz-landing .flag-lead { font-size: 17px; }
+}
