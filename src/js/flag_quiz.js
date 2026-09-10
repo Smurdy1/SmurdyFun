@@ -238,7 +238,7 @@
         function startTimer() {
             stopTimer();
             quizSession.startClock();
-            timerInterval = root.setInterval(updateStats, 250);
+            timerInterval = root.setInterval(updateStats, 1000);
         }
 
         function renderReview(completionResult) {

@@ -61,5 +61,5 @@ test("polish keeps hierarchy without bringing back component-heavy cards", () =>
 });
 
 test("visible app version is current for this polish release", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.14\.6"/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.14\.7"/);
 });

@@ -46,6 +46,8 @@ const map = new maplibregl.Map({
     zoom: MODE.mapZoom,
     minZoom: MODE.minZoom,
     maxZoom: MODE.maxZoom,
+    // Retain only two viewport zoom levels of tiles per source instead of MapLibre's default five.
+    maxTileCacheZoomLevels: 2,
     // Match the working menu map: use MapLibre's complete native gesture system.
     interactive: true,
     // disable built-in attribution control so we can show a compact, compliant mobile attribution
@@ -1164,7 +1166,7 @@ const SmurdyQuiz = {
 
         const runner = document.createElement("script");
         // load the runner from the new location
-        runner.src = "/src/js/quiz_runner.js?v=20260909-state-capitals-1";
+        runner.src = "/src/js/quiz_runner.js?v=20260910-memory-1";
         runner.id = "quiz-runner-script";
 
         runner.onload = async () => {
@@ -1449,6 +1451,13 @@ const SmurdyQuiz = {
         this.currentMode = String(newMode);
         MODE = cfg;
 
+        // Release country-only tiny-point data when the new mode does not use it.
+        if (!MODE.usesTinyPoints) {
+            try { if (this.map.getLayer("quiz-tiny-circle")) this.map.removeLayer("quiz-tiny-circle"); } catch (_) {}
+            try { if (this.map.getSource("quiz-tiny-source")) this.map.removeSource("quiz-tiny-source"); } catch (_) {}
+            this.tinyData = null;
+        }
+
         try {
             // ease the map to the new center/zoom for a smooth transition (no white flicker)
             if (Array.isArray(MODE.mapCenter) && typeof MODE.mapZoom !== "undefined") {
@@ -1558,6 +1567,8 @@ const SmurdyQuiz = {
                     }
                     this.tinyData.features = dedup;
                     this.tinyData.features.forEach((f, idx) => { f.id = idx; if (!f.properties) f.properties = {}; f.properties._canon = this.normalizeAnswer(this.getFeatureName(f) || ""); });
+                    // Remove the dependent layer before its source so MapLibre can release the old GeoJSON.
+                    try { if (this.map.getLayer("quiz-tiny-circle")) this.map.removeLayer("quiz-tiny-circle"); } catch(_) {}
                     try { if (this.map.getSource("quiz-tiny-source")) this.map.removeSource("quiz-tiny-source"); } catch(_) {}
                     this.map.addSource("quiz-tiny-source", { type: "geojson", data: this.tinyData });
                     // recreate tiny layer if missing
@@ -1656,6 +1667,8 @@ const SmurdyQuiz = {
                 style: 'https://tiles.openfreemap.org/styles/bright',
                 center: Array.isArray(MODE.mapCenter) ? MODE.mapCenter.slice(0) : [17.49, 40.01],
                 zoom: Math.max( Math.min(MODE.mapZoom || 3, 6), 2 ),
+                // The menu map is temporary, so keep its retained tile window small.
+                maxTileCacheZoomLevels: 2,
                 interactive: true,
                 // Avoid an additional tile cross-fade after the style has loaded.
                 fadeDuration: 0,
@@ -2309,7 +2322,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.14.6";
+const APP_VERSION = "1.14.7";
 
 function injectVersionBadge() {
     try {
