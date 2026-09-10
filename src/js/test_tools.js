@@ -11,8 +11,6 @@
         root.SmurdyTestTools = createSmurdyTestTools(root);
     }
 })(typeof window !== "undefined" ? window : null, function createSmurdyTestTools(root = {}) {
-    "use strict";
-
     const UNLOCK_KEY = "smurdy-test-tools-enabled-v1";
     const MODES = Object.freeze(["last-answer", "review"]);
     const MODE_SET = new Set(MODES);
