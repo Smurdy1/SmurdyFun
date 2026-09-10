@@ -83,6 +83,11 @@ html body #quiz-browser #qb-search {
     border-top: 1px solid #e6e6e6;
 }
 
+html body #quiz-browser:has(.qb-library-tab[data-library-view="favorites"][aria-selected="true"]) #qb-search,
+html body #quiz-browser:has(.qb-library-tab[data-library-view="recent"][aria-selected="true"]) #qb-search {
+    border-top: 0 !important;
+}
+
 html body #quiz-browser #qb-directory-links {
     text-align: center;
 }
