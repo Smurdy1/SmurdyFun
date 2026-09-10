@@ -10,6 +10,7 @@ const flagApi = require(path.join(root, "src/js/flag_quiz.js"));
 const { expandFlagGroups } = require(path.join(root, "src/js/flag_catalog.js"));
 const { rebuildSitemaps } = require(path.join(root, "tools/rebuild_sitemaps.js"));
 const pageShell = require(path.join(root, "tools/quiz_page_shell.js"));
+const { LANDING_PERSONALITY } = require(path.join(root, "tools/landing_personality.js"));
 const groups = expandFlagGroups(flagOverrides, countryGroups);
 const baseUrl = (process.env.BASE_URL || "https://smurdy.fun").replace(/\/+$/, "");
 const outputRoot = path.join(root, "quizzes/type-flag");
@@ -156,12 +157,19 @@ const FLAG_EDITORIAL = {
 };
 
 function editorialForFlagGroup(groupId) {
-    return FLAG_EDITORIAL[groupId] || {
-        overviewHeading: "About this set",
+    const personality = LANDING_PERSONALITY[groupId] || {};
+    const defaults = {
+        overviewHeading: personality.overviewHeading || "About this set",
+        exampleSentence: personality.exampleSentence || "",
+        extraHeading: personality.sectionHeading || "",
+        extraBody: personality.sectionBody || "",
+        challengeHeading: personality.challengeHeading || "What gets difficult",
+        studyTipHeading: personality.studyTipHeading || "One way to learn this set",
         previewCount: 4,
         showChallenge: ["balkans", "caribbean_islands", "former_soviet_union", "eastern_europe"].includes(groupId),
         showStudyTip: ["middle_east", "southeast_asia", "latin_america", "small_island_countries"].includes(groupId)
     };
+    return { ...defaults, ...(FLAG_EDITORIAL[groupId] || {}) };
 }
 
 function quizPage(groupId, group) {
@@ -227,7 +235,7 @@ function quizPage(groupId, group) {
         isPartOf: { "@type": "WebSite", name: "Smurdy", url: baseUrl }
     })}</script>
   ${sharedStylesHtml}
-  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260909-editorial-1">
+  <link rel="stylesheet" href="/styles/flag_quiz.css?v=20260910-polish-1">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png?v=20260825-logo-1">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/images/favicon-48.png?v=20260825-logo-1">
@@ -263,11 +271,11 @@ function quizPage(groupId, group) {
         <p>${escapeHtml(editorial.extraBody)}</p>
       </section>` : ""}
       ${editorial.showChallenge ? `<section class="flag-info content-section">
-        <h2>What gets difficult</h2>
+        <h2>${escapeHtml(editorial.challengeHeading)}</h2>
         <p>${escapeHtml(group.challenge)}</p>
       </section>` : ""}
       ${editorial.showStudyTip ? `<section class="flag-info content-section">
-        <h2>One way to learn this set</h2>
+        <h2>${escapeHtml(editorial.studyTipHeading)}</h2>
         <p>${escapeHtml(group.studyTip)}</p>
       </section>` : ""}
       <section class="flag-info flag-examples" aria-labelledby="flag-examples-heading">

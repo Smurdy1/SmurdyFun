@@ -5,6 +5,7 @@ const { getCanonicalCountryName } = require("../src/js/quiz_entities.js");
 const { expandFlagGroups } = require("../src/js/flag_catalog.js");
 const { rebuildSitemaps } = require("./rebuild_sitemaps.js");
 const pageShell = require("./quiz_page_shell.js");
+const { LANDING_PERSONALITY } = require("./landing_personality.js");
 
 function manifestIsComingSoon(entry) {
     return String(entry?.status || "").trim().toLowerCase() === "coming-soon" ||
@@ -98,6 +99,7 @@ function manifestIsComingSoon(entry) {
         for (const groupId of groupKeys) {
             const group = groupId === "__all__" ? {} : (groupsForEntry[groupId] || {});
             const groupCopy = groupCopyMap[groupId] || {};
+            const personality = LANDING_PERSONALITY[groupId] || {};
             const pageKey = `${manifestId}/${groupId}`;
             const pageOverride = pageOverrideMap[pageKey] || {};
             const groupLabel = groupId === "__all__"
@@ -167,7 +169,7 @@ function manifestIsComingSoon(entry) {
             const overviewHeading = renderTemplate(
                 Object.prototype.hasOwnProperty.call(pageOverride, "overviewHeading")
                     ? pageOverride.overviewHeading
-                    : `What this ${groupLabel} quiz covers`,
+                    : (personality.overviewHeading || `What this ${groupLabel} quiz covers`),
                 context
             );
 
@@ -179,7 +181,7 @@ function manifestIsComingSoon(entry) {
             );
 
             const challengeHeading = renderTemplate(
-                pageOverride.challengeHeading || "What makes this group challenging",
+                pageOverride.challengeHeading || personality.challengeHeading || "What makes this group challenging",
                 context
             );
 
@@ -191,7 +193,7 @@ function manifestIsComingSoon(entry) {
             );
 
             const studyTipHeading = renderTemplate(
-                pageOverride.studyTipHeading || "Study tip",
+                pageOverride.studyTipHeading || personality.studyTipHeading || "Study tip",
                 context
             );
 
@@ -216,8 +218,8 @@ function manifestIsComingSoon(entry) {
                 context
             );
 
-            const pageSpecificHeading = renderTemplate(pageOverride.sectionHeading || "", context);
-            const pageSpecificBody = renderTemplate(pageOverride.sectionBody || "", context);
+            const pageSpecificHeading = renderTemplate(pageOverride.sectionHeading || personality.sectionHeading || "", context);
+            const pageSpecificBody = renderTemplate(pageOverride.sectionBody || personality.sectionBody || "", context);
             const pageSpecificSectionHtml = pageSpecificHeading && pageSpecificBody
                 ? `<section class="content-section page-specific">
               <h2>${escapeHtml(pageSpecificHeading)}</h2>
@@ -262,16 +264,20 @@ function manifestIsComingSoon(entry) {
                 );
 
             const casualExample = renderTemplate(
-                pageOverride.exampleSentence || "",
+                pageOverride.exampleSentence || personality.exampleSentence || "",
                 context
             );
 
             const showChallenge = Object.prototype.hasOwnProperty.call(pageOverride, "showChallenge")
                 ? Boolean(pageOverride.showChallenge)
-                : defaultSectionVisibility(pageKey, groupId, "challenge");
+                : (Object.prototype.hasOwnProperty.call(personality, "showChallenge")
+                    ? Boolean(personality.showChallenge)
+                    : defaultSectionVisibility(pageKey, groupId, "challenge"));
             const showStudyTip = Object.prototype.hasOwnProperty.call(pageOverride, "showStudyTip")
                 ? Boolean(pageOverride.showStudyTip)
-                : defaultSectionVisibility(pageKey, groupId, "studyTip");
+                : (Object.prototype.hasOwnProperty.call(personality, "showStudyTip")
+                    ? Boolean(personality.showStudyTip)
+                    : defaultSectionVisibility(pageKey, groupId, "studyTip"));
 
             const metaDescription = pageOverride.metaDescription
                 ? renderTemplate(pageOverride.metaDescription, context)
@@ -441,7 +447,7 @@ ${JSON.stringify({
 }, null, 2)}
   </script>
   ${sharedStylesHtml}
-  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260909-editorial-1"/>
+  <link rel="stylesheet" href="${publicRoot}/styles/quiz_landing.css?v=20260910-polish-1"/>
 </head>
 <body data-smurdy-quiz-page data-quiz-id="${escapeHtml(manifestId)}" data-quiz-group="${escapeHtml(groupId)}" data-quiz-modality="map">
   ${brandHtml}
