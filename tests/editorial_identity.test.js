@@ -31,7 +31,8 @@ test("generated landing pages expose region-specific editorial fingerprints", ()
     const tiny = read("quizzes/click-country/tiny_countries/index.html");
     const worldFlags = read("quizzes/type-flag/world/index.html");
 
-    assert.match(world, /One map, no warm-up/);
+    /* World intentionally keeps its headingless intro, then gets a unique authored aside. */
+    assert.match(world, /One round can jump from Argentina to Kyrgyzstan to Fiji/);
     assert.match(world, /Why World feels different/);
     assert.match(europe, /Lots of countries in very little space/);
     assert.match(europe, /Where the map gets crowded/);
