@@ -1,4 +1,4 @@
-/* 1.14.4: keep the quiz browser grouped through spacing and rules, not explanatory labels. */
+/* 1.14.5: distinguish browser dimensions with terse inline labels, not subtitle-style microcopy. */
 
 html body #quiz-browser #qb-library-tabs {
     gap: 18px;
@@ -21,23 +21,46 @@ html body #quiz-browser .qb-library-count {
 html body #quiz-browser #qb-category-tabs,
 html body #quiz-browser #qb-mode-tabs,
 html body #quiz-browser #qb-family-tabs {
-    gap: 18px;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 4px !important;
+    padding: 5px 0 2px !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
     overflow-x: auto;
     overflow-y: hidden;
 }
 
 html body #quiz-browser #qb-category-tabs {
-    margin-top: 11px !important;
-    padding: 2px 0 3px !important;
-    border-bottom: 0 !important;
+    margin-top: 10px !important;
 }
 
-html body #quiz-browser #qb-mode-tabs,
-html body #quiz-browser #qb-family-tabs {
-    margin-top: 6px !important;
-    padding: 10px 0 3px !important;
-    border-top: 1px solid #ececec;
-    border-bottom: 0 !important;
+html body #quiz-browser #qb-category-tabs::before,
+html body #quiz-browser #qb-mode-tabs::before,
+html body #quiz-browser #qb-family-tabs::before {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    flex: 0 0 48px;
+    align-self: baseline;
+    background: #fff;
+    color: #777;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+html body #quiz-browser #qb-category-tabs::before {
+    content: "Quiz";
+}
+
+html body #quiz-browser #qb-mode-tabs::before {
+    content: "Mode";
+}
+
+html body #quiz-browser #qb-family-tabs::before {
+    content: "Places";
 }
 
 html body #quiz-browser .qb-category-tab,
@@ -75,16 +98,19 @@ html body #quiz-browser .qb-directory-primary {
     html body #quiz-browser #qb-category-tabs,
     html body #quiz-browser #qb-mode-tabs,
     html body #quiz-browser #qb-family-tabs {
-        gap: 16px;
+        gap: 14px;
+        margin-top: 3px !important;
+        padding-top: 4px !important;
     }
 
     html body #quiz-browser #qb-category-tabs {
         margin-top: 9px !important;
     }
 
-    html body #quiz-browser #qb-mode-tabs,
-    html body #quiz-browser #qb-family-tabs {
-        margin-top: 5px !important;
-        padding-top: 9px !important;
+    html body #quiz-browser #qb-category-tabs::before,
+    html body #quiz-browser #qb-mode-tabs::before,
+    html body #quiz-browser #qb-family-tabs::before {
+        flex-basis: 44px;
+        font-size: 12px;
     }
 }

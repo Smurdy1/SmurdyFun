@@ -131,7 +131,7 @@ test("quiz browser exposes library views and search filters", () => {
     );
 });
 
-test("homepage browser hierarchy stays flat without explanatory micro-labels", () => {
+test("homepage browser hierarchy uses terse inline dimension labels", () => {
     const home = fs.readFileSync(
         path.resolve(__dirname, "../index.html"),
         "utf8"
@@ -145,11 +145,12 @@ test("homepage browser hierarchy stays flat without explanatory micro-labels", (
     assert.match(home, /Pick a quiz below, save favorites, or use Weak Spots/);
     assert.doesNotMatch(home, /id="quiz-suggest"/);
     assert.doesNotMatch(hierarchy, /content:\s*["'](?:QUIZ TYPE|MODE|CONTENT)["']/);
-    assert.doesNotMatch(hierarchy, /::before/);
-    assert.match(
-        hierarchy,
-        /#qb-mode-tabs,[\s\S]*?#qb-family-tabs[\s\S]*?border-top:\s*1px solid #ececec/
-    );
+    assert.match(hierarchy, /#qb-category-tabs::before[\s\S]*?content:\s*"Quiz"/);
+    assert.match(hierarchy, /#qb-mode-tabs::before[\s\S]*?content:\s*"Mode"/);
+    assert.match(hierarchy, /#qb-family-tabs::before[\s\S]*?content:\s*"Places"/);
+    assert.match(hierarchy, /flex:\s*0 0 48px/);
+    assert.match(hierarchy, /font-weight:\s*400/);
+    assert.doesNotMatch(hierarchy, /letter-spacing/);
     assert.match(
         hierarchy,
         /\.qb-directory-primary[\s\S]*?margin: 0 auto/
