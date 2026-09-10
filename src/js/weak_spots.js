@@ -18,6 +18,7 @@
     ];
     const PLAN_KEY = "smurdy-weak-spots-practice-v1";
     const FORMAT_VERSION = 4;
+    const PRACTICE_PLAN_VERSION = 3;
     const MAX_STORED = 150;
     const MAX_VISIBLE = 20;
     const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
@@ -25,17 +26,32 @@
     const MODE_DEFINITIONS = Object.freeze({
         "click-country": { label: "Click Countries", kind: "country", defaultGroup: "world" },
         "type-country": { label: "Type Countries", kind: "country", defaultGroup: "world" },
-        "type-capital": { label: "Type Capitals", kind: "country", defaultGroup: "world" },
-        "type-capital-subdivision": { label: "State Capitals", kind: "subdivision", defaultGroup: "us_states", quizId: "type-capital" },
         "find-country": { label: "No Borders", kind: "country", defaultGroup: "world" },
         "find-point": { label: "Find from a Point", kind: "country", defaultGroup: "world" },
+        "type-flag": { label: "Flags", kind: "country", defaultGroup: "world", quizId: "type-flag" },
+        "type-capital": { label: "Type Capitals", kind: "country", defaultGroup: "world" },
         "click-subdivision": { label: "Click States", kind: "subdivision", defaultGroup: "us_states" },
         "type-subdivision": { label: "Type States", kind: "subdivision", defaultGroup: "us_states" },
         "find-subdivision": { label: "No Borders States", kind: "subdivision", defaultGroup: "us_states" },
         "find-point-subdivision": { label: "Find State from a Point", kind: "subdivision", defaultGroup: "us_states" },
-        "type-flag": { label: "Flags", kind: "country", defaultGroup: "world", quizId: "type-flag" },
-        "type-flag-subdivision": { label: "State Flags", kind: "subdivision", defaultGroup: "us_states", quizId: "type-flag" }
+        "type-flag-subdivision": { label: "State Flags", kind: "subdivision", defaultGroup: "us_states", quizId: "type-flag" },
+        "type-capital-subdivision": { label: "State Capitals", kind: "subdivision", defaultGroup: "us_states", quizId: "type-capital" }
     });
+
+    const MODE_ORDER = Object.freeze([
+        "click-country",
+        "type-country",
+        "find-country",
+        "find-point",
+        "type-flag",
+        "type-capital",
+        "click-subdivision",
+        "type-subdivision",
+        "find-subdivision",
+        "find-point-subdivision",
+        "type-flag-subdivision",
+        "type-capital-subdivision"
+    ]);
 
     function normalizeName(value) {
         return String(value || "")
@@ -86,10 +102,6 @@
         const definition = modeDefinition(mode, oldEntry?.kind);
         const normalizedMode = normalizeMode(mode, definition.kind);
         const now = Date.now();
-
-        // Older stores counted modes and groups independently, so a regional
-        // group cannot be safely assigned to one specific mode. Use a known
-        // broad group unless the legacy entry explicitly stored one group.
         const group = String(oldEntry?.group || definition.defaultGroup);
 
         return {
@@ -277,24 +289,23 @@
         }
     }
 
-    function humanizeGroup(group) {
-        const value = String(group || "").trim();
-        if (!value || value === "world") return "World";
-        if (value === "us_states") return "US States";
-        return value
-            .replace(/[_-]+/g, " ")
-            .replace(/\b\w/g, character => character.toUpperCase());
-    }
-
-    function stageForEntries(entries, mode, group) {
+    function stageForEntries(entries, mode) {
         const definition = modeDefinition(mode);
-        const names = [...new Set(entries.map(entry => entry.name).filter(Boolean))];
+        const seen = new Set();
+        const names = [];
+        for (const entry of entries || []) {
+            const name = String(entry?.name || "").trim();
+            const key = normalizeName(name);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            names.push(name);
+        }
         return {
             mode,
             kind: definition.kind,
-            label: definition.label + ": " + humanizeGroup(group),
+            label: definition.label,
             quizId: definition.quizId || mode,
-            group: group || definition.defaultGroup,
+            group: definition.defaultGroup,
             names
         };
     }
@@ -303,15 +314,13 @@
         const buckets = new Map();
         for (const entry of entries || []) {
             if (!entry?.name || !MODE_DEFINITIONS[entry.mode]) continue;
-            const definition = modeDefinition(entry.mode, entry.kind);
-            const group = String(entry.group || definition.defaultGroup);
-            const bucketKey = entry.mode + "\n" + group;
-            if (!buckets.has(bucketKey)) buckets.set(bucketKey, []);
-            buckets.get(bucketKey).push(entry);
+            if (!buckets.has(entry.mode)) buckets.set(entry.mode, []);
+            buckets.get(entry.mode).push(entry);
         }
 
-        return Array.from(buckets.values())
-            .map(bucket => stageForEntries(bucket, bucket[0].mode, bucket[0].group))
+        return MODE_ORDER
+            .filter(mode => buckets.has(mode))
+            .map(mode => stageForEntries(buckets.get(mode), mode))
             .filter(stage => stage.names.length);
     }
 
@@ -319,41 +328,124 @@
         return buildPracticeStagesFromEntries(getAll());
     }
 
+    function cloneStage(stage) {
+        return stage
+            ? { ...stage, names: Array.isArray(stage.names) ? stage.names.slice() : [] }
+            : null;
+    }
+
+    function pendingNamesForStage(stage, entries) {
+        if (!stage || !MODE_DEFINITIONS[stage.mode]) return [];
+        const pending = new Set(
+            (entries || [])
+                .filter(entry => entry?.name && entry.mode === stage.mode)
+                .map(entry => entryKey(entry.name, entry.mode))
+        );
+        return (stage.names || []).filter(name => pending.has(entryKey(name, stage.mode)));
+    }
+
+    function progressPracticePlan(plan, entries) {
+        if (!plan || !Array.isArray(plan.stages) || !Number.isInteger(plan.index)) {
+            return { status: "none", plan: null, stage: null };
+        }
+
+        const stages = plan.stages.map(cloneStage).filter(Boolean);
+        const index = plan.index;
+        const current = stages[index];
+        if (!current) return { status: "none", plan: null, stage: null };
+
+        const currentPending = pendingNamesForStage(current, entries);
+        if (currentPending.length) {
+            const retryStage = {
+                ...current,
+                label: "Retry missed",
+                names: currentPending,
+                retry: true
+            };
+            stages[index] = retryStage;
+            return {
+                status: "retry",
+                plan: { ...plan, version: PRACTICE_PLAN_VERSION, index, stages },
+                stage: cloneStage(retryStage)
+            };
+        }
+
+        for (let nextIndex = index + 1; nextIndex < stages.length; nextIndex++) {
+            const next = stages[nextIndex];
+            const nextPending = pendingNamesForStage(next, entries);
+            if (!nextPending.length) continue;
+            const nextStage = { ...next, names: nextPending, retry: false };
+            stages[nextIndex] = nextStage;
+            return {
+                status: "next",
+                plan: { ...plan, version: PRACTICE_PLAN_VERSION, index: nextIndex, stages },
+                stage: cloneStage(nextStage)
+            };
+        }
+
+        return { status: "complete", plan: null, stage: null };
+    }
+
+    function savePlanObject(plan) {
+        try {
+            const currentSession = session();
+            if (!currentSession) return false;
+            if (!plan) {
+                currentSession.removeItem(PLAN_KEY);
+                return true;
+            }
+            currentSession.setItem(PLAN_KEY, JSON.stringify(plan));
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
     function readPracticePlan() {
         try {
-            const plan = JSON.parse(session()?.getItem(PLAN_KEY) || "null");
-            if (
-                plan &&
-                Array.isArray(plan.stages) &&
-                Number.isInteger(plan.index) &&
-                plan.stages[plan.index]
-            ) {
+            const currentSession = session();
+            const plan = JSON.parse(currentSession?.getItem(PLAN_KEY) || "null");
+            if (!plan || !Array.isArray(plan.stages) || !Number.isInteger(plan.index)) return null;
+
+            if (plan.version === PRACTICE_PLAN_VERSION && plan.stages[plan.index]) {
                 return plan;
             }
-        } catch (_) {}
-        return null;
+
+            // Session plans are short-lived, so upgrade an older regional plan by
+            // rebuilding it from the user's current Weak Spots and staying on the
+            // same mode when possible.
+            const activeMode = plan.stages?.[plan.index]?.mode;
+            const stages = buildPracticeStages();
+            if (!stages.length) {
+                currentSession?.removeItem(PLAN_KEY);
+                return null;
+            }
+            const matchingIndex = stages.findIndex(stage => stage.mode === activeMode);
+            const upgraded = {
+                version: PRACTICE_PLAN_VERSION,
+                index: matchingIndex >= 0 ? matchingIndex : 0,
+                stages
+            };
+            savePlanObject(upgraded);
+            return upgraded;
+        } catch (_) {
+            return null;
+        }
     }
 
     function getActivePracticeStage() {
         const plan = readPracticePlan();
         const stage = plan?.stages?.[plan.index];
-        return stage ? { ...stage, names: stage.names.slice() } : null;
+        return cloneStage(stage);
     }
 
     function advancePracticeStage() {
         const plan = readPracticePlan();
         if (!plan) return null;
 
-        plan.index++;
-        if (!plan.stages[plan.index]) {
-            try { session()?.removeItem(PLAN_KEY); } catch (_) {}
-            return null;
-        }
-
-        try { session()?.setItem(PLAN_KEY, JSON.stringify(plan)); } catch (_) {
-            return null;
-        }
-        return getActivePracticeStage();
+        const progress = progressPracticePlan(plan, getAll());
+        if (!savePlanObject(progress.plan)) return null;
+        return cloneStage(progress.stage);
     }
 
     function practiceUrl(stage) {
@@ -386,18 +478,15 @@
     }
 
     function savePracticePlan(stages) {
-        const activeStages = (stages || []).filter(stage => Array.isArray(stage.names) && stage.names.length);
+        const activeStages = (stages || [])
+            .filter(stage => Array.isArray(stage.names) && stage.names.length)
+            .map(cloneStage);
         if (!activeStages.length) return false;
-        try {
-            session()?.setItem(PLAN_KEY, JSON.stringify({
-                version: 2,
-                index: 0,
-                stages: activeStages
-            }));
-            return true;
-        } catch (_) {
-            return false;
-        }
+        return savePlanObject({
+            version: PRACTICE_PLAN_VERSION,
+            index: 0,
+            stages: activeStages
+        });
     }
 
     function startPractice() {
@@ -411,34 +500,13 @@
         return true;
     }
 
-    function currentRouteStage(names) {
-        const match = String(root?.location?.pathname || "")
-            .match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/);
-        if (!match) return null;
-
-        const routeQuizId = decodeURIComponent(match[1]);
-        const group = decodeURIComponent(match[2]);
-        let mode = routeQuizId;
-        if (routeQuizId === "type-flag") {
-            mode = group === "us_states" ? "type-flag-subdivision" : "type-flag";
-        }
-        if (routeQuizId === "type-capital") {
-            mode = group === "us_states" ? "type-capital-subdivision" : "type-capital";
-        }
-        if (!MODE_DEFINITIONS[mode]) return null;
-        return stageForEntries(
-            names.map(name => ({ name, mode, group })),
-            mode,
-            group
-        );
-    }
-
-    function startCurrentModeRetry(names) {
-        const stage = currentRouteStage(names);
-        if (!stage || !stage.names.length) return false;
-        if (!savePracticePlan([stage])) return false;
-        openPracticeStage(stage);
-        return true;
+    function humanizeGroup(group) {
+        const value = String(group || "").trim();
+        if (!value || value === "world") return "World";
+        if (value === "us_states") return "US States";
+        return value
+            .replace(/[_-]+/g, " ")
+            .replace(/\b\w/g, character => character.toUpperCase());
     }
 
     function modeLabel(mode) {
@@ -476,8 +544,7 @@
         if (!list) return;
 
         if (!entries.length) {
-            list.innerHTML =
-                '<li class="weak-spots-empty">No weak spots yet.</li>';
+            list.innerHTML = '<li class="weak-spots-empty">No weak spots yet.</li>';
         } else {
             list.innerHTML = entries.slice(0, MAX_VISIBLE).map(entry => (
                 '<li class="weak-spot-item">' +
@@ -559,7 +626,6 @@
         }
     }
 
-
     function install() {
         if (!root?.document) return;
         if (!root.document.documentElement.dataset.weakSpotsDelegated) {
@@ -579,12 +645,15 @@
         storageKey: STORAGE_KEY,
         practicePlanKey: PLAN_KEY,
         formatVersion: FORMAT_VERSION,
+        practicePlanVersion: PRACTICE_PLAN_VERSION,
         normalizeName,
         normalizeMode,
         modeDefinition,
         entryKey,
         migrateStore,
         buildPracticeStagesFromEntries,
+        pendingNamesForStage,
+        progressPracticePlan,
         recordMiss,
         recordRetrySuccess,
         getAll,
