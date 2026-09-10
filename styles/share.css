@@ -1,20 +1,23 @@
 .smurdy-page-share-trigger {
-    position: fixed;
-    right: 14px;
-    bottom: 42px;
-    z-index: 4500;
+    position: static;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
     padding: 7px 10px;
-    border: 1px solid rgba(0, 0, 0, .24);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, .96);
+    border: 1px solid #cfcfcf;
+    border-radius: 5px;
+    background: #f5f5f5;
     color: #333;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+    box-shadow: none;
     font: 700 13px/1.2 Arial, Helvetica, sans-serif;
     cursor: pointer;
 }
 
 .smurdy-page-share-trigger:hover {
-    border-color: rgba(0, 0, 0, .38);
+    border-color: #999;
+    background: #ececec;
     color: #075f9e;
 }
 
@@ -27,6 +30,34 @@
 .smurdy-page-share-trigger:disabled {
     cursor: wait;
     opacity: .65;
+}
+
+#qb-header > .smurdy-page-share-trigger {
+    margin-left: auto;
+}
+
+#quiz-buttons > .smurdy-page-share-trigger {
+    margin-left: auto;
+}
+
+[data-smurdy-quiz-actions] > .smurdy-page-share-trigger {
+    min-height: 42px;
+    padding: 9px 14px;
+    border-color: #c8c8c8;
+    background: #f1f1f1;
+}
+
+.smurdy-page-share-trigger--panel-footer {
+    align-self: flex-end;
+    margin-top: 10px;
+}
+
+.smurdy-page-share-inline-slot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, .12);
 }
 
 .smurdy-page-share-dialog {
@@ -148,12 +179,12 @@
 }
 
 @media (max-width: 700px) {
-    .smurdy-page-share-trigger {
-        right: 10px;
-        bottom: calc(42px + env(safe-area-inset-bottom, 0px));
-    }
-
     .smurdy-page-share-panel {
         padding: 16px;
+    }
+
+    #qb-header > .smurdy-page-share-trigger {
+        min-height: 32px;
+        padding: 6px 9px;
     }
 }
