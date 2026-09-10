@@ -1,0 +1,45 @@
+name: One-off 1.14.6 subtle identity polish
+
+on:
+  push:
+    branches:
+      - polish/1146-subtle-identity
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply polish source changes
+        run: node tools/apply_1146_polish.js
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Regenerate quiz pages
+        run: npm run pages:generate
+      - name: JavaScript syntax checks
+        run: |
+          node --check tools/generate_quiz_pages.js
+          node --check tools/generate_flag_pages.js
+          node --check tools/landing_personality.js
+          node --check src/js/app_core.js
+      - name: Run tests
+        run: npm test
+      - name: Validate whitespace
+        run: git diff --check
+      - name: Commit validated output
+        run: |
+          rm tools/apply_1146_polish.js
+          rm .github/workflows/oneoff-1146-polish.yml
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git add -A
+          git commit -m "1.14.6: Finish subtle identity and landing polish"
+          git push
