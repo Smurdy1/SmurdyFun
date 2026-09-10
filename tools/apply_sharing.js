@@ -4,7 +4,7 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const SITE_ORIGIN = "https://smurdy.fun";
-const ASSET_VERSION = "20260910-sharing-1";
+const ASSET_VERSION = "20260910-sharing-2";
 const SKIP_DIRECTORIES = new Set([".git", ".github", ".backups", "Old", "node_modules"]);
 
 function escapeHtml(value) {
