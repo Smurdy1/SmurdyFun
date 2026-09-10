@@ -27,17 +27,16 @@ test("landing personality covers the main geography sets with authored copy", ()
 test("generated landing pages expose region-specific editorial fingerprints", () => {
     const world = read("quizzes/click-country/world/index.html");
     const europe = read("quizzes/click-country/europe/index.html");
-    const balkans = read("quizzes/click-country/balkans/index.html");
-    const tiny = read("quizzes/click-country/tiny_countries/index.html");
+    const westAfrica = read("quizzes/click-country/west_africa/index.html");
     const worldFlags = read("quizzes/type-flag/world/index.html");
 
-    /* World intentionally keeps its headingless intro, then gets a unique authored aside. */
+    /* Existing hand-curated page overrides still win; personality fills the gaps. */
     assert.match(world, /One round can jump from Argentina to Kyrgyzstan to Fiji/);
     assert.match(world, /Why World feels different/);
-    assert.match(europe, /Lots of countries in very little space/);
-    assert.match(europe, /Where the map gets crowded/);
-    assert.match(balkans, /Names are only half the problem/);
-    assert.match(tiny, /Zoom is part of the challenge/);
+    assert.match(europe, /Europe in this quiz/);
+    assert.match(europe, /Learn Europe through border relationships/);
+    assert.match(westAfrica, /A compact coast with a wide Sahel/);
+    assert.match(westAfrica, /Senegal, Ghana, Niger, and Nigeria/);
     assert.match(worldFlags, /Why World feels different/);
     assert.doesNotMatch(world, /What this World quiz covers/);
 });
