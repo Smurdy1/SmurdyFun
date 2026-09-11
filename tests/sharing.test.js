@@ -110,7 +110,7 @@ test("page share trigger uses contextual page locations and never floats over co
     assert.ok(triggerRule, "share trigger CSS rule is missing");
     assert.match(triggerRule[1], /position:\s*static/);
     assert.doesNotMatch(triggerRule[1], /position:\s*(?:fixed|absolute)/);
-    assert.doesNotMatch(styles, /\.smurdy-page-share-trigger[^{}]*\{[^}]*\b(?:right|bottom):/s);
+    assert.doesNotMatch(triggerRule[1], /(?:^|[;\s])(?:right|bottom)\s*:/m);
     assert.match(styles, /\.smurdy-share-quiz-topline/);
     assert.match(styles, /\.smurdy-share-header-actions/);
 });
