@@ -4,30 +4,30 @@ html[data-smurdy-theme="dark"] {
     --smurdy-blue-dark: #78bdf0;
     --smurdy-action-blue: #2489c9;
     --smurdy-action-blue-hover: #3298d8;
-    --smurdy-text: #f1f3f5;
-    --smurdy-muted: #a9b0b6;
+    --smurdy-text: #dfe4e7;
+    --smurdy-muted: #aab3b9;
     --smurdy-line: rgba(255, 255, 255, 0.15);
-    --smurdy-surface: rgba(24, 30, 35, 0.97);
-    --smurdy-surface-soft: #22292f;
+    --smurdy-surface: rgba(32, 38, 43, 0.97);
+    --smurdy-surface-soft: #293137;
     --directory-blue: #4aa8e8;
     --directory-blue-dark: #78bdf0;
-    --directory-text: #f1f3f5;
-    --directory-muted: #a9b0b6;
-    --directory-line: #3b444b;
+    --directory-text: #dfe4e7;
+    --directory-muted: #aab3b9;
+    --directory-line: #465159;
     --brand: #4aa8e8;
     --brand-dark: #78bdf0;
-    --text: #f1f3f5;
-    --muted: #a9b0b6;
-    --line: #3b444b;
-    --soft: #22292f;
+    --text: #dfe4e7;
+    --muted: #aab3b9;
+    --line: #465159;
+    --soft: #293137;
     --correct: #65c982;
     --wrong: #ff8b82;
 }
 
 html[data-smurdy-theme="dark"] body,
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] {
-    background: #12171b;
-    color: #f1f3f5;
+    background: #171c20;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] a,
@@ -42,7 +42,7 @@ html[data-smurdy-theme="dark"] .brand,
 html[data-smurdy-theme="dark"] .quiz-brand,
 html[data-smurdy-theme="dark"] .flag-brand,
 html[data-smurdy-theme="dark"] .panel-brand {
-    color: #f1f3f5;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] :is(.panel-brand, .directory-brand, .brand, .quiz-brand, .flag-brand) img {
@@ -61,7 +61,7 @@ html[data-smurdy-theme="dark"] .flag-brand,
 html[data-smurdy-theme="dark"] .directory-card,
 html[data-smurdy-theme="dark"] .info-card {
     background: #181e23 !important;
-    color: #f1f3f5;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] #quiz-desc,
@@ -74,7 +74,7 @@ html[data-smurdy-theme="dark"] .info-card p,
 html[data-smurdy-theme="dark"] .maker-note,
 html[data-smurdy-theme="dark"] body.smurdy-quiz-landing .casual-example,
 html[data-smurdy-theme="dark"] body.smurdy-quiz-landing .mode-note {
-    color: #c5cbd0 !important;
+    color: #bbc3c8 !important;
 }
 
 html[data-smurdy-theme="dark"] .site-header,
@@ -90,7 +90,7 @@ html[data-smurdy-theme="dark"] .flag-links,
 html[data-smurdy-theme="dark"] .quiz-links,
 html[data-smurdy-theme="dark"] .link-section,
 html[data-smurdy-theme="dark"] .page-specific {
-    border-color: #3b444b !important;
+    border-color: #465159 !important;
 }
 
 html[data-smurdy-theme="dark"] :is(button, input, select, textarea) {
@@ -104,12 +104,12 @@ html[data-smurdy-theme="dark"] .weak-spots-menu-button,
 html[data-smurdy-theme="dark"] .quiz-button,
 html[data-smurdy-theme="dark"] .qb-btn,
 html[data-smurdy-theme="dark"] .flag-button {
-    background: #252c32;
-    color: #f1f3f5;
+    background: #30383e;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] :is(#quiz-buttons .qb-btn, #quiz-buttons button, .weak-spots-menu-button, .quiz-button, .qb-btn, .flag-button):hover {
-    background: #303941;
+    background: #343e45;
 }
 
 html[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).primary,
@@ -121,8 +121,8 @@ html[data-smurdy-theme="dark"] #quiz-buttons .qb-btn.primary {
 
 html[data-smurdy-theme="dark"] .included-list,
 html[data-smurdy-theme="dark"] .flag-stage {
-    border-color: #3b444b;
-    background: #1b2227;
+    border-color: #465159;
+    background: #242b30;
 }
 
 html[data-smurdy-theme="dark"] .flag-progress-track {
@@ -139,19 +139,19 @@ html[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite
 html[data-smurdy-theme="dark"] #weak-spots-dialog,
 html[data-smurdy-theme="dark"] .smurdy-page-share-dialog,
 html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-dialog {
-    border-color: #414b53 !important;
+    border-color: #4a555d !important;
     background: #181e23 !important;
-    color: #f1f3f5 !important;
+    color: #dfe4e7 !important;
 }
 
 html[data-smurdy-theme="dark"] #weak-spots-close {
-    background: #2b3339;
-    color: #f1f3f5;
+    background: #30383e;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] .weak-spot-group {
-    background: #2a3238;
-    color: #c5cbd0;
+    background: #30383e;
+    color: #bbc3c8;
 }
 
 html[data-smurdy-theme="dark"] .weak-spot-mode {
@@ -164,11 +164,11 @@ html[data-smurdy-theme="dark"] body #quiz-browser #qb-category-tabs::before,
 html[data-smurdy-theme="dark"] body #quiz-browser #qb-mode-tabs::before,
 html[data-smurdy-theme="dark"] body #quiz-browser #qb-family-tabs::before {
     background: #181e23;
-    color: #a9b0b6;
+    color: #aab3b9;
 }
 
 html[data-smurdy-theme="dark"] body #quiz-browser :is(.qb-library-tab, .qb-category-tab, .qb-mode-tab, .qb-family-tab) {
-    color: #b8bec3;
+    color: #b2bbc1;
 }
 
 html[data-smurdy-theme="dark"] body #quiz-browser :is(.qb-library-tab, .qb-category-tab, .qb-mode-tab, .qb-family-tab)[aria-selected="true"] {
@@ -176,29 +176,29 @@ html[data-smurdy-theme="dark"] body #quiz-browser :is(.qb-library-tab, .qb-categ
 }
 
 html[data-smurdy-theme="dark"] body #quiz-browser .qb-library-count {
-    color: #929aa1 !important;
+    color: #919ba1 !important;
 }
 
 html[data-smurdy-theme="dark"] body #quiz-browser #qb-search {
-    border-color: #3b444b;
+    border-color: #465159;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-page-share-panel,
 html[data-smurdy-theme="dark"] .smurdy-page-share-preview {
     background: #181e23 !important;
-    color: #f1f3f5 !important;
-    border-color: #3b444b !important;
+    color: #dfe4e7 !important;
+    border-color: #465159 !important;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-page-share-preview p,
 html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-card p {
-    color: #c5cbd0 !important;
+    color: #bbc3c8 !important;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-page-share-actions button,
 html[data-smurdy-theme="dark"] .smurdy-page-share-close,
 html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
-    color: #f1f3f5;
+    color: #dfe4e7;
 }
 
 .home-theme-setting {
@@ -234,21 +234,21 @@ html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
 }
 
 html[data-smurdy-theme="dark"] .home-theme-setting {
-    border-color: #3b444b;
+    border-color: #465159;
 }
 
 html[data-smurdy-theme="dark"] .home-theme-setting-label {
-    color: #a9b0b6;
+    color: #aab3b9;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-theme-toggle {
     border-color: #4a545c;
-    background: #252c32;
-    color: #f1f3f5;
+    background: #30383e;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-theme-toggle:hover {
-    background: #303941;
+    background: #343e45;
 }
 
 html.smurdy-quiz-active .home-theme-setting {
@@ -258,43 +258,43 @@ html.smurdy-quiz-active .home-theme-setting {
 /* dark-theme-polish-v3 */
 html[data-smurdy-theme="dark"] body,
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] {
-    background: #0f1418;
+    background: #171c20;
 }
 
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] main,
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] .quiz-page {
-    background: #1a2025 !important;
+    background: #22282d !important;
 }
 
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] :is(hr, .page-specific, .link-section, .quiz-links, .flag-links) {
-    border-color: #404b54 !important;
+    border-color: #4a555d !important;
 }
 
 html[data-smurdy-theme="dark"] body[data-smurdy-quiz-page] :is(.quiz-lead, .flag-lead, .lead, .maker-note, .mode-note, .casual-example) {
-    color: #c6cdd2 !important;
+    color: #bbc3c8 !important;
 }
 
 html[data-smurdy-theme="dark"] .site-header,
 html[data-smurdy-theme="dark"] .directory-header {
-    background: #171d22 !important;
+    background: #20262b !important;
 }
 
 html[data-smurdy-theme="dark"] .site-footer,
 html[data-smurdy-theme="dark"] .directory-footer {
-    color: #aeb7bd;
+    color: #aab3b9;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-theme-toggle {
     min-height: 30px;
     padding: 4px 8px;
     border-color: #46515a;
-    background: #20282e;
-    color: #dce1e4;
+    background: #2a3238;
+    color: #cdd3d7;
     font-size: 12.5px;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-theme-toggle:hover {
     border-color: #58656f;
-    background: #293239;
+    background: #343e45;
     color: #fff;
 }
