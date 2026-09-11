@@ -33,10 +33,7 @@ function metaContent(html, attributeName, key) {
 function pngDimensions(filePath) {
     const data = fs.readFileSync(filePath);
     assert.equal(data.toString("ascii", 1, 4), "PNG", `${filePath} is not a PNG`);
-    return {
-        width: data.readUInt32BE(16),
-        height: data.readUInt32BE(20)
-    };
+    return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) };
 }
 
 test("every public HTML page has the persistent page-share controls and large-card metadata", () => {
@@ -67,16 +64,11 @@ test("playable quiz pages use a mode-and-group-specific social preview image", (
         const match = page.match(/^quizzes\/([^/]+)\/([^/]+)\/index\.html$/);
         const [, quizId, groupId] = match;
         const image = metaContent(html, "property", "og:image");
-        assert.match(
-            image,
-            new RegExp(`/assets/social/quizzes/${quizId}/${groupId}\\.png\\?v=`),
-            `${page} does not use its own social image`
-        );
+        assert.match(image, new RegExp(`/assets/social/quizzes/${quizId}/${groupId}\\.png\\?v=`), `${page} does not use its own social image`);
 
         const imagePath = path.join(root, "assets", "social", "quizzes", quizId, `${groupId}.png`);
         assert.ok(fs.existsSync(imagePath), `${page} references a missing social image`);
-        const dimensions = pngDimensions(imagePath);
-        assert.deepEqual(dimensions, { width: 1200, height: 630 }, `${page} social image has wrong dimensions`);
+        assert.deepEqual(pngDimensions(imagePath), { width: 1200, height: 630 }, `${page} social image has wrong dimensions`);
     }
 
     assert.ok(playable > 100, "expected social previews for the full playable quiz catalog");
@@ -99,20 +91,26 @@ test("page sharing offers native sharing, copy link, and direct social destinati
     assert.match(source, /data-smurdy-page-share-preview-title/);
 });
 
-test("page share trigger lives in page flow and prefers active panel controls", () => {
+test("page share trigger uses contextual page locations and never floats over content", () => {
     const source = read("src/js/share.js");
     const styles = read("styles/share.css");
 
     assert.match(source, /document\.getElementById\("quiz-browser"\)/);
     assert.match(source, /browser\.querySelector\("#qb-header"\)/);
-    assert.match(source, /document\.getElementById\("quiz-panel"\)/);
-    assert.match(source, /quizPanel\.querySelector\("#quiz-buttons"\)/);
-    assert.match(source, /\[data-smurdy-quiz-actions\]/);
+    assert.match(source, /\[data-flag-game\]/);
+    assert.match(source, /\.flag-game-title-row/);
+    assert.match(source, /smurdy-share-quiz-topline/);
+    assert.match(source, /smurdy-share-landing-topline/);
+    assert.match(source, /\.site-header-inner/);
+    assert.match(source, /smurdy-share-directory-topline/);
     assert.match(source, /MutationObserver/);
+    assert.doesNotMatch(source, /quizPanel\.querySelector\("#quiz-buttons"\)/);
 
     const triggerRule = styles.match(/\.smurdy-page-share-trigger\s*\{([\s\S]*?)\}/);
     assert.ok(triggerRule, "share trigger CSS rule is missing");
     assert.match(triggerRule[1], /position:\s*static/);
     assert.doesNotMatch(triggerRule[1], /position:\s*(?:fixed|absolute)/);
-    assert.doesNotMatch(styles, /\.smurdy-page-share-trigger[^{}]*\{[^}]*\b(?:right|bottom):/s);
+    assert.doesNotMatch(triggerRule[1], /(?:^|[;\s])(?:right|bottom)\s*:/m);
+    assert.match(styles, /\.smurdy-share-quiz-topline/);
+    assert.match(styles, /\.smurdy-share-header-actions/);
 });

@@ -2,7 +2,7 @@
     "use strict";
 
     const SITE_ORIGIN = "https://smurdy.fun";
-    const SHARE_ASSET_VERSION = "20260910-sharing-2";
+    const SHARE_ASSET_VERSION = "20260910-sharing-3";
     const MODE_LABELS = {
         "click-country": "Click the Countries",
         "type-country": "Type the Countries",
@@ -43,9 +43,7 @@
     function humanize(value) {
         const raw = String(value || "").trim();
         if (GROUP_LABELS[raw]) return GROUP_LABELS[raw];
-        return raw
-            .replace(/[_-]+/g, " ")
-            .replace(/\b\w/g, character => character.toUpperCase());
+        return raw.replace(/[_-]+/g, " ").replace(/\b\w/g, character => character.toUpperCase());
     }
 
     function routeContext(pathname = location.pathname) {
@@ -77,18 +75,10 @@
         const canonical = documentNode.querySelector('link[rel="canonical"]')?.href || "";
         const title = metaContent(documentNode, 'meta[property="og:title"]') || documentNode.title || "Smurdy";
         const description = metaContent(documentNode, 'meta[property="og:description"]') ||
-            metaContent(documentNode, 'meta[name="description"]') ||
-            "Free geography quizzes on Smurdy.";
+            metaContent(documentNode, 'meta[name="description"]') || "Free geography quizzes on Smurdy.";
         const image = metaContent(documentNode, 'meta[property="og:image"]') || `${SITE_ORIGIN}/assets/social/smurdy.png?v=${SHARE_ASSET_VERSION}`;
         const imageAlt = metaContent(documentNode, 'meta[property="og:image:alt"]') || "Smurdy geography quizzes";
-        return {
-            title,
-            description,
-            url: canonical || `${SITE_ORIGIN}${location.pathname}`,
-            image,
-            imageAlt,
-            isQuiz: false
-        };
+        return { title, description, url: canonical || `${SITE_ORIGIN}${location.pathname}`, image, imageAlt, isQuiz: false };
     }
 
     function sameCanonicalRoute(url, pathname) {
@@ -105,45 +95,23 @@
         const route = routeContext();
         const current = documentContext(document);
         if (!route) return current;
-
         if (sameCanonicalRoute(current.url, location.pathname)) {
-            return {
-                ...route,
-                title: current.title || route.title,
-                description: current.description || route.description,
-                image: current.image || route.image,
-                imageAlt: current.imageAlt || route.imageAlt
-            };
+            return { ...route, title: current.title || route.title, description: current.description || route.description, image: current.image || route.image, imageAlt: current.imageAlt || route.imageAlt };
         }
-
         try {
-            const response = await fetch(location.pathname, {
-                credentials: "same-origin",
-                cache: "force-cache"
-            });
+            const response = await fetch(location.pathname, { credentials: "same-origin", cache: "force-cache" });
             if (response.ok) {
-                const html = await response.text();
-                const parsed = new DOMParser().parseFromString(html, "text/html");
+                const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
                 const fetched = documentContext(parsed);
-                return {
-                    ...route,
-                    title: fetched.title || route.title,
-                    description: fetched.description || route.description,
-                    image: fetched.image || route.image,
-                    imageAlt: fetched.imageAlt || route.imageAlt
-                };
+                return { ...route, title: fetched.title || route.title, description: fetched.description || route.description, image: fetched.image || route.image, imageAlt: fetched.imageAlt || route.imageAlt };
             }
         } catch (_) {}
         return route;
     }
 
     function invitationFor(context) {
-        if (context.isQuiz) {
-            return `Try the ${context.groupLabel} ${context.modeLabel.toLowerCase()} quiz on Smurdy.`;
-        }
-        if (location.pathname === "/quizzes/" || location.pathname.startsWith("/quizzes/")) {
-            return "Browse free geography quizzes on Smurdy.";
-        }
+        if (context.isQuiz) return `Try the ${context.groupLabel} ${context.modeLabel.toLowerCase()} quiz on Smurdy.`;
+        if (location.pathname === "/quizzes/" || location.pathname.startsWith("/quizzes/")) return "Browse free geography quizzes on Smurdy.";
         return "Check out Smurdy, a free geography quiz site.";
     }
 
@@ -154,7 +122,6 @@
                 return true;
             }
         } catch (_) {}
-
         try {
             const textarea = document.createElement("textarea");
             textarea.value = text;
@@ -219,10 +186,7 @@
 
         dialog.querySelector(".smurdy-page-share-close").addEventListener("click", () => closeDialog(dialog));
         dialog.addEventListener("cancel", () => document.documentElement.classList.remove("smurdy-page-share-open"));
-        dialog.addEventListener("click", event => {
-            if (event.target === dialog) closeDialog(dialog);
-        });
-
+        dialog.addEventListener("click", event => { if (event.target === dialog) closeDialog(dialog); });
         dialog.querySelector("[data-share-action='native']").hidden = typeof navigator.share !== "function";
         dialog.addEventListener("click", async event => {
             const button = event.target.closest?.("[data-share-action]");
@@ -234,35 +198,19 @@
             const encodedUrl = encodeURIComponent(context.url);
             const encodedTitle = encodeURIComponent(context.title);
             const encodedText = encodeURIComponent(invitation);
-
             if (action === "native") {
-                try {
-                    await navigator.share({ title: context.title, text: invitation, url: context.url });
-                } catch (error) {
-                    if (error?.name !== "AbortError") setStatus(dialog, "Could not open sharing.");
-                }
+                try { await navigator.share({ title: context.title, text: invitation, url: context.url }); }
+                catch (error) { if (error?.name !== "AbortError") setStatus(dialog, "Could not open sharing."); }
                 return;
             }
             if (action === "copy") {
-                const copied = await copyText(context.url);
-                setStatus(dialog, copied ? "Link copied" : "Could not copy link");
+                setStatus(dialog, await copyText(context.url) ? "Link copied" : "Could not copy link");
                 return;
             }
-            if (action === "x") {
-                openExternal(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`);
-                return;
-            }
-            if (action === "facebook") {
-                openExternal(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`);
-                return;
-            }
-            if (action === "reddit") {
-                openExternal(`https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`);
-                return;
-            }
-            if (action === "email") {
-                location.href = `mailto:?subject=${encodedTitle}&body=${encodeURIComponent(`${invitation}\n\n${context.url}`)}`;
-            }
+            if (action === "x") return openExternal(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`);
+            if (action === "facebook") return openExternal(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`);
+            if (action === "reddit") return openExternal(`https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`);
+            if (action === "email") location.href = `mailto:?subject=${encodedTitle}&body=${encodeURIComponent(`${invitation}\n\n${context.url}`)}`;
         });
         document.body.appendChild(dialog);
         return dialog;
@@ -273,20 +221,16 @@
         const context = await resolveContext();
         trigger.disabled = false;
         dialog._smurdyShareContext = context;
-
         const image = dialog.querySelector("[data-smurdy-page-share-image]");
         image.src = context.image;
         image.alt = context.imageAlt;
         dialog.querySelector("[data-smurdy-page-share-preview-title]").textContent = context.title.replace(/\s*\|\s*Smurdy\s*$/i, "");
         dialog.querySelector("[data-smurdy-page-share-preview-copy]").textContent = invitationFor(context);
         setStatus(dialog, "");
-
         document.documentElement.classList.add("smurdy-page-share-open");
         if (typeof dialog.showModal === "function") {
             if (!dialog.open) dialog.showModal();
-        } else {
-            dialog.hidden = false;
-        }
+        } else dialog.hidden = false;
     }
 
     function elementIsVisible(element) {
@@ -300,9 +244,7 @@
     }
 
     function ensureInlineSlot(host) {
-        let slot = Array.from(host.children || []).find(child =>
-            child.hasAttribute?.("data-smurdy-page-share-slot")
-        );
+        let slot = Array.from(host.children || []).find(child => child.hasAttribute?.("data-smurdy-page-share-slot"));
         if (!slot) {
             slot = document.createElement("div");
             slot.className = "smurdy-page-share-inline-slot";
@@ -312,35 +254,70 @@
         return slot;
     }
 
+    function ensureTopline(anchor, className) {
+        if (!anchor) return null;
+        if (anchor.parentElement?.classList.contains(className)) return anchor.parentElement;
+        let row = anchor.parentElement?.querySelector?.(`:scope > .${className}`);
+        if (!row) {
+            row = document.createElement("div");
+            row.className = className;
+            anchor.parentNode.insertBefore(row, anchor);
+        }
+        if (anchor.parentNode !== row) row.appendChild(anchor);
+        return row;
+    }
+
+    function ensureHeaderActions(header) {
+        let actions = header.querySelector(":scope > .smurdy-share-header-actions");
+        if (!actions) {
+            actions = document.createElement("div");
+            actions.className = "smurdy-share-header-actions";
+            const backLink = header.querySelector(":scope > .back-link");
+            if (backLink) actions.appendChild(backLink);
+            header.appendChild(actions);
+        }
+        return actions;
+    }
+
     function resolveTriggerMount() {
         const browser = document.getElementById("quiz-browser");
         if (elementIsVisible(browser)) {
             const browserHeader = browser.querySelector("#qb-header");
-            return {
-                host: browserHeader || browser,
-                variant: browserHeader ? "browser-header" : "panel-footer"
-            };
+            return { host: browserHeader || browser, variant: browserHeader ? "browser-header" : "panel-footer" };
+        }
+
+        const flagGame = document.querySelector("[data-flag-game]");
+        if (elementIsVisible(flagGame)) {
+            const titleRow = flagGame.querySelector(".flag-game-title-row");
+            return { host: titleRow || flagGame, variant: titleRow ? "flag-title" : "panel-footer" };
         }
 
         const quizPanel = document.getElementById("quiz-panel");
         if (elementIsVisible(quizPanel)) {
-            const quizButtons = quizPanel.querySelector("#quiz-buttons");
-            return {
-                host: quizButtons || quizPanel,
-                variant: quizButtons ? "quiz-actions" : "panel-footer"
-            };
+            const brand = quizPanel.querySelector(".panel-brand");
+            const topRow = ensureTopline(brand, "smurdy-share-quiz-topline");
+            return { host: topRow || quizPanel, variant: topRow ? "quiz-topline" : "panel-footer" };
         }
 
         const landingActions = document.querySelector("[data-smurdy-quiz-actions]");
         if (landingActions) {
-            return { host: landingActions, variant: "landing-actions" };
+            const main = landingActions.closest("main") || document.querySelector("main");
+            const breadcrumbs = main?.querySelector(".breadcrumbs");
+            const topRow = ensureTopline(breadcrumbs, "smurdy-share-landing-topline");
+            return { host: topRow || landingActions, variant: topRow ? "landing-topline" : "landing-actions" };
+        }
+
+        const infoHeader = document.querySelector(".site-header-inner");
+        if (infoHeader) return { host: ensureHeaderActions(infoHeader), variant: "site-header" };
+
+        const directoryBreadcrumbs = document.querySelector(".directory-shell .directory-breadcrumbs");
+        if (directoryBreadcrumbs) {
+            const topRow = ensureTopline(directoryBreadcrumbs, "smurdy-share-directory-topline");
+            return { host: topRow || directoryBreadcrumbs, variant: topRow ? "directory-topline" : "inline" };
         }
 
         const main = document.querySelector("main");
-        if (main) {
-            return { host: ensureInlineSlot(main), variant: "inline" };
-        }
-
+        if (main) return { host: ensureInlineSlot(main), variant: "inline" };
         return { host: ensureInlineSlot(document.body), variant: "inline" };
     }
 
@@ -348,7 +325,6 @@
         if (!trigger?.isConnected && !document.body) return;
         const mount = resolveTriggerMount();
         if (!mount?.host) return;
-
         trigger.className = `smurdy-page-share-trigger smurdy-page-share-trigger--${mount.variant}`;
         if (trigger.parentNode !== mount.host) mount.host.appendChild(trigger);
     }
@@ -378,14 +354,8 @@
                 mountTrigger(trigger);
             });
         };
-
         const observer = new MutationObserver(queueMount);
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ["hidden", "aria-hidden", "style", "class"]
-        });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "style", "class"] });
         window.addEventListener("resize", queueMount);
         window.addEventListener("popstate", queueMount);
         window.addEventListener("hashchange", queueMount);

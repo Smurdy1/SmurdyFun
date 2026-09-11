@@ -4,20 +4,20 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    min-height: 34px;
-    padding: 7px 10px;
+    min-height: 30px;
+    padding: 5px 8px;
     border: 1px solid #cfcfcf;
     border-radius: 5px;
-    background: #f5f5f5;
-    color: #333;
+    background: #fff;
+    color: #555;
     box-shadow: none;
-    font: 700 13px/1.2 Arial, Helvetica, sans-serif;
+    font: 600 12px/1.2 Arial, Helvetica, sans-serif;
     cursor: pointer;
 }
 
 .smurdy-page-share-trigger:hover {
     border-color: #999;
-    background: #ececec;
+    background: #f7f7f7;
     color: #075f9e;
 }
 
@@ -32,31 +32,95 @@
     opacity: .65;
 }
 
+/* The quiz browser already has a real header, so Share belongs there. */
 #qb-header > .smurdy-page-share-trigger {
+    margin-left: auto;
+    min-height: 32px;
+    padding: 6px 9px;
+    font-size: 12px;
+}
+
+/* Active map quiz: keep Share with the brand, away from Back/Give Up/Restart. */
+.smurdy-share-quiz-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 4px;
+}
+
+.smurdy-share-quiz-topline > .panel-brand {
+    margin-bottom: 5px;
+}
+
+.smurdy-page-share-trigger--quiz-topline {
+    margin-top: 4px;
+    min-height: 27px;
+    padding: 4px 7px;
+    font-size: 11px;
+}
+
+/* Active flag quiz: Share is a small title utility, not a game-control button. */
+.flag-game-title-row:has(> .smurdy-page-share-trigger) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.flag-game-title-row:has(> .smurdy-page-share-trigger) h1 {
+    margin-right: auto;
+}
+
+.smurdy-page-share-trigger--flag-title {
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+/* Quiz landing pages: a page utility beside breadcrumbs, separate from Play/Favorite/Home. */
+.smurdy-share-landing-topline,
+.smurdy-share-directory-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.smurdy-share-landing-topline {
+    margin-bottom: 18px;
+}
+
+.smurdy-share-landing-topline > .breadcrumbs,
+.smurdy-share-directory-topline > .directory-breadcrumbs {
+    margin-bottom: 0;
+}
+
+.smurdy-page-share-trigger--landing-topline,
+.smurdy-page-share-trigger--directory-topline {
+    min-height: 28px;
+    padding: 4px 8px;
+    background: transparent;
+    font-size: 11px;
+}
+
+.smurdy-share-directory-topline {
+    margin-bottom: 21px;
+}
+
+/* About / Contact / Privacy: keep Share in the existing site header navigation. */
+.smurdy-share-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-left: auto;
 }
 
-#quiz-buttons > .smurdy-page-share-trigger {
-    min-height: 27px;
-    margin-left: 18px;
-    padding: 4px 7px;
-    border-color: #c8c8c8;
-    background: #fff;
-    color: #666;
+.smurdy-page-share-trigger--site-header {
+    min-height: 28px;
+    padding: 4px 8px;
+    background: transparent;
     font-size: 11px;
-    font-weight: 600;
-}
-
-#quiz-buttons > .smurdy-page-share-trigger:hover {
-    background: #f7f7f7;
-    color: #075f9e;
-}
-
-[data-smurdy-quiz-actions] > .smurdy-page-share-trigger {
-    min-height: 42px;
-    padding: 9px 14px;
-    border-color: #c8c8c8;
-    background: #f1f1f1;
 }
 
 .smurdy-page-share-trigger--panel-footer {
@@ -64,12 +128,18 @@
     margin-top: 10px;
 }
 
+/* Last-resort placement for unusual standalone pages. */
 .smurdy-page-share-inline-slot {
     display: flex;
-    justify-content: flex-end;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(0, 0, 0, .12);
+    justify-content: flex-start;
+    margin-top: 16px;
+}
+
+.smurdy-page-share-trigger--inline {
+    min-height: 28px;
+    padding: 4px 8px;
+    background: transparent;
+    font-size: 11px;
 }
 
 .smurdy-page-share-dialog {
@@ -195,15 +265,20 @@
         padding: 16px;
     }
 
-    #qb-header > .smurdy-page-share-trigger {
-        min-height: 32px;
-        padding: 6px 9px;
+    .smurdy-share-landing-topline,
+    .smurdy-share-directory-topline {
+        align-items: flex-start;
     }
 
-    #quiz-buttons > .smurdy-page-share-trigger {
-        min-height: 26px;
-        margin-left: 12px;
-        padding: 4px 6px;
+    .smurdy-share-header-actions {
+        gap: 10px;
+    }
+
+    .smurdy-page-share-trigger--site-header,
+    .smurdy-page-share-trigger--landing-topline,
+    .smurdy-page-share-trigger--directory-topline,
+    .smurdy-page-share-trigger--quiz-topline,
+    .smurdy-page-share-trigger--flag-title {
         font-size: 10.5px;
     }
 }
