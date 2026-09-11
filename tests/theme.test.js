@@ -42,3 +42,16 @@ test("theme stylesheet covers the major Smurdy surfaces", () => {
     assert.match(css, /\.flag-stage/);
     assert.match(css, /#weak-spots-dialog/);
 });
+
+test("dark theme has a dedicated polish pass", () => {
+    const theme = read("src/js/theme.js");
+    const css = read("styles/theme.css");
+    assert.match(theme, /#quiz-timer/);
+    assert.match(theme, /\.qb-card:last-child/);
+    assert.match(theme, /background:\s*transparent\s*!important/);
+    assert.match(theme, /\.smurdy-page-share-trigger:hover/);
+    assert.match(theme, /#quiz-browser :is\(\.qb-library-tab, \.qb-category-tab, \.qb-mode-tab, \.qb-family-tab\)/);
+    assert.match(css, /dark-theme-polish-v3/);
+    assert.match(css, /body\[data-smurdy-quiz-page\][\s\S]*background:\s*#0f1418/);
+    assert.match(css, /main,[\s\S]*background:\s*#1a2025\s*!important/);
+});
