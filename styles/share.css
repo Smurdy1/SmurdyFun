@@ -38,11 +38,11 @@
 
 #quiz-buttons > .smurdy-page-share-trigger {
     min-height: 27px;
-    margin-left: 12px;
+    margin-left: 18px;
     padding: 4px 7px;
     border-color: #c8c8c8;
     background: #fff;
-    color: #555;
+    color: #666;
     font-size: 11px;
     font-weight: 600;
 }
@@ -50,16 +50,6 @@
 #quiz-buttons > .smurdy-page-share-trigger:hover {
     background: #f7f7f7;
     color: #075f9e;
-}
-
-#quiz-buttons > .smurdy-page-share-trigger::before {
-    content: "";
-    width: 1px;
-    height: 18px;
-    margin-left: -13px;
-    margin-right: 12px;
-    background: rgba(0, 0, 0, .14);
-    pointer-events: none;
 }
 
 [data-smurdy-quiz-actions] > .smurdy-page-share-trigger {
@@ -212,13 +202,8 @@
 
     #quiz-buttons > .smurdy-page-share-trigger {
         min-height: 26px;
-        margin-left: 8px;
+        margin-left: 12px;
         padding: 4px 6px;
         font-size: 10.5px;
-    }
-
-    #quiz-buttons > .smurdy-page-share-trigger::before {
-        margin-left: -9px;
-        margin-right: 8px;
     }
 }
