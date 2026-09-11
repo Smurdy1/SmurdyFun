@@ -163,14 +163,6 @@
             }
             .smurdy-quiz-suggestion-dialog::backdrop { background: rgba(14,25,32,.38); }
             .smurdy-quiz-suggestion-card { padding: 20px; }
-            .smurdy-quiz-suggestion-kicker {
-                margin: 0 0 6px;
-                color: #666;
-                font-size: 12px;
-                font-weight: 700;
-                letter-spacing: .04em;
-                text-transform: uppercase;
-            }
             .smurdy-quiz-suggestion-card h2 {
                 margin: 0 0 8px;
                 font-size: 23px;
@@ -247,7 +239,6 @@
         dialog.setAttribute("aria-labelledby", "smurdy-quiz-suggestion-title");
         dialog.innerHTML = `
             <div class="smurdy-quiz-suggestion-card">
-                <div class="smurdy-quiz-suggestion-kicker">Recommended next</div>
                 <h2 id="smurdy-quiz-suggestion-title"></h2>
                 <p data-smurdy-quiz-suggestion-copy></p>
                 <div class="smurdy-quiz-suggestion-actions">
