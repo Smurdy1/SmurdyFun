@@ -46,7 +46,7 @@
   <meta name="twitter:image:alt" content="Smurdy geography quizzes">
   <link rel="stylesheet" href="/styles/share.css?v=20260911-sharing-4" data-smurdy-share-asset>
   <script data-smurdy-theme-bootstrap>try{if(localStorage.getItem("smurdy-theme")==="dark"){document.documentElement.dataset.smurdyTheme="dark";document.documentElement.style.colorScheme="dark"}else{document.documentElement.dataset.smurdyTheme="light";document.documentElement.style.colorScheme="light"}}catch(_){}</script>
-  <link rel="stylesheet" href="/styles/theme.css?v=20260911-dark-mode-2" data-smurdy-theme-asset>
+  <link rel="stylesheet" href="/styles/theme.css?v=20260911-dark-mode-3" data-smurdy-theme-asset>
 </head>
 <body>
     <div id="quiz-panel">
@@ -65,11 +65,13 @@
                  <a href="/privacy/">Privacy</a>
                  <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a>
              </nav>
-             <div class="home-theme-setting">
-                 <span class="home-theme-setting-label">Theme</span>
-                 <button type="button" class="smurdy-theme-toggle" data-smurdy-theme-toggle aria-pressed="false">Dark mode</button>
+             <div class="home-quick-actions">
+                 <button class="weak-spots-menu-button" type="button" data-weak-spots-open>Weak Spots <span class="weak-spots-count" data-weak-spots-count hidden></span></button>
+                 <button type="button" class="smurdy-theme-toggle smurdy-theme-icon-toggle" data-smurdy-theme-toggle aria-pressed="false" aria-label="Switch to dark mode" title="Dark mode">
+                     <span class="smurdy-theme-icon smurdy-theme-icon--moon" aria-hidden="true"></span>
+                     <span class="smurdy-theme-icon smurdy-theme-icon--sun" aria-hidden="true"></span>
+                 </button>
              </div>
-             <button class="weak-spots-menu-button" type="button" data-weak-spots-open>Weak Spots <span class="weak-spots-count" data-weak-spots-count hidden></span></button>
 </div>
  
          <div id="quiz-result" aria-live="polite"></div>
@@ -302,6 +304,6 @@
 })();
 </script>
   <script src="/src/js/share.js?v=20260911-sharing-4" defer data-smurdy-share-asset></script>
-  <script src="/src/js/theme.js?v=20260911-dark-mode-2" defer data-smurdy-theme-asset></script>
+  <script src="/src/js/theme.js?v=20260911-dark-mode-3" defer data-smurdy-theme-asset></script>
 </body>
  </html>

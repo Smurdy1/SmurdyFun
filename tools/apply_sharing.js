@@ -5,7 +5,7 @@ const path = require("path");
 
 const SITE_ORIGIN = "https://smurdy.fun";
 const ASSET_VERSION = "20260911-sharing-4";
-const THEME_ASSET_VERSION = "20260911-dark-mode-2";
+const THEME_ASSET_VERSION = "20260911-dark-mode-3";
 const SKIP_DIRECTORIES = new Set([".git", ".github", ".backups", "Old", "node_modules"]);
 
 function escapeHtml(value) {
