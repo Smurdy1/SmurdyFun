@@ -1,0 +1,33 @@
+name: Apply dark mode soft contrast
+on:
+  push:
+    branches:
+      - fix/dark-mode-soft-contrast
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/dark-mode-soft-contrast
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/tmp_dark_fix.js
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - run: SITEMAP_LASTMOD=2026-09-11 npm run pages:generate
+      - run: node --check src/js/theme.js
+      - run: node --check tools/apply_sharing.js
+      - run: npm test
+      - run: git diff --check
+      - run: |
+          rm tools/tmp_dark_fix.js
+          rm .github/workflows/oneoff-dark-soft-contrast.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Soften dark mode contrast and fix small theme issues"
+          git push origin HEAD:fix/dark-mode-soft-contrast
