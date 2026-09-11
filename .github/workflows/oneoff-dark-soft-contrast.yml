@@ -1,0 +1,134 @@
+name: One-off dark mode soft contrast
+on:
+  push:
+    branches: [fix/dark-mode-soft-contrast]
+permissions:
+  contents: write
+jobs:
+  update-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/dark-mode-soft-contrast
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Refine dark palette and fixes
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          p = Path('src/js/theme.js')
+          s = p.read_text()
+          replacements = {
+              '#f3f5f7': '#dfe4e7',
+              '#181e23': '#20262b',
+              '#3c4750': '#465159',
+              '#bcc4ca': '#b7c0c6',
+              '#9da7ae': '#b1bac0',
+              '#354049': '#424c54',
+              '#aeb7bd': '#aab3b9',
+              '#e3e7ea': '#d7dde1',
+              '#87929a': '#8f999f',
+              '#12171b': '#191e22',
+              '#c5ccd1': '#bbc3c8',
+              '#c4cbd0': '#b9c1c6',
+              '#eef1f3': '#dce1e4',
+              '#c7ced3': '#bac2c7',
+              '#f0f3f5': '#e0e4e7',
+              '#222a30': '#2a3238',
+              '#293239': '#313a41',
+              '#dce1e4': '#cdd3d7',
+              '#ccd2d6': '#c1c8cd',
+          }
+          for a, b in replacements.items():
+              s = s.replace(a, b)
+
+          # Timer: use a more specific rule and text-fill fallback so neither inline nor inherited light-theme styling can win.
+          s = s.replace(
+              'html[data-smurdy-theme="dark"] #quiz-timer {\n    color: #b1bac0 !important;\n}',
+              'html[data-smurdy-theme="dark"] #quiz-panel #quiz-timer {\n    color: #b8c0c5 !important;\n    -webkit-text-fill-color: #b8c0c5 !important;\n}'
+          )
+
+          # All quizzes is a navigation link, not a primary blue action. Keep it link-like in dark mode.
+          s = s.replace(
+              'html[data-smurdy-theme="dark"] #quiz-browser .qb-play,\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary {\n    border-color: #2386c5 !important;\n    background: #2386c5 !important;\n    color: #fff !important;\n    box-shadow: none !important;\n}\n\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-play:hover,\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary:hover {\n    border-color: #3298d8 !important;\n    background: #3298d8 !important;\n}',
+              'html[data-smurdy-theme="dark"] #quiz-browser .qb-play {\n    border-color: #2386c5 !important;\n    background: #2386c5 !important;\n    color: #f5f7f8 !important;\n    box-shadow: none !important;\n}\n\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-play:hover {\n    border-color: #3298d8 !important;\n    background: #3298d8 !important;\n}\n\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary {\n    border: 0 !important;\n    background: transparent !important;\n    color: #74b5e1 !important;\n    box-shadow: none !important;\n    text-decoration: underline;\n    text-underline-offset: 3px;\n}\n\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary:hover {\n    background: transparent !important;\n    color: #98c9ea !important;\n}'
+          )
+          p.write_text(s)
+
+          p = Path('styles/theme.css')
+          css = p.read_text()
+          palette = {
+              '#f1f3f5': '#dfe4e7',
+              '#a9b0b6': '#aab3b9',
+              'rgba(24, 30, 35, 0.97)': 'rgba(32, 38, 43, 0.97)',
+              '#22292f': '#293137',
+              '#3b444b': '#465159',
+              '#c5cbd0': '#bbc3c8',
+              '#252c32': '#2a3238',
+              '#303941': '#343e45',
+              '#1b2227': '#242b30',
+              '#414b53': '#4a555d',
+              '#2b3339': '#30383e',
+              '#2a3238': '#30383e',
+              '#b8bec3': '#b2bbc1',
+              '#929aa1': '#919ba1',
+              '#0f1418': '#171c20',
+              '#1a2025': '#22282d',
+              '#404b54': '#4a555d',
+              '#c6cdd2': '#bbc3c8',
+              '#171d22': '#20262b',
+              '#aeb7bd': '#aab3b9',
+              '#20282e': '#2a3238',
+              '#dce1e4': '#cdd3d7',
+              '#293239': '#343e45',
+          }
+          for a, b in palette.items():
+              css = css.replace(a, b)
+          css = css.replace('background: #12171b;\n    color: #dfe4e7;', 'background: #171c20;\n    color: #dfe4e7;')
+          p.write_text(css)
+
+          p = Path('tools/apply_sharing.js')
+          a = p.read_text().replace('const THEME_ASSET_VERSION = "20260911-dark-mode-1";', 'const THEME_ASSET_VERSION = "20260911-dark-mode-2";')
+          p.write_text(a)
+
+          p = Path('tests/theme.test.js')
+          t = p.read_text().replace('/styles\\/theme\\.css\\?v=20260911-dark-mode-1/', '/styles\\/theme\\.css\\?v=20260911-dark-mode-2/')
+          t = t.replace('/src\\/js\\/theme\\.js\\?v=20260911-dark-mode-1/', '/src\\/js\\/theme\\.js\\?v=20260911-dark-mode-2/')
+          if 'dark mode keeps timer readable and directory link unhighlighted' not in t:
+              t += r'''
+
+test("dark mode keeps timer readable and directory link unhighlighted", () => {
+    const theme = read("src/js/theme.js");
+    assert.match(theme, /#quiz-panel #quiz-timer/);
+    assert.match(theme, /-webkit-text-fill-color:\s*#b8c0c5\s*!important/);
+    assert.match(theme, /#quiz-browser \.qb-directory-primary \{[\s\S]*background:\s*transparent\s*!important/);
+    assert.doesNotMatch(theme, /\.qb-play,\s*\nhtml\[data-smurdy-theme="dark"\] #quiz-browser \.qb-directory-primary/);
+});
+'''
+          p.write_text(t)
+          PY
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Regenerate public pages
+        env:
+          SITEMAP_LASTMOD: '2026-09-11'
+        run: npm run pages:generate
+      - name: Validate
+        run: |
+          node --check src/js/theme.js
+          node --check tools/apply_sharing.js
+          npm test
+          git diff --check
+      - name: Commit generated result
+        run: |
+          rm .github/workflows/oneoff-dark-soft-contrast.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Soften dark mode contrast and fix small theme issues"
+          git push origin HEAD:fix/dark-mode-soft-contrast
