@@ -1,7 +1,7 @@
 // minimal bootstrap: capture URL config then load modes + app_core in order
 (function(){
     // smurdy-independent-menu-map-control-v1
-    const ASSET_VERSION = "20260910-memory-1";
+    const ASSET_VERSION = "20260910-suggestions-1";
 
     const urlParams = new URLSearchParams(window.location.search);
     const cleanPathMatch = window.location.pathname.match(
@@ -134,8 +134,10 @@
      */
     loadScript("/src/js/quiz_entities.js", function() {
         loadScript("/src/js/modes.js", function() {
-            loadScript("/src/js/app_core.js", function() {
-                console.log("smurdy: bootstrap loaded quiz entities + modes + app_core");
+            loadScript("/src/js/quiz_suggestions.js", function() {
+                loadScript("/src/js/app_core.js", function() {
+                    console.log("smurdy: bootstrap loaded quiz entities + modes + suggestions + app_core");
+                });
             });
         });
     });

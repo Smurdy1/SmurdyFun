@@ -319,6 +319,9 @@
             completion.renderShare(game, lastCompletionResult, { before: afterActions });
             updateStats();
             analyticsReporter.complete(lastCompletionResult);
+            if (!weakSpotsPracticeStage && !retryWeakSpots) {
+                try { root.SmurdyQuizSuggestions?.show?.(lastCompletionResult); } catch (_) {}
+            }
 
             if (weakSpotsPracticeStage) {
                 let nextStage = null;
