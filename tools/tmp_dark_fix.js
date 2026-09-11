@@ -110,6 +110,7 @@ fs.writeFileSync('tools/apply_sharing.js', apply);
 
 let tests = fs.readFileSync('tests/theme.test.js', 'utf8');
 tests = tests.replace(/20260911-dark-mode-1/g, '20260911-dark-mode-2');
+tests = tests.replace(/#0f1418/g, '#171c20').replace(/#1a2025/g, '#22282d');
 if (!tests.includes('dark mode keeps timer readable and directory link unhighlighted')) {
   tests += `\n\ntest("dark mode keeps timer readable and directory link unhighlighted", () => {\n    const theme = read("src/js/theme.js");\n    assert.match(theme, /#quiz-panel #quiz-timer/);\n    assert.match(theme, /-webkit-text-fill-color:\\s*#b8c0c5\\s*!important/);\n    assert.match(theme, /#quiz-browser \\.qb-directory-primary \\{[\\s\\S]*background:\\s*transparent\\s*!important/);\n    assert.doesNotMatch(theme, /\\.qb-play,\\s*\\nhtml\\[data-smurdy-theme="dark"\\] #quiz-browser \\.qb-directory-primary/);\n});\n`;
 }
