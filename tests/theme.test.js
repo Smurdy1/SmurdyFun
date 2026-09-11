@@ -26,8 +26,8 @@ test("dark theme assets are installed globally", () => {
     const quiz = read("quizzes/click-country/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
-        assert.match(source, /\/styles\/theme\.css\?v=20260911-dark-mode-1/);
-        assert.match(source, /\/src\/js\/theme\.js\?v=20260911-dark-mode-1/);
+        assert.match(source, /\/styles\/theme\.css\?v=20260911-dark-mode-2/);
+        assert.match(source, /\/src\/js\/theme\.js\?v=20260911-dark-mode-2/);
     }
 });
 
@@ -52,6 +52,15 @@ test("dark theme has a dedicated polish pass", () => {
     assert.match(theme, /\.smurdy-page-share-trigger:hover/);
     assert.match(theme, /#quiz-browser :is\(\.qb-library-tab, \.qb-category-tab, \.qb-mode-tab, \.qb-family-tab\)/);
     assert.match(css, /dark-theme-polish-v3/);
-    assert.match(css, /body\[data-smurdy-quiz-page\][\s\S]*background:\s*#0f1418/);
-    assert.match(css, /main,[\s\S]*background:\s*#1a2025\s*!important/);
+    assert.match(css, /body\[data-smurdy-quiz-page\][\s\S]*background:\s*#171c20/);
+    assert.match(css, /main,[\s\S]*background:\s*#22282d\s*!important/);
+});
+
+
+test("dark mode keeps timer readable and directory link unhighlighted", () => {
+    const theme = read("src/js/theme.js");
+    assert.match(theme, /#quiz-panel #quiz-timer/);
+    assert.match(theme, /-webkit-text-fill-color:\s*#b8c0c5\s*!important/);
+    assert.match(theme, /#quiz-browser \.qb-directory-primary \{[\s\S]*background:\s*transparent\s*!important/);
+    assert.doesNotMatch(theme, /\.qb-play,\s*\nhtml\[data-smurdy-theme="dark"\] #quiz-browser \.qb-directory-primary/);
 });

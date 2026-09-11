@@ -21,9 +21,9 @@
         style.textContent = `
 html[data-smurdy-theme="dark"] #quiz-panel,
 html[data-smurdy-theme="dark"] #quiz-browser {
-    color: #f3f5f7 !important;
-    border-color: #3c4750 !important;
-    background: #181e23 !important;
+    color: #dfe4e7 !important;
+    border-color: #465159 !important;
+    background: #20262b !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-panel {
@@ -37,7 +37,7 @@ html[data-smurdy-theme="dark"] #quiz-browser strong,
 html[data-smurdy-theme="dark"] #quiz-browser h1,
 html[data-smurdy-theme="dark"] #quiz-browser h2,
 html[data-smurdy-theme="dark"] #quiz-browser h3 {
-    color: #f3f5f7 !important;
+    color: #dfe4e7 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-desc,
@@ -48,23 +48,24 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-sub,
 html[data-smurdy-theme="dark"] #quiz-browser .qb-empty,
 html[data-smurdy-theme="dark"] #quiz-browser label,
 html[data-smurdy-theme="dark"] #quiz-browser .qb-size-label {
-    color: #bcc4ca !important;
+    color: #b7c0c6 !important;
 }
 
-html[data-smurdy-theme="dark"] #quiz-timer {
-    color: #9da7ae !important;
+html[data-smurdy-theme="dark"] #quiz-panel #quiz-timer {
+    color: #b8c0c5 !important;
+    -webkit-text-fill-color: #b8c0c5 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser #qb-header,
 html[data-smurdy-theme="dark"] #quiz-browser #qb-search,
 html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links {
-    border-color: #354049 !important;
+    border-color: #424c54 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser #qb-library-tabs {
     gap: 18px !important;
     padding: 0 0 7px !important;
-    border-bottom: 1px solid #354049 !important;
+    border-bottom: 1px solid #424c54 !important;
     border-radius: 0 !important;
     background: transparent !important;
 }
@@ -72,13 +73,13 @@ html[data-smurdy-theme="dark"] #quiz-browser #qb-library-tabs {
 html[data-smurdy-theme="dark"] #quiz-browser :is(.qb-library-tab, .qb-category-tab, .qb-mode-tab, .qb-family-tab) {
     border-radius: 0 !important;
     background: transparent !important;
-    color: #aeb7bd !important;
+    color: #aab3b9 !important;
     font-weight: 600 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser :is(.qb-library-tab, .qb-category-tab, .qb-mode-tab, .qb-family-tab):hover {
     background: transparent !important;
-    color: #e3e7ea !important;
+    color: #d7dde1 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser :is(.qb-library-tab, .qb-category-tab, .qb-mode-tab, .qb-family-tab)[aria-selected="true"] {
@@ -90,8 +91,8 @@ html[data-smurdy-theme="dark"] #quiz-browser :is(.qb-library-tab, .qb-category-t
 html[data-smurdy-theme="dark"] #quiz-browser #qb-category-tabs::before,
 html[data-smurdy-theme="dark"] #quiz-browser #qb-mode-tabs::before,
 html[data-smurdy-theme="dark"] #quiz-browser #qb-family-tabs::before {
-    background: #181e23 !important;
-    color: #87929a !important;
+    background: #20262b !important;
+    color: #8f999f !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-library-count {
@@ -100,8 +101,8 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-library-count {
 
 html[data-smurdy-theme="dark"] #quiz-browser :is(input, select) {
     border-color: #4c5861 !important;
-    background: #12171b !important;
-    color: #f3f5f7 !important;
+    background: #191e22 !important;
+    color: #dfe4e7 !important;
     box-shadow: none !important;
 }
 
@@ -116,18 +117,18 @@ html[data-smurdy-theme="dark"] #quiz-browser input::placeholder {
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser option {
-    background: #181e23;
-    color: #f3f5f7;
+    background: #20262b;
+    color: #dfe4e7;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-card {
     margin: 0 !important;
     padding: 12px 2px !important;
     border: 0 !important;
-    border-bottom: 1px solid #354049 !important;
+    border-bottom: 1px solid #424c54 !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: #f3f5f7 !important;
+    color: #dfe4e7 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-card:last-child {
@@ -136,36 +137,48 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-card:last-child {
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-tag {
     background: #252d33 !important;
-    color: #c5ccd1 !important;
+    color: #bbc3c8 !important;
 }
 
-html[data-smurdy-theme="dark"] #quiz-browser .qb-play,
-html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary {
+html[data-smurdy-theme="dark"] #quiz-browser .qb-play {
     border-color: #2386c5 !important;
     background: #2386c5 !important;
-    color: #fff !important;
+    color: #f5f7f8 !important;
     box-shadow: none !important;
 }
 
-html[data-smurdy-theme="dark"] #quiz-browser .qb-play:hover,
-html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary:hover {
+html[data-smurdy-theme="dark"] #quiz-browser .qb-play:hover {
     border-color: #3298d8 !important;
     background: #3298d8 !important;
+}
+
+html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary {
+    border: 0 !important;
+    background: transparent !important;
+    color: #74b5e1 !important;
+    box-shadow: none !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary:hover {
+    background: transparent !important;
+    color: #98c9ea !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite,
 html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger) {
     border-color: #46515a !important;
     background: #1c2328 !important;
-    color: #c4cbd0 !important;
+    color: #b9c1c6 !important;
     box-shadow: none !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite:hover,
 html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger):hover {
     border-color: #58656f !important;
-    background: #222a30 !important;
-    color: #eef1f3 !important;
+    background: #2a3238 !important;
+    color: #cdd3d7 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
@@ -175,7 +188,7 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links {
-    background: #181e23 !important;
+    background: #20262b !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-popular a,
@@ -186,44 +199,44 @@ html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links a:not(.qb-direc
 html[data-smurdy-theme="dark"] .smurdy-page-share-trigger {
     border-color: #46515a !important;
     background: transparent !important;
-    color: #c7ced3 !important;
+    color: #bac2c7 !important;
     box-shadow: none !important;
 }
 
 html[data-smurdy-theme="dark"] .smurdy-page-share-trigger:hover {
     border-color: #58656f !important;
-    background: #222a30 !important;
-    color: #f0f3f5 !important;
+    background: #2a3238 !important;
+    color: #e0e4e7 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-buttons .qb-btn,
 html[data-smurdy-theme="dark"] #quiz-buttons button,
 html[data-smurdy-theme="dark"] .weak-spots-menu-button {
     border-color: #46515a !important;
-    background: #222a30 !important;
-    color: #eef1f3 !important;
+    background: #2a3238 !important;
+    color: #cdd3d7 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-buttons .qb-btn:hover,
 html[data-smurdy-theme="dark"] #quiz-buttons button:hover,
 html[data-smurdy-theme="dark"] .weak-spots-menu-button:hover {
     border-color: #58656f !important;
-    background: #293239 !important;
+    background: #313a41 !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-stats {
-    color: #dce1e4 !important;
+    color: #cdd3d7 !important;
 }
 
 html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-btn {
     background: rgba(18, 23, 27, .9) !important;
-    color: #f3f5f7 !important;
+    color: #dfe4e7 !important;
 }
 
 html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-content {
-    border-color: #3c4750 !important;
-    background: #181e23 !important;
-    color: #ccd2d6 !important;
+    border-color: #465159 !important;
+    background: #20262b !important;
+    color: #c1c8cd !important;
 }`;
         document.head.appendChild(style);
     }
