@@ -39,7 +39,7 @@ test("MapLibre tile retention is capped and stale tiny data is released", () => 
 });
 
 test("memory fix is versioned and cache-busted", () => {
-    assert.match(read("src/js/app.js"), /20260910-memory-1/);
+    assert.match(read("src/js/app.js"), /20260910-suggestions-1/);
     assert.match(read("tools/quiz_page_shell.js"), /20260910-memory-1/);
     assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.14\.7";/);
     assert.match(read("src/js/app_core.js"), /quiz_runner\.js\?v=20260910-memory-1/);
