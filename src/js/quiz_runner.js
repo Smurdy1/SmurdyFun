@@ -1662,6 +1662,9 @@ window.runNameQuiz = function runNameQuiz(config) {
             showPostQuizReview(lastCompletionResult);
             const completionPanel = document.getElementById("quiz-panel");
             if (completionPanel) completion.renderShare(completionPanel, lastCompletionResult);
+            if (!weakSpotsPracticeStage && !retryWeakSpots && !anyTestMode) {
+                try { window.SmurdyQuizSuggestions?.show?.(lastCompletionResult); } catch (_) {}
+            }
 
             if (weakSpotsPracticeStage) {
                 let nextStage = null;
