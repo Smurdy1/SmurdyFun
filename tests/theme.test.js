@@ -11,6 +11,8 @@ test("theme is persisted with a single main-menu toggle", () => {
     const theme = read("src/js/theme.js");
     assert.match(index, /data-smurdy-theme-toggle/);
     assert.equal((index.match(/data-smurdy-theme-toggle/g) || []).length, 1);
+    assert.match(index, /<\/nav>\s*<div class="home-theme-setting">/);
+    assert.match(index, /home-theme-setting-label">Theme<\/span>/);
     assert.match(theme, /localStorage\.getItem\(STORAGE_KEY\)/);
     assert.match(theme, /localStorage\.setItem\(STORAGE_KEY, next\)/);
     assert.match(theme, /dataset\.smurdyTheme = next/);
