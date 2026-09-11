@@ -329,20 +329,36 @@
         if (trigger.parentNode !== mount.host) mount.host.appendChild(trigger);
     }
 
+    function removeDuplicateTriggers(canonicalTrigger) {
+        document.querySelectorAll("[data-smurdy-page-share-trigger]").forEach(candidate => {
+            if (candidate !== canonicalTrigger) candidate.remove();
+        });
+    }
+
     function install() {
-        if (!document.body || document.querySelector("[data-smurdy-page-share-trigger]")) return;
-        const trigger = document.createElement("button");
-        trigger.type = "button";
-        trigger.dataset.smurdyPageShareTrigger = "";
-        trigger.textContent = "Share";
-        trigger.setAttribute("aria-haspopup", "dialog");
-        trigger.setAttribute("aria-label", "Share this page");
+        if (!document.body) return;
+
+        const state = window.__smurdyPageShareState || (window.__smurdyPageShareState = {});
+        let trigger = state.trigger;
+        if (!trigger) {
+            trigger = document.querySelector("[data-smurdy-page-share-trigger]") || document.createElement("button");
+            trigger.type = "button";
+            trigger.dataset.smurdyPageShareTrigger = "";
+            trigger.textContent = "Share";
+            trigger.setAttribute("aria-haspopup", "dialog");
+            trigger.setAttribute("aria-label", "Share this page");
+            state.trigger = trigger;
+        }
+
+        removeDuplicateTriggers(trigger);
         mountTrigger(trigger);
 
-        let dialog = null;
+        if (state.wired) return;
+        state.wired = true;
+
         trigger.addEventListener("click", () => {
-            if (!dialog) dialog = createDialog();
-            void openShareDialog(dialog, trigger);
+            if (!state.dialog) state.dialog = createDialog();
+            void openShareDialog(state.dialog, trigger);
         });
 
         let mountQueued = false;
@@ -351,11 +367,12 @@
             mountQueued = true;
             requestAnimationFrame(() => {
                 mountQueued = false;
+                removeDuplicateTriggers(trigger);
                 mountTrigger(trigger);
             });
         };
-        const observer = new MutationObserver(queueMount);
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "style", "class"] });
+        state.observer = new MutationObserver(queueMount);
+        state.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "style", "class"] });
         window.addEventListener("resize", queueMount);
         window.addEventListener("popstate", queueMount);
         window.addEventListener("hashchange", queueMount);
