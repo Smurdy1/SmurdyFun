@@ -5,6 +5,7 @@ const path = require("path");
 
 const SITE_ORIGIN = "https://smurdy.fun";
 const ASSET_VERSION = "20260910-sharing-3";
+const THEME_ASSET_VERSION = "20260911-dark-mode-1";
 const SKIP_DIRECTORIES = new Set([".git", ".github", ".backups", "Old", "node_modules"]);
 
 function escapeHtml(value) {
@@ -70,17 +71,34 @@ function replaceOrInsertMeta(html, attributeName, key, content) {
     return html.replace(/\s*<\/head>/i, `\n${tag}\n</head>`);
 }
 
-function upsertShareAssets(html) {
-    const styleTag = `  <link rel="stylesheet" href="/styles/share.css?v=${ASSET_VERSION}" data-smurdy-share-asset>`;
-    const scriptTag = `  <script src="/src/js/share.js?v=${ASSET_VERSION}" defer data-smurdy-share-asset></script>`;
-    const stylePattern = /\s*<link\b[^>]*data-smurdy-share-asset[^>]*>/i;
-    const scriptPattern = /\s*<script\b[^>]*data-smurdy-share-asset[^>]*><\/script>/i;
+function upsertGlobalAssets(html) {
+    const shareStyleTag = `  <link rel="stylesheet" href="/styles/share.css?v=${ASSET_VERSION}" data-smurdy-share-asset>`;
+    const shareScriptTag = `  <script src="/src/js/share.js?v=${ASSET_VERSION}" defer data-smurdy-share-asset></script>`;
+    const shareStylePattern = /\s*<link\b[^>]*data-smurdy-share-asset[^>]*>/i;
+    const shareScriptPattern = /\s*<script\b[^>]*data-smurdy-share-asset[^>]*><\/script>/i;
 
-    if (stylePattern.test(html)) html = html.replace(stylePattern, `\n${styleTag}`);
-    else html = html.replace(/\s*<\/head>/i, `\n${styleTag}\n</head>`);
+    const themeBootstrap = `  <script data-smurdy-theme-bootstrap>try{if(localStorage.getItem("smurdy-theme")==="dark"){document.documentElement.dataset.smurdyTheme="dark";document.documentElement.style.colorScheme="dark"}else{document.documentElement.dataset.smurdyTheme="light";document.documentElement.style.colorScheme="light"}}catch(_){}</script>`;
+    const themeStyleTag = `  <link rel="stylesheet" href="/styles/theme.css?v=${THEME_ASSET_VERSION}" data-smurdy-theme-asset>`;
+    const themeScriptTag = `  <script src="/src/js/theme.js?v=${THEME_ASSET_VERSION}" defer data-smurdy-theme-asset></script>`;
+    const themeBootstrapPattern = /\s*<script\b[^>]*data-smurdy-theme-bootstrap[^>]*>[\s\S]*?<\/script>/i;
+    const themeStylePattern = /\s*<link\b[^>]*data-smurdy-theme-asset[^>]*>/i;
+    const themeScriptPattern = /\s*<script\b[^>]*data-smurdy-theme-asset[^>]*><\/script>/i;
 
-    if (scriptPattern.test(html)) html = html.replace(scriptPattern, `\n${scriptTag}`);
-    else html = html.replace(/\s*<\/body>/i, `\n${scriptTag}\n</body>`);
+    if (themeBootstrapPattern.test(html)) html = html.replace(themeBootstrapPattern, `\n${themeBootstrap}`);
+    else html = html.replace(/\s*<\/head>/i, `\n${themeBootstrap}\n</head>`);
+
+    if (shareStylePattern.test(html)) html = html.replace(shareStylePattern, `\n${shareStyleTag}`);
+    else html = html.replace(/\s*<\/head>/i, `\n${shareStyleTag}\n</head>`);
+
+    if (themeStylePattern.test(html)) html = html.replace(themeStylePattern, `\n${themeStyleTag}`);
+    else html = html.replace(/\s*<\/head>/i, `\n${themeStyleTag}\n</head>`);
+
+    if (shareScriptPattern.test(html)) html = html.replace(shareScriptPattern, `\n${shareScriptTag}`);
+    else html = html.replace(/\s*<\/body>/i, `\n${shareScriptTag}\n</body>`);
+
+    if (themeScriptPattern.test(html)) html = html.replace(themeScriptPattern, `\n${themeScriptTag}`);
+    else html = html.replace(/\s*<\/body>/i, `\n${themeScriptTag}\n</body>`);
+
     return html;
 }
 
@@ -110,7 +128,7 @@ function applyMetadata(html, relativePath) {
     html = replaceOrInsertMeta(html, "name", "twitter:description", description);
     html = replaceOrInsertMeta(html, "name", "twitter:image", image);
     html = replaceOrInsertMeta(html, "name", "twitter:image:alt", imageAlt);
-    return upsertShareAssets(html);
+    return upsertGlobalAssets(html);
 }
 
 async function walk(directory, prefix = "") {
@@ -138,7 +156,7 @@ async function walk(directory, prefix = "") {
             changed++;
         }
     }
-    console.log(`Applied sharing metadata and controls to ${files.length} public HTML files (${changed} changed).`);
+    console.log(`Applied sharing metadata, controls, and theme assets to ${files.length} public HTML files (${changed} changed).`);
 })().catch(error => {
     console.error(error);
     process.exitCode = 1;
