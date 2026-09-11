@@ -133,7 +133,7 @@ css = css.slice(0, start) + replacement + css.slice(end);
 
 // Remove the old later polish override for the text-based theme button.
 css = css.replace(/\nhtml\[data-smurdy-theme="dark"\] \.smurdy-theme-toggle \{\n    min-height: 30px;[\s\S]*?\nhtml\[data-smurdy-theme="dark"\] \.smurdy-theme-toggle:hover \{\n    border-color: #58656f;\n    background: #343e45;\n    color: #fff;\n\}\n?$/, '\n');
-fs.writeFileSync('styles/theme.css', css);
+fs.writeFileSync('styles/theme.css', css.trimEnd() + '\n');
 
 let apply = fs.readFileSync('tools/apply_sharing.js', 'utf8');
 apply = replaceOrThrow(apply,
