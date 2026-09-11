@@ -1,0 +1,71 @@
+name: One-off separate theme setting
+
+on:
+  push:
+    branches:
+      - fix/separate-dark-mode-setting
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/separate-dark-mode-setting
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Separate theme setting from site links
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const indexPath = 'index.html';
+          let index = fs.readFileSync(indexPath, 'utf8');
+          const oldBlock = `                 <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a>\n                 <button type="button" class="smurdy-theme-toggle" data-smurdy-theme-toggle aria-pressed="false">Dark mode</button>\n             </nav>`;
+          const newBlock = `                 <a href="https://forms.gle/XjJoHBNKSrHLWg1h9" target="_blank" rel="noopener">Feedback</a>\n             </nav>\n             <div class="home-theme-setting">\n                 <span class="home-theme-setting-label">Theme</span>\n                 <button type="button" class="smurdy-theme-toggle" data-smurdy-theme-toggle aria-pressed="false">Dark mode</button>\n             </div>`;
+          if (!index.includes(oldBlock)) throw new Error('Could not find homepage theme toggle block');
+          index = index.replace(oldBlock, newBlock);
+          fs.writeFileSync(indexPath, index);
+
+          const cssPath = 'styles/theme.css';
+          let css = fs.readFileSync(cssPath, 'utf8');
+          const oldCss = `html[data-smurdy-theme="dark"] .smurdy-theme-toggle {\n    padding: 0;\n    border: 0;\n    background: transparent;\n    color: #78bdf0;\n    cursor: pointer;\n    font: inherit;\n    text-decoration: underline;\n    text-underline-offset: 3px;\n}\n\nhtml:not([data-smurdy-theme="dark"]) .smurdy-theme-toggle {\n    padding: 0;\n    border: 0;\n    background: transparent;\n    color: #075f9e;\n    cursor: pointer;\n    font: inherit;\n    text-decoration: underline;\n    text-underline-offset: 3px;\n}\n\nhtml.smurdy-quiz-active .smurdy-theme-toggle {\n    display: none !important;\n}\n`;
+          const newCss = `.home-theme-setting {\n    display: flex;\n    margin-top: 14px;\n    padding-top: 12px;\n    align-items: center;\n    justify-content: space-between;\n    gap: 16px;\n    border-top: 1px solid rgba(0, 0, 0, .12);\n}\n\n.home-theme-setting-label {\n    color: #555;\n    font-size: 13px;\n}\n\n.smurdy-theme-toggle {\n    min-height: 32px;\n    padding: 5px 9px;\n    border: 1px solid rgba(0, 0, 0, .18);\n    border-radius: 5px;\n    background: #f3f3f3;\n    color: #222;\n    cursor: pointer;\n    font: inherit;\n    font-size: 13px;\n    font-weight: 600;\n}\n\n.smurdy-theme-toggle:hover {\n    background: #e9e9e9;\n}\n\nhtml[data-smurdy-theme="dark"] .home-theme-setting {\n    border-color: #3b444b;\n}\n\nhtml[data-smurdy-theme="dark"] .home-theme-setting-label {\n    color: #a9b0b6;\n}\n\nhtml[data-smurdy-theme="dark"] .smurdy-theme-toggle {\n    border-color: #4a545c;\n    background: #252c32;\n    color: #f1f3f5;\n}\n\nhtml[data-smurdy-theme="dark"] .smurdy-theme-toggle:hover {\n    background: #303941;\n}\n\nhtml.smurdy-quiz-active .home-theme-setting {\n    display: none !important;\n}\n`;
+          if (!css.includes(oldCss)) throw new Error('Could not find existing theme toggle styles');
+          css = css.replace(oldCss, newCss);
+          fs.writeFileSync(cssPath, css);
+
+          const testPath = 'tests/theme.test.js';
+          let test = fs.readFileSync(testPath, 'utf8');
+          const needle = `    assert.equal((index.match(/data-smurdy-theme-toggle/g) || []).length, 1);\n`;
+          const addition = `    assert.equal((index.match(/data-smurdy-theme-toggle/g) || []).length, 1);\n    assert.match(index, /<\\/nav>\\s*<div class="home-theme-setting">/);\n    assert.match(index, /home-theme-setting-label">Theme<\\/span>/);\n`;
+          if (!test.includes(needle)) throw new Error('Could not find theme test insertion point');
+          test = test.replace(needle, addition);
+          fs.writeFileSync(testPath, test);
+          NODE
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit fix
+        run: |
+          rm .github/workflows/oneoff-separate-theme-setting.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Separate dark mode from homepage links"
+          git push origin HEAD:fix/separate-dark-mode-setting
