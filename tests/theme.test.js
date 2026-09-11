@@ -20,7 +20,7 @@ test("theme is persisted with a compact icon toggle beside Weak Spots", () => {
     assert.ok(fs.existsSync(path.join(root, "assets/icons/sun.png")));
     assert.ok(css.includes("mask-image: url('/assets/icons/moon.png')"));
     assert.ok(css.includes("mask-image: url('/assets/icons/sun.png')"));
-    assert.match(css, /\.smurdy-theme-toggle[\s\S]*width:\s*38px/);
+    assert.match(css, /\.smurdy-theme-toggle[\s\S]*width:\s*42px/);
     assert.match(theme, /localStorage\.getItem\(STORAGE_KEY\)/);
     assert.match(theme, /localStorage\.setItem\(STORAGE_KEY, next\)/);
     assert.match(theme, /dataset\.smurdyTheme = next/);
