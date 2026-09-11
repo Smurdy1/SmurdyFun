@@ -114,3 +114,13 @@ test("page share trigger uses contextual page locations and never floats over co
     assert.match(styles, /\.smurdy-share-quiz-topline/);
     assert.match(styles, /\.smurdy-share-header-actions/);
 });
+
+
+test("share trigger is a global singleton across dynamic quiz remounts", () => {
+    const source = read("src/js/share.js");
+    assert.match(source, /window\.__smurdyPageShareState/);
+    assert.match(source, /state\.trigger/);
+    assert.match(source, /removeDuplicateTriggers\(trigger\)/);
+    assert.match(source, /if \(state\.wired\) return/);
+    assert.match(source, /state\.observer = new MutationObserver/);
+});
