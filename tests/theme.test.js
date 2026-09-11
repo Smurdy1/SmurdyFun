@@ -6,28 +6,35 @@ const assert = require("node:assert/strict");
 const root = path.resolve(__dirname, "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 
-test("theme is persisted with a single main-menu toggle", () => {
+test("theme is persisted with a compact icon toggle beside Weak Spots", () => {
     const index = read("index.html");
     const theme = read("src/js/theme.js");
-    assert.match(index, /data-smurdy-theme-toggle/);
+    const css = read("styles/theme.css");
+    assert.match(index, /class="home-quick-actions"/);
+    assert.match(index, /data-weak-spots-open[\s\S]*data-smurdy-theme-toggle/);
     assert.equal((index.match(/data-smurdy-theme-toggle/g) || []).length, 1);
-    assert.match(index, /<\/nav>\s*<div class="home-theme-setting">/);
-    assert.match(index, /home-theme-setting-label">Theme<\/span>/);
+    assert.doesNotMatch(index, /home-theme-setting/);
+    assert.match(index, /smurdy-theme-icon--moon/);
+    assert.match(index, /smurdy-theme-icon--sun/);
+    assert.ok(fs.existsSync(path.join(root, "assets/icons/moon.png")));
+    assert.ok(fs.existsSync(path.join(root, "assets/icons/sun.png")));
+    assert.ok(css.includes("mask-image: url('/assets/icons/moon.png')"));
+    assert.ok(css.includes("mask-image: url('/assets/icons/sun.png')"));
+    assert.match(css, /\.smurdy-theme-toggle[\s\S]*width:\s*38px/);
     assert.match(theme, /localStorage\.getItem\(STORAGE_KEY\)/);
     assert.match(theme, /localStorage\.setItem\(STORAGE_KEY, next\)/);
     assert.match(theme, /dataset\.smurdyTheme = next/);
-    assert.match(theme, /Light mode/);
-    assert.match(theme, /Dark mode/);
+    assert.match(theme, /Switch to light mode/);
+    assert.match(theme, /Switch to dark mode/);
 });
-
 test("dark theme assets are installed globally", () => {
     const index = read("index.html");
     const about = read("about/index.html");
     const quiz = read("quizzes/click-country/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
-        assert.match(source, /\/styles\/theme\.css\?v=20260911-dark-mode-2/);
-        assert.match(source, /\/src\/js\/theme\.js\?v=20260911-dark-mode-2/);
+        assert.match(source, /\/styles\/theme\.css\?v=20260911-dark-mode-3/);
+        assert.match(source, /\/src\/js\/theme\.js\?v=20260911-dark-mode-3/);
     }
 });
 

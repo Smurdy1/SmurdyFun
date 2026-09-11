@@ -250,7 +250,8 @@ html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-content {
         if (toggle) {
             const isDark = next === DARK;
             toggle.setAttribute("aria-pressed", String(isDark));
-            toggle.textContent = isDark ? "Light mode" : "Dark mode";
+            toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+            toggle.setAttribute("title", isDark ? "Light mode" : "Dark mode");
         }
 
         return next;
