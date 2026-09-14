@@ -72,12 +72,24 @@ function wrapWords(text, maxCharacters = 25, maxLines = 2) {
     return kept;
 }
 
+function bodyAttribute(html, name) {
+    const body = html.match(/<body\b[^>]*data-smurdy-quiz-page[^>]*>/i)?.[0] || "";
+    const attribute = body.match(new RegExp(`${name}=["']([^"']+)["']`, "i"));
+    return attribute?.[1] || "";
+}
+
 function parsePage(html, relativePath) {
     if (!/data-smurdy-quiz-page/i.test(html)) return null;
-    const route = relativePath.replace(/\\/g, "/").match(/^([^/]+)\/([^/]+)\/index\.html$/);
-    if (!route) return null;
-    const quizId = route[1];
-    const groupId = route[2];
+
+    let quizId = bodyAttribute(html, "data-quiz-id");
+    let groupId = bodyAttribute(html, "data-quiz-group");
+    if (!quizId || !groupId) {
+        const route = relativePath.replace(/\\/g, "/").match(/^([^/]+)\/([^/]+)\/index\.html$/);
+        if (!route) return null;
+        quizId = route[1];
+        groupId = route[2];
+    }
+
     const currentLabel = html.match(/<span[^>]+aria-current=["']page["'][^>]*>([\s\S]*?)<\/span>/i);
     const groupLabel = stripTags(currentLabel?.[1] || groupId.replace(/[_-]+/g, " "));
     const modeLabel = MODE_LABELS[quizId] || quizId.replace(/[_-]+/g, " ");
