@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Apply validated migration recipe
         run: |
           python3 - <<'PY'
@@ -41,6 +42,7 @@ jobs:
               Path(f'/tmp/route-step-{number}.sh').write_text('\n'.join(body) + '\n')
           PY
           for f in /tmp/route-step-*.sh; do bash "$f"; done
+
       - name: Finish test migration
         run: |
           python3 - <<'PY'
@@ -62,46 +64,60 @@ jobs:
               raise SystemExit('social-image assertion not found')
           p.write_text('\n'.join(lines) + '\n')
           PY
-      - run: npm install --no-package-lock --no-audit --no-fund
+
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+
       - name: Generate final site
         env:
           SITEMAP_LASTMOD: 2026-09-14
         run: npm run pages:generate
-      - name: Diagnose final validation
-        shell: bash
+
+      - name: Validate final site
         run: |
-          set +e
-          {
-            for cmd in \
-              'node --check src/js/quiz_routes.js' \
-              'node --check tools/normalize_quiz_routes.js' \
-              'node --check tools/apply_sharing.js' \
-              'npm test' \
-              'test -f quizzes/maps/click/countries/world/index.html' \
-              'test -f quizzes/maps/click/subdivisions/us_states/index.html' \
-              'test -f quizzes/capitals/type/countries/world/index.html' \
-              'test -f quizzes/capitals/type/subdivisions/us_states/index.html' \
-              'test -f quizzes/flags/type/countries/world/index.html' \
-              'test -f quizzes/flags/type/subdivisions/us_states/index.html' \
-              'grep -q '\''const APP_VERSION = "1.15.0"'\'' src/js/app_core.js' \
-              'grep -q '\''directory-card-title">Maps'\'' quizzes/index.html' \
-              'grep -q '\''directory-card-title">Capitals'\'' quizzes/index.html' \
-              'grep -q '\''directory-card-title">Flags'\'' quizzes/index.html' \
-              'grep -q '\''directory-card-title">Countries'\'' quizzes/maps/click/index.html' \
-              'grep -q '\''directory-card-title">Subdivisions'\'' quizzes/maps/click/index.html' \
-              'grep -q '\''directory-card-disabled'\'' quizzes/capitals/index.html' \
-              'grep -q '\''directory-card-disabled'\'' quizzes/flags/index.html' \
-              'grep -q '\''https://smurdy.fun/quizzes/maps/click/countries/world/'\'' sitemap.txt' \
-              '! grep -q '\''https://smurdy.fun/quizzes/click-country/world/'\'' sitemap.txt' \
-              'git diff --check'
-            do
-              echo "=== $cmd ==="
-              bash -c "$cmd"
-              echo "STATUS=$?"
-            done
-          } 2>&1 | tee complete-validation.txt
-          exit 0
-      - uses: actions/upload-artifact@v4
-        with:
-          name: complete-route-validation
-          path: complete-validation.txt
+          node --check src/js/quiz_routes.js
+          node --check tools/normalize_quiz_routes.js
+          node --check tools/apply_sharing.js
+          node --check tools/generate_social_images.js
+          node --check src/js/quiz_completion.js
+          node --check src/js/quiz_suggestions.js
+          node --check src/js/quiz_launch_intent.js
+          npm test
+          test -f quizzes/maps/click/countries/world/index.html
+          test -f quizzes/maps/click/subdivisions/us_states/index.html
+          test -f quizzes/capitals/type/countries/world/index.html
+          test -f quizzes/capitals/type/subdivisions/us_states/index.html
+          test -f quizzes/flags/type/countries/world/index.html
+          test -f quizzes/flags/type/subdivisions/us_states/index.html
+          test -f quizzes/maps/index.html
+          test -f quizzes/maps/click/index.html
+          test -f quizzes/maps/click/countries/index.html
+          test -f quizzes/capitals/index.html
+          test -f quizzes/capitals/type/index.html
+          test -f quizzes/flags/index.html
+          test -f quizzes/flags/type/index.html
+          grep -q 'const APP_VERSION = "1.15.0"' src/js/app_core.js
+          grep -q 'directory-card-title">Maps' quizzes/index.html
+          grep -q 'directory-card-title">Capitals' quizzes/index.html
+          grep -q 'directory-card-title">Flags' quizzes/index.html
+          grep -q 'directory-card-title">Countries' quizzes/maps/click/index.html
+          grep -q 'directory-card-title">Subdivisions' quizzes/maps/click/index.html
+          grep -q 'directory-card-disabled' quizzes/capitals/index.html
+          grep -q 'directory-card-disabled' quizzes/flags/index.html
+          grep -q 'https://smurdy.fun/quizzes/maps/click/countries/world/' sitemap.txt
+          ! grep -q 'https://smurdy.fun/quizzes/click-country/world/' sitemap.txt
+          git diff --check
+
+      - name: Commit 1.15.0 migration
+        run: |
+          rm -f test-output.txt complete-validation.txt validation-output.txt
+          rm -f .github/workflows/oneoff-normalized-quiz-routes.yml
+          rm -f .github/workflows/oneoff-finish-normalized-routes.yml
+          rm -f .github/workflows/oneoff-finalize-normalized-routes.yml
+          rm -f .github/workflows/oneoff-debug-normalized-routes.yml
+          rm -f .github/workflows/oneoff-complete-routes.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "1.15.0: Normalize quiz routes and directories"
+          git push origin HEAD:feat/normalized-quiz-routes
