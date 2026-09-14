@@ -1,0 +1,58 @@
+name: Debug normalized quiz routes
+
+on:
+  push:
+    branches: [feat/normalized-quiz-routes]
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/normalized-quiz-routes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply prepared changes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          specs = [
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Reuse the prepared source migration'),
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Finalize normalized directories and runtime routes'),
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Migrate public-route test expectations'),
+              ('.github/workflows/oneoff-finalize-normalized-routes.yml', 'Fix final canonical-route edge cases')
+          ]
+          for number, (filename, name) in enumerate(specs, 1):
+              source = Path(filename).read_text().splitlines()
+              start = next(i for i, line in enumerate(source) if f'- name: {name}' in line)
+              run_line = next(i for i in range(start + 1, len(source)) if source[i].strip() == 'run: |')
+              body = []
+              for line in source[run_line + 1:]:
+                  if line.startswith('      - name:'):
+                      break
+                  body.append(line[10:] if line.startswith('          ') else line)
+              Path(f'/tmp/step-{number}.sh').write_text('\n'.join(body) + '\n')
+          PY
+          for f in /tmp/step-*.sh; do bash "$f"; done
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - name: Generate
+        env:
+          SITEMAP_LASTMOD: 2026-09-14
+        run: npm run pages:generate
+      - name: Test
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee test-output.txt
+          exit ${PIPESTATUS[0]}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-route-test-output
+          path: test-output.txt
