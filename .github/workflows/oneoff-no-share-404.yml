@@ -1,0 +1,55 @@
+name: Remove Share from 404 pages
+
+on:
+  push:
+    branches: [fix/no-share-on-404]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/no-share-on-404
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply 404 share guard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/js/share.js')
+          text = path.read_text()
+          anchor = '''    function install() {\n        if (!document.body) return;\n'''
+          replacement = '''    function isNotFoundPage() {\n        return /^404\\b/i.test(String(document.title || "").trim()) ||\n            document.body?.hasAttribute("data-smurdy-404");\n    }\n\n    function install() {\n        if (!document.body || isNotFoundPage()) return;\n'''
+          if anchor not in text:
+              raise SystemExit('share.js install anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          path.write_text(text)
+
+          test_path = Path('tests/sharing.test.js')
+          test_text = test_path.read_text()
+          test_text += '''\n\ntest("page share trigger stays off 404 pages", () => {\n    const source = read("src/js/share.js");\n    assert.match(source, /function isNotFoundPage\\(\\)/);\n    assert.match(source, /\\^404\\\\b/);\n    assert.match(source, /if \\(!document\\.body \\|\\| isNotFoundPage\\(\\)\\) return/);\n});\n'''
+          test_path.write_text(test_text)
+          PY
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Check JavaScript
+        run: node --check src/js/share.js
+      - name: Run tests
+        run: npm test
+      - name: Check whitespace
+        run: git diff --check
+      - name: Clean helper workflow and commit
+        run: |
+          rm .github/workflows/oneoff-no-share-404.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Stop Share from appearing on 404 pages"
+          git push origin HEAD:fix/no-share-on-404
