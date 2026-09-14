@@ -282,3 +282,86 @@
         font-size: 10.5px;
     }
 }
+
+/* smurdy-share-icon-button-v1 */
+.smurdy-page-share-trigger,
+#qb-header > .smurdy-page-share-trigger,
+.smurdy-page-share-trigger--quiz-topline,
+.smurdy-page-share-trigger--flag-title,
+.smurdy-page-share-trigger--landing-topline,
+.smurdy-page-share-trigger--directory-topline,
+.smurdy-page-share-trigger--site-header,
+.smurdy-page-share-trigger--panel-footer,
+.smurdy-page-share-trigger--inline {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 7px;
+    background: #f3f3f3;
+    color: #343a3f;
+    font-size: 0;
+    line-height: 1;
+}
+
+.smurdy-page-share-trigger::before {
+    content: "";
+    width: 19px;
+    height: 19px;
+    display: block;
+    flex: 0 0 auto;
+    background: currentColor;
+    -webkit-mask-image: url('/assets/icons/share.png');
+    mask-image: url('/assets/icons/share.png');
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.smurdy-page-share-trigger:hover {
+    border-color: #a7a7a7;
+    background: #e9e9e9;
+    color: #111;
+}
+
+.smurdy-page-share-trigger--quiz-topline {
+    margin-top: 2px;
+}
+
+html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger {
+    border-color: #46515a !important;
+    background: #2a3238 !important;
+    color: #cdd3d7 !important;
+}
+
+html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
+    border-color: #58656f !important;
+    background: #343e45 !important;
+    color: #e0e4e7 !important;
+}
+
+@media (max-width: 700px) {
+    .smurdy-page-share-trigger,
+    #qb-header > .smurdy-page-share-trigger,
+    .smurdy-page-share-trigger--quiz-topline,
+    .smurdy-page-share-trigger--flag-title,
+    .smurdy-page-share-trigger--landing-topline,
+    .smurdy-page-share-trigger--directory-topline,
+    .smurdy-page-share-trigger--site-header,
+    .smurdy-page-share-trigger--panel-footer,
+    .smurdy-page-share-trigger--inline {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    .smurdy-page-share-trigger::before {
+        width: 18px;
+        height: 18px;
+    }
+}
