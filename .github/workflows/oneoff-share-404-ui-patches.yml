@@ -31,8 +31,7 @@ jobs:
 
           css = Path('styles/share.css')
           text = css.read_text()
-          marker = '/* smurdy-share-icon-button-v1 */'
-          text = text.replace(marker, '/* smurdy-share-icon-button-v2 */')
+          text = text.replace('/* smurdy-share-icon-button-v1 */', '/* smurdy-share-icon-button-v2 */')
           old = '''    width: 38px;\n    height: 38px;\n    min-width: 38px;\n    min-height: 38px;\n    padding: 0;\n    border-radius: 7px;\n    background: #f3f3f3;\n    color: #343a3f;\n    font-size: 0;\n    line-height: 1;\n'''
           new = '''    width: 38px;\n    height: 38px;\n    min-width: 38px;\n    min-height: 38px;\n    box-sizing: border-box;\n    padding: 0;\n    border-radius: 7px;\n    background: #f3f3f3;\n    color: #343a3f;\n    font-size: 0;\n    line-height: 0;\n    vertical-align: middle;\n    overflow: hidden;\n'''
           if old not in text:
@@ -58,10 +57,15 @@ jobs:
           text = text.replace('const THEME_ASSET_VERSION = "20260911-dark-mode-3";', 'const THEME_ASSET_VERSION = "20260914-dark-mode-4";')
           apply.write_text(text)
 
-          test = Path('tests/sharing.test.js')
-          text = test.read_text()
+          sharing_test = Path('tests/sharing.test.js')
+          text = sharing_test.read_text()
+          text = text.replace('/smurdy-share-icon-button-v1/', '/smurdy-share-icon-button-v2/')
           text += '''\n\ntest("share icon is icon-only, native share says More, and 404 dark mode is readable", () => {\n    const source = read("src/js/share.js");\n    const styles = read("styles/share.css");\n    const theme = read("styles/theme.css");\n    const notFound = read("404.html");\n    assert.match(source, /trigger\\.textContent = ""/);\n    assert.doesNotMatch(source, /data-share-action="native">Share\\.\\.\\.<\\/button>/);\n    assert.match(source, /data-share-action="native">More<\\/button>/);\n    assert.match(styles, /smurdy-share-icon-button-v2/);\n    assert.match(styles, /vertical-align:\\s*middle/);\n    assert.match(notFound, /<body data-smurdy-404>/);\n    assert.match(theme, /404 dark-mode readability/);\n    assert.match(theme, /body\\[data-smurdy-404\\] p[\\s\\S]*color:\\s*#bbc3c8/);\n});\n'''
-          test.write_text(text)
+          sharing_test.write_text(text)
+
+          theme_test = Path('tests/theme.test.js')
+          text = theme_test.read_text().replace('20260911-dark-mode-3', '20260914-dark-mode-4')
+          theme_test.write_text(text)
           PY
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
