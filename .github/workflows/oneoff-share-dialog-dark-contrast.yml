@@ -2,7 +2,8 @@ name: Fix share dialog dark contrast
 
 on:
   push:
-    branches: [fix/share-dialog-dark-contrast]
+    branches:
+      - fix/share-dialog-dark-contrast
 
 permissions:
   contents: write
@@ -18,78 +19,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Apply dark-mode share dialog fix
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          theme = Path('styles/theme.css')
-          text = theme.read_text()
-          old = '''html[data-smurdy-theme="dark"] .smurdy-page-share-actions button,
-html[data-smurdy-theme="dark"] .smurdy-page-share-close,
-html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
-    color: #dfe4e7;
-}
-'''
-          new = '''html[data-smurdy-theme="dark"] .smurdy-page-share-actions button {
-    border-color: #4a555d;
-    background: #30383e;
-    color: #dfe4e7;
-}
-
-html[data-smurdy-theme="dark"] .smurdy-page-share-actions button:hover {
-    border-color: #58656f;
-    background: #343e45;
-}
-
-html[data-smurdy-theme="dark"] .smurdy-page-share-actions button[data-share-action="native"] {
-    border-color: #2489c9;
-    background: #2489c9;
-    color: #fff;
-}
-
-html[data-smurdy-theme="dark"] .smurdy-page-share-actions button[data-share-action="native"]:hover {
-    background: #3298d8;
-}
-
-html[data-smurdy-theme="dark"] .smurdy-page-share-close,
-html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
-    color: #dfe4e7;
-}
-
-html[data-smurdy-theme="dark"] .smurdy-page-share-status {
-    color: #aab3b9;
-}
-'''
-          if old not in text:
-              raise SystemExit('share dialog dark rule not found')
-          theme.write_text(text.replace(old, new, 1))
-
-          apply = Path('tools/apply_sharing.js')
-          text = apply.read_text()
-          text = text.replace('const THEME_ASSET_VERSION = "20260914-dark-mode-4";', 'const THEME_ASSET_VERSION = "20260914-dark-mode-5";')
-          apply.write_text(text)
-
-          test = Path('tests/theme.test.js')
-          text = test.read_text().replace('20260914-dark-mode-4', '20260914-dark-mode-5')
-          if 'share dialog action buttons use dark surfaces' not in text:
-              text += '''\n\ntest("share dialog action buttons use dark surfaces", () => {\n    const css = read("styles/theme.css");\n    assert.match(css, /smurdy-page-share-actions button\\s*\\{[\\s\\S]*background:\\s*#30383e/);\n    assert.match(css, /smurdy-page-share-actions button:hover\\s*\\{[\\s\\S]*background:\\s*#343e45/);\n    assert.match(css, /data-share-action="native"\\]\\s*\\{[\\s\\S]*background:\\s*#2489c9/);\n    assert.match(css, /smurdy-page-share-status\\s*\\{[\\s\\S]*color:\\s*#aab3b9/);\n});\n'''
-          test.write_text(text)
-          PY
+      - name: Apply patch
+        run: python3 tools/oneoff_share_dialog_fix.py
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
       - name: Regenerate pages
         env:
           SITEMAP_LASTMOD: 2026-09-14
         run: npm run pages:generate
-      - name: Run checks
+      - name: Validate
         run: |
           node --check tools/apply_sharing.js
           npm test
           git diff --check
-      - name: Clean helper workflow and commit
+      - name: Commit result
         run: |
           rm .github/workflows/oneoff-share-dialog-dark-contrast.yml
+          rm tools/oneoff_share_dialog_fix.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
