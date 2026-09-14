@@ -1,0 +1,109 @@
+name: Complete quiz route migration
+
+on:
+  push:
+    branches: [feat/normalized-quiz-routes]
+
+permissions:
+  contents: write
+
+jobs:
+  complete:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/normalized-quiz-routes
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply validated migration recipe
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          specs = [
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Reuse the prepared source migration'),
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Finalize normalized directories and runtime routes'),
+              ('.github/workflows/oneoff-finish-normalized-routes.yml', 'Migrate public-route test expectations'),
+              ('.github/workflows/oneoff-finalize-normalized-routes.yml', 'Fix final canonical-route edge cases')
+          ]
+          for number, (filename, name) in enumerate(specs, 1):
+              source = Path(filename).read_text().splitlines()
+              start = next(i for i, line in enumerate(source) if f'- name: {name}' in line)
+              run_line = next(i for i in range(start + 1, len(source)) if source[i].strip() == 'run: |')
+              body = []
+              for line in source[run_line + 1:]:
+                  if line.startswith('      - name:'):
+                      break
+                  body.append(line[10:] if line.startswith('          ') else line)
+              Path(f'/tmp/route-step-{number}.sh').write_text('\n'.join(body) + '\n')
+          PY
+          for f in /tmp/route-step-*.sh; do bash "$f"; done
+
+      - name: Finish test migration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('tests/landing_breadcrumbs.test.js')
+          text = p.read_text().replace(
+              'pages.push({ modeId: parts.slice(0, 3).join("/"), groupId: parts[3], filename, html });',
+              'pages.push({ modeId: (parts[0] === "maps" ? parts.slice(0, 3) : parts.slice(0, 2)).join("/"), groupId: parts[3], filename, html });'
+          )
+          p.write_text(text)
+
+          p = Path('tests/sharing.test.js')
+          lines = p.read_text().splitlines()
+          for i, line in enumerate(lines):
+              if 'assert.match(image, new RegExp(`/assets/social/quizzes/${quizId}/${groupId}' in line:
+                  indent = line[:len(line) - len(line.lstrip())]
+                  lines[i] = indent + 'assert.ok(image.includes(`/assets/social/quizzes/${quizId}/${groupId}.png?v=`), `${page} does not use its own social image`);'
+                  break
+          else:
+              raise SystemExit('social-image assertion not found')
+          p.write_text('\n'.join(lines) + '\n')
+          PY
+
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - name: Generate final site
+        env:
+          SITEMAP_LASTMOD: 2026-09-14
+        run: npm run pages:generate
+      - name: Validate final site
+        run: |
+          node --check src/js/quiz_routes.js
+          node --check tools/normalize_quiz_routes.js
+          node --check tools/apply_sharing.js
+          npm test
+          test -f quizzes/maps/click/countries/world/index.html
+          test -f quizzes/maps/click/subdivisions/us_states/index.html
+          test -f quizzes/capitals/type/countries/world/index.html
+          test -f quizzes/capitals/type/subdivisions/us_states/index.html
+          test -f quizzes/flags/type/countries/world/index.html
+          test -f quizzes/flags/type/subdivisions/us_states/index.html
+          grep -q 'const APP_VERSION = "1.15.0"' src/js/app_core.js
+          grep -q 'directory-card-title">Maps' quizzes/index.html
+          grep -q 'directory-card-title">Capitals' quizzes/index.html
+          grep -q 'directory-card-title">Flags' quizzes/index.html
+          grep -q 'directory-card-title">Countries' quizzes/maps/click/index.html
+          grep -q 'directory-card-title">Subdivisions' quizzes/maps/click/index.html
+          grep -q 'directory-card-disabled' quizzes/capitals/index.html
+          grep -q 'directory-card-disabled' quizzes/flags/index.html
+          grep -q 'https://smurdy.fun/quizzes/maps/click/countries/world/' sitemap.txt
+          ! grep -q 'https://smurdy.fun/quizzes/click-country/world/' sitemap.txt
+          git diff --check
+      - name: Commit 1.15.0 migration
+        run: |
+          rm -f test-output.txt
+          rm -f .github/workflows/oneoff-normalized-quiz-routes.yml
+          rm -f .github/workflows/oneoff-finish-normalized-routes.yml
+          rm -f .github/workflows/oneoff-finalize-normalized-routes.yml
+          rm -f .github/workflows/oneoff-debug-normalized-routes.yml
+          rm -f .github/workflows/oneoff-complete-routes.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "1.15.0: Normalize quiz routes and directories"
+          git push origin HEAD:feat/normalized-quiz-routes
