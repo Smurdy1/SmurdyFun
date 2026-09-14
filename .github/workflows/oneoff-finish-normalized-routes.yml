@@ -40,6 +40,36 @@ jobs:
           PY
           bash /tmp/apply-route-migration.sh
 
+      - name: Migrate public-route test expectations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          replacements = [
+              ('quizzes/click-country/', 'quizzes/maps/click/countries/'),
+              ('quizzes/click-subdivision/', 'quizzes/maps/click/subdivisions/'),
+              ('quizzes/type-country/', 'quizzes/maps/type/countries/'),
+              ('quizzes/type-subdivision/', 'quizzes/maps/type/subdivisions/'),
+              ('quizzes/find-country/', 'quizzes/maps/find/countries/'),
+              ('quizzes/find-subdivision/', 'quizzes/maps/find/subdivisions/'),
+              ('quizzes/find-point/', 'quizzes/maps/find-point/countries/'),
+              ('quizzes/find-point-subdivision/', 'quizzes/maps/find-point/subdivisions/'),
+              ('quizzes/type-capital/', 'quizzes/capitals/type/countries/'),
+              ('quizzes/type-flag/', 'quizzes/flags/type/countries/'),
+              ('1.14.7', '1.15.0'),
+              ('20260910-memory-1', '20260914-routes-1'),
+          ]
+          for file in Path('tests').glob('*.test.js'):
+              text = file.read_text()
+              original = text
+              for old, new in replacements:
+                  text = text.replace(old, new)
+              text = text.replace('quizzes/capitals/type/countries/us_states/', 'quizzes/capitals/type/subdivisions/us_states/')
+              text = text.replace('quizzes/flags/type/countries/us_states/', 'quizzes/flags/type/subdivisions/us_states/')
+              if text != original:
+                  file.write_text(text)
+          PY
+
       - name: Install dependencies
         run: npm install --no-package-lock --no-audit --no-fund
 
