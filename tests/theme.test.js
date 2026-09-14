@@ -33,8 +33,8 @@ test("dark theme assets are installed globally", () => {
     const quiz = read("quizzes/click-country/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
-        assert.match(source, /\/styles\/theme\.css\?v=20260914-dark-mode-4/);
-        assert.match(source, /\/src\/js\/theme\.js\?v=20260914-dark-mode-4/);
+        assert.match(source, /\/styles\/theme\.css\?v=20260914-dark-mode-5/);
+        assert.match(source, /\/src\/js\/theme\.js\?v=20260914-dark-mode-5/);
     }
 });
 
@@ -70,4 +70,13 @@ test("dark mode keeps timer readable and directory link unhighlighted", () => {
     assert.match(theme, /-webkit-text-fill-color:\s*#b8c0c5\s*!important/);
     assert.match(theme, /#quiz-browser \.qb-directory-primary \{[\s\S]*background:\s*transparent\s*!important/);
     assert.doesNotMatch(theme, /\.qb-play,\s*\nhtml\[data-smurdy-theme="dark"\] #quiz-browser \.qb-directory-primary/);
+});
+
+
+test("share dialog action buttons use dark surfaces", () => {
+    const css = read("styles/theme.css");
+    assert.match(css, /smurdy-page-share-actions button\s*\{[\s\S]*background:\s*#30383e/);
+    assert.match(css, /smurdy-page-share-actions button:hover\s*\{[\s\S]*background:\s*#343e45/);
+    assert.match(css, /data-share-action="native"\]\s*\{[\s\S]*background:\s*#2489c9/);
+    assert.match(css, /smurdy-page-share-status\s*\{[\s\S]*color:\s*#aab3b9/);
 });

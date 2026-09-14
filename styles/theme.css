@@ -195,10 +195,34 @@ html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-card p {
     color: #bbc3c8 !important;
 }
 
-html[data-smurdy-theme="dark"] .smurdy-page-share-actions button,
+html[data-smurdy-theme="dark"] .smurdy-page-share-actions button {
+    border-color: #4a555d;
+    background: #30383e;
+    color: #dfe4e7;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-page-share-actions button:hover {
+    border-color: #58656f;
+    background: #343e45;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-page-share-actions button[data-share-action="native"] {
+    border-color: #2489c9;
+    background: #2489c9;
+    color: #fff;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-page-share-actions button[data-share-action="native"]:hover {
+    background: #3298d8;
+}
+
 html[data-smurdy-theme="dark"] .smurdy-page-share-close,
 html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
     color: #dfe4e7;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-page-share-status {
+    color: #aab3b9;
 }
 
 .home-quick-actions {
