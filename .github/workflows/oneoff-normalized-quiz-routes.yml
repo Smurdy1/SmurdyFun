@@ -1,0 +1,190 @@
+name: Normalize quiz routes
+
+on:
+  push:
+    branches: [feat/normalized-quiz-routes]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/normalized-quiz-routes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply normalized route architecture
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace(path, old, new, count=-1):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'missing expected text in {path}: {old[:80]!r}')
+              text = text.replace(old, new, count)
+              p.write_text(text)
+
+          # Generation pipeline: canonical hierarchy is a permanent build step.
+          replace('package.json',
+              '"pages:generate": "node tools/generate_quiz_pages.js && node tools/generate_flag_pages.js && node tools/generate_social_images.js && node tools/apply_sharing.js && node tools/strip_generated_whitespace.js"',
+              '"pages:generate": "node tools/generate_quiz_pages.js && node tools/generate_flag_pages.js && node tools/normalize_quiz_routes.js && node tools/generate_social_images.js && node tools/apply_sharing.js && node tools/strip_generated_whitespace.js"')
+          replace('package.json',
+              '"flags:pages": "node tools/generate_flag_pages.js && node tools/generate_social_images.js && node tools/apply_sharing.js && node tools/strip_generated_whitespace.js"',
+              '"flags:pages": "node tools/generate_flag_pages.js && node tools/normalize_quiz_routes.js && node tools/generate_social_images.js && node tools/apply_sharing.js && node tools/strip_generated_whitespace.js"')
+
+          # Landing pages always load the shared route model before definitions.
+          replace('tools/quiz_page_shell.js', 'const ASSET_VERSION = "20260910-memory-1";', 'const ASSET_VERSION = "20260914-routes-1";')
+          replace('tools/quiz_page_shell.js',
+              '        `/src/js/manifest.js?v=${ASSET_VERSION}`,\n        `/src/js/quiz_definitions.js?v=${ASSET_VERSION}`,',
+              '        `/src/js/manifest.js?v=${ASSET_VERSION}`,\n        `/src/js/quiz_routes.js?v=${ASSET_VERSION}`,\n        `/src/js/quiz_definitions.js?v=${ASSET_VERSION}`,')
+
+          # Definitions derive landing URLs from category / interaction / family / group.
+          p = Path('src/js/quiz_definitions.js')
+          text = p.read_text()
+          text = text.replace('    const api = factory();', '    const api = factory(root);', 1)
+          text = text.replace('})(typeof window !== "undefined" ? window : null, function createQuizDefinitionsApi() {',
+                              '})(typeof window !== "undefined" ? window : null, function createQuizDefinitionsApi(root) {', 1)
+          text = text.replace('    "use strict";\n\n    const MODALITY_ADAPTERS',
+                              '    "use strict";\n\n    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);\n\n    const MODALITY_ADAPTERS', 1)
+          old = '''    function landingPath(itemOrId, groupId, manifest = []) {\n        const item = typeof itemOrId === "object"\n            ? itemOrId\n            : manifest.find(entry => normalizeId(entry?.id) === normalizeId(itemOrId));\n        const id = normalizeId(item?.id || itemOrId) || "quiz";\n        return `/quizzes/${slug(id)}/${slug(groupId || "world")}/`;\n    }'''
+          new = '''    function landingPath(itemOrId, groupId, manifest = []) {\n        const item = typeof itemOrId === "object"\n            ? itemOrId\n            : manifest.find(entry => normalizeId(entry?.id) === normalizeId(itemOrId));\n        const id = normalizeId(item?.id || itemOrId) || "quiz";\n        return routeApi?.canonicalPath?.(id, groupId || "world", manifest) ||\n            `/quizzes/${slug(id)}/${slug(groupId || "world")}/`;\n    }'''
+          if old not in text: raise SystemExit('landingPath block not found')
+          p.write_text(text.replace(old, new, 1))
+
+          # Homepage: load routes before definitions/app and recognize canonical quiz paths.
+          replace('index.html',
+              '     <script src="/src/js/manifest.js?v=20260909-editorial-1" defer></script>\n     <script src="/src/js/quiz_definitions.js?v=20260909-editorial-1" defer></script>',
+              '     <script src="/src/js/manifest.js?v=20260914-routes-1" defer></script>\n     <script src="/src/js/quiz_routes.js?v=20260914-routes-1" defer></script>\n     <script src="/src/js/quiz_definitions.js?v=20260914-routes-1" defer></script>')
+          p = Path('index.html'); text = p.read_text()
+          text = text.replace('/^\\/quizzes\\/[^/]+\\/[^/]+\\/?$/.test(location.pathname)',
+                              '/^\\/quizzes\\/(?:[^/]+\\/[^/]+|[^/]+\\/[^/]+\\/[^/]+\\/[^/]+)\\/?$/.test(location.pathname)')
+          legacy_map = {
+              'click-country': ('maps','click','countries'), 'click-subdivision': ('maps','click','subdivisions'),
+              'type-country': ('maps','type','countries'), 'type-subdivision': ('maps','type','subdivisions'),
+              'find-country': ('maps','find','countries'), 'find-subdivision': ('maps','find','subdivisions'),
+              'find-point': ('maps','find-point','countries'), 'find-point-subdivision': ('maps','find-point','subdivisions'),
+              'type-capital': ('capitals','type',None), 'type-flag': ('flags','type',None)
+          }
+          def convert_static(m):
+              q,g = m.group(1),m.group(2)
+              if q not in legacy_map: return m.group(0)
+              c,i,f = legacy_map[q]
+              if f is None: f = 'subdivisions' if g == 'us_states' else 'countries'
+              return f'/quizzes/{c}/{i}/{f}/{g}/'
+          text = re.sub(r'/quizzes/(click-country|click-subdivision|type-country|type-subdivision|find-country|find-subdivision|find-point|find-point-subdivision|type-capital|type-flag)/([a-z0-9_-]+)/', convert_static, text)
+          p.write_text(text)
+
+          # App bootstrap parses both canonical and legacy routes; query-string routes canonicalize to new URLs.
+          p = Path('src/js/app.js'); text = p.read_text()
+          old = '''    const cleanPathMatch = window.location.pathname.match(\n        /^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/\n    );\n    const pathQuizId = cleanPathMatch\n        ? decodeURIComponent(cleanPathMatch[1])\n        : null;\n    const pathGroupId = cleanPathMatch\n        ? decodeURIComponent(cleanPathMatch[2])\n        : null;'''
+          new = '''    const routeInfo = window.SmurdyQuizRoutes?.parsePath?.(\n        window.location.pathname,\n        window.SmurdyQuizManifest || []\n    ) || null;\n    const cleanPathMatch = routeInfo ? null : window.location.pathname.match(\n        /^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/\n    );\n    const pathQuizId = routeInfo?.quizId || (cleanPathMatch\n        ? decodeURIComponent(cleanPathMatch[1])\n        : null);\n    const pathGroupId = routeInfo?.groupId || (cleanPathMatch\n        ? decodeURIComponent(cleanPathMatch[2])\n        : null);'''
+          if old not in text: raise SystemExit('app path parser block missing')
+          text = text.replace(old,new,1)
+          text = text.replace('        cleanDefinition?.family === "subdivisions" ||', '        routeInfo?.family === "subdivisions" ||\n        cleanDefinition?.family === "subdivisions" ||',1)
+          text = text.replace('''        const canonicalPath =\n            `/quizzes/${safeSlug(legacyQuizId)}/${safeSlug(cleanGroupId)}/`;''', '''        const canonicalPath =\n            window.SmurdyQuizRoutes?.canonicalPath?.(legacyQuizId, cleanGroupId, window.SmurdyQuizManifest || []) ||\n            `/quizzes/${safeSlug(legacyQuizId)}/${safeSlug(cleanGroupId)}/`;''',1)
+          p.write_text(text)
+
+          # Browser/mobile state and browser navigation use normalized landing paths.
+          p = Path('src/js/browse.js'); text = p.read_text()
+          text = text.replace('const isQuizPath = /^\\/quizzes\\/[^\\/]+\\/[^\\/]+\\/?$/.test(location.pathname);',
+                              'const isQuizPath = Boolean(window.SmurdyQuizRoutes?.parsePath?.(location.pathname, baseManifest)) || /^\\/quizzes\\/[^\\/]+\\/[^\\/]+\\/?$/.test(location.pathname);')
+          text = text.replace('        const path = `/quizzes/${quizId}/${slug(groupId || "world")}/`;\n        return path;',
+                              '        return window.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId || "world", baseManifest) ||\n            `/quizzes/${quizId}/${slug(groupId || "world")}/`;',1)
+          text = text.replace('''            window.location.assign(\n                `/quizzes/${cleanQuizId}/${cleanGroupId}/`\n            );''', '''            window.location.assign(\n                window.SmurdyQuizRoutes?.canonicalPath?.(cleanQuizId, cleanGroupId, baseManifest) ||\n                `/quizzes/${cleanQuizId}/${cleanGroupId}/`\n            );''')
+          p.write_text(text)
+
+          # In-quiz history uses the canonical route rather than old implementation IDs.
+          p = Path('src/js/app_core.js'); text = p.read_text()
+          text = text.replace('const APP_VERSION = "1.14.7";', 'const APP_VERSION = "1.15.0";')
+          text = text.replace('''                    const path = `/quizzes/${slug(qid)}/${slug(gid)}/`;''', '''                    const path = window.SmurdyQuizRoutes?.canonicalPath?.(qid, gid, window.SmurdyQuizManifest || []) ||\n                        `/quizzes/${slug(qid)}/${slug(gid)}/`;''')
+          p.write_text(text)
+
+          # Recommendations and completion links use the same route authority.
+          replace('src/js/quiz_suggestions.js',
+              '''    function routeFor(quizId, groupId) {\n        return `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`;\n    }''',
+              '''    function routeFor(quizId, groupId) {\n        return root?.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId, root?.SmurdyQuizManifest || []) ||\n            `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`;\n    }''')
+          p = Path('src/js/quiz_completion.js'); text = p.read_text()
+          text = text.replace('options.url || (quizId && groupId ? `/quizzes/${quizId}/${groupId}/` : "/")',
+                              'options.url || (quizId && groupId ? (root?.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId, root?.SmurdyQuizManifest || []) || `/quizzes/${quizId}/${groupId}/`) : "/")')
+          p.write_text(text)
+
+          # Launch-intent matching understands canonical routes while retaining old URLs.
+          p = Path('src/js/quiz_launch_intent.js'); text = p.read_text()
+          old = '''    function parseQuizPath(pathname) {\n        const match = String(pathname || "")\n            .match(/^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/);\n        if (!match) return null;\n\n        try {\n            const quizId = normalizeId(decodeURIComponent(match[1]));\n            const groupId = normalizeId(decodeURIComponent(match[2]));\n            return quizId && groupId ? { quizId, groupId } : null;\n        } catch (_) {\n            return null;\n        }\n    }'''
+          new = '''    function parseQuizPath(pathname) {\n        const shared = root?.SmurdyQuizRoutes?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);\n        if (shared?.quizId && shared?.groupId) return { quizId: shared.quizId, groupId: shared.groupId };\n        const match = String(pathname || "").match(/^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/);\n        if (!match) return null;\n        try {\n            const quizId = normalizeId(decodeURIComponent(match[1]));\n            const groupId = normalizeId(decodeURIComponent(match[2]));\n            return quizId && groupId ? { quizId, groupId } : null;\n        } catch (_) { return null; }\n    }'''
+          if old not in text: raise SystemExit('launch intent parser missing')
+          p.write_text(text.replace(old,new,1))
+
+          # Share context recognizes canonical routes and keeps legacy social-image filenames.
+          p = Path('src/js/share.js'); text = p.read_text()
+          old_start = '''    function routeContext(pathname = location.pathname) {\n        const match = String(pathname || "").match(/^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/i);\n        if (!match) return null;\n        const quizId = decodeURIComponent(match[1]);\n        const groupId = decodeURIComponent(match[2]);'''
+          new_start = '''    function routeContext(pathname = location.pathname) {\n        const shared = window.SmurdyQuizRoutes?.parsePath?.(pathname, window.SmurdyQuizManifest || []);\n        const match = shared ? null : String(pathname || "").match(/^\\/quizzes\\/([^/]+)\\/([^/]+)\\/?$/i);\n        if (!shared && !match) return null;\n        const quizId = shared?.quizId || decodeURIComponent(match[1]);\n        const groupId = shared?.groupId || decodeURIComponent(match[2]);'''
+          if old_start not in text: raise SystemExit('share parser start missing')
+          text = text.replace(old_start,new_start,1)
+          text = text.replace('''            url: `${SITE_ORIGIN}/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`,''', '''            url: `${SITE_ORIGIN}${window.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId, window.SmurdyQuizManifest || []) || `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`}`,''',1)
+          p.write_text(text)
+
+          # Global sharing injection also makes the route helper available on directory/info pages.
+          p = Path('tools/apply_sharing.js'); text = p.read_text()
+          text = text.replace('const ASSET_VERSION = "20260914-sharing-6";', 'const ASSET_VERSION = "20260914-sharing-7";')
+          needle = 'const shareScript = `<script src="/src/js/share.js?v=${ASSET_VERSION}" defer data-smurdy-share-asset></script>`;'
+          if needle in text:
+              text = text.replace(needle, 'const routesScript = `<script src="/src/js/quiz_routes.js?v=20260914-routes-1" defer data-smurdy-route-asset></script>`;\n    ' + needle)
+              text = text.replace('html = html.replace(/<\\/body>/i, `  ${shareScript}\\n</body>`);', 'html = html.replace(/<\\/body>/i, `  ${routesScript}\\n  ${shareScript}\\n</body>`);')
+          p.write_text(text)
+
+          # Add direct route helper to the app shell even before sharing post-processing runs.
+          # Also bump app.js cache key for the route migration.
+          p = Path('index.html'); text = p.read_text().replace('/src/js/app.js?v=20260910-suggestions-1', '/src/js/app.js?v=20260914-routes-1')
+          p.write_text(text)
+
+          # Route architecture tests.
+          Path('tests/quiz_routes.test.js').write_text('''const test = require("node:test");\nconst assert = require("node:assert/strict");\nconst routes = require("../src/js/quiz_routes.js");\n\ntest("canonical routes separate category mode family and group", () => {\n  assert.equal(routes.canonicalPath("click-country", "world"), "/quizzes/maps/click/countries/world/");\n  assert.equal(routes.canonicalPath("click-subdivision", "us_states"), "/quizzes/maps/click/subdivisions/us_states/");\n  assert.equal(routes.canonicalPath("type-capital", "world"), "/quizzes/capitals/type/countries/world/");\n  assert.equal(routes.canonicalPath("type-capital", "us_states"), "/quizzes/capitals/type/subdivisions/us_states/");\n  assert.equal(routes.canonicalPath("type-flag", "world"), "/quizzes/flags/type/countries/world/");\n  assert.equal(routes.canonicalPath("type-flag", "us_states"), "/quizzes/flags/type/subdivisions/us_states/");\n});\n\ntest("canonical paths resolve back to legacy runtime IDs", () => {\n  assert.deepEqual(routes.parsePath("/quizzes/maps/type/subdivisions/us_states/"), { quizId: "type-subdivision", groupId: "us_states", category: "maps", interaction: "type", family: "subdivisions", canonical: true });\n  assert.deepEqual(routes.parsePath("/quizzes/capitals/type/subdivisions/us_states/"), { quizId: "type-capital", groupId: "us_states", category: "capitals", interaction: "type", family: "subdivisions", canonical: true });\n});\n\ntest("legacy quiz URLs remain parseable", () => {\n  const parsed = routes.parsePath("/quizzes/type-flag/us_states/");\n  assert.equal(parsed.quizId, "type-flag");\n  assert.equal(parsed.family, "subdivisions");\n  assert.equal(parsed.canonical, false);\n});\n''')
+          PY
+      - name: Install dependencies
+        run: npm install --no-package-lock --no-audit --no-fund
+      - name: Generate canonical pages
+        env:
+          SITEMAP_LASTMOD: 2026-09-14
+        run: npm run pages:generate
+      - name: Syntax checks
+        run: |
+          node --check src/js/quiz_routes.js
+          node --check src/js/quiz_definitions.js
+          node --check src/js/app.js
+          node --check src/js/browse.js
+          node --check src/js/share.js
+          node --check tools/normalize_quiz_routes.js
+          node --check tools/apply_sharing.js
+      - name: Tests
+        run: npm test
+      - name: Route audit
+        run: |
+          test -f quizzes/maps/click/countries/world/index.html
+          test -f quizzes/maps/click/subdivisions/us_states/index.html
+          test -f quizzes/capitals/type/countries/world/index.html
+          test -f quizzes/capitals/type/subdivisions/us_states/index.html
+          test -f quizzes/flags/type/countries/world/index.html
+          test -f quizzes/flags/type/subdivisions/us_states/index.html
+          grep -q '1.15.0' src/js/app_core.js
+          grep -q 'noindex, follow' quizzes/click-country/world/index.html
+          grep -q '/quizzes/maps/click/countries/world/' quizzes/click-country/world/index.html
+          ! grep -q 'https://smurdy.fun/quizzes/click-country/world/' sitemap.txt
+          grep -q 'https://smurdy.fun/quizzes/maps/click/countries/world/' sitemap.txt
+          git diff --check
+      - name: Commit generated migration
+        run: |
+          rm .github/workflows/oneoff-normalized-quiz-routes.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "1.15.0: Normalize quiz category and place-type routes"
+          git push origin HEAD:feat/normalized-quiz-routes
