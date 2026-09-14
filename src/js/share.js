@@ -335,8 +335,13 @@
         });
     }
 
+    function isNotFoundPage() {
+        return /^404\b/i.test(String(document.title || "").trim()) ||
+            document.body?.hasAttribute("data-smurdy-404");
+    }
+
     function install() {
-        if (!document.body) return;
+        if (!document.body || isNotFoundPage()) return;
 
         const state = window.__smurdyPageShareState || (window.__smurdyPageShareState = {});
         let trigger = state.trigger;

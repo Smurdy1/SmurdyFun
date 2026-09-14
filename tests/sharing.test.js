@@ -135,3 +135,11 @@ test("share trigger uses the custom compact share icon", () => {
     assert.match(styles, /font-size:\s*0/);
     assert.match(styles, /html\[data-smurdy-theme="dark"\] body \.smurdy-page-share-trigger/);
 });
+
+
+test("page share trigger stays off 404 pages", () => {
+    const source = read("src/js/share.js");
+    assert.match(source, /function isNotFoundPage\(\)/);
+    assert.match(source, /\^404\\b/);
+    assert.match(source, /if \(!document\.body \|\| isNotFoundPage\(\)\) return/);
+});
