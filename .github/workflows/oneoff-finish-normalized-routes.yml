@@ -40,10 +40,46 @@ jobs:
           PY
           bash /tmp/apply-route-migration.sh
 
+      - name: Finalize normalized directories and runtime routes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Node-side unit tests use the same route authority as the browser.
+          for filename, anchor in [
+              ('src/js/quiz_suggestions.js', '    const STYLE_ID ='),
+              ('src/js/quiz_completion.js', '    const SHARE_STYLE_ID ='),
+              ('src/js/quiz_launch_intent.js', '    const STORAGE_KEY =')
+          ]:
+              p = Path(filename)
+              text = p.read_text()
+              if 'const routeApi = root?.SmurdyQuizRoutes' not in text:
+                  text = text.replace(anchor,
+                      '    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);\n\n' + anchor,
+                      1)
+              text = text.replace('root?.SmurdyQuizRoutes?.canonicalPath?.', 'routeApi?.canonicalPath?.')
+              text = text.replace('root?.SmurdyQuizRoutes?.parsePath?.', 'routeApi?.parsePath?.')
+              p.write_text(text)
+
+          # Keep directory hierarchy descriptive without changing the established visual language.
+          p = Path('tools/normalize_quiz_routes.js')
+          text = p.read_text()
+          text = text.replace(
+              'function categoryTitle(category) {\n    return ({ maps: "Map Quizzes", capitals: "Capital Quizzes", flags: "Flag Quizzes" })[category] || category;\n}\n',
+              'function categoryTitle(category) {\n    return ({ maps: "Map Quizzes", capitals: "Capital Quizzes", flags: "Flag Quizzes" })[category] || category;\n}\n\nfunction categoryShortTitle(category) {\n    return ({ maps: "Maps", capitals: "Capitals", flags: "Flags" })[category] || category;\n}\n\nfunction familyDirectoryTitle(category, interaction, family) {\n    if (category === "maps") return `${interactionLabel(interaction)} ${familyTitle(family)}`;\n    const place = family === "subdivisions" ? "Subdivision" : "Country";\n    return `${interactionLabel(interaction)} ${place} ${category === "capitals" ? "Capitals" : "Flags"}`;\n}\n'
+          )
+          text = text.replace('title: categoryTitle(category).replace(/ Quizzes$/, ""),', 'title: categoryShortTitle(category),')
+          text = text.replace('title: `${interactionLabel(interaction)} ${categoryTitle(category).replace(/ Quizzes$/, "")}`,', 'title: `${interactionLabel(interaction)} ${categoryShortTitle(category)}`,')
+          text = text.replace('title: `${interactionLabel(interaction)} ${familyTitle(family)}`,', 'title: familyDirectoryTitle(category, interaction, family),')
+          text = text.replace(',\n                    meta: "Open quiz"\n                }))', '\n                }))')
+          p.write_text(text)
+          PY
+
       - name: Migrate public-route test expectations
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           replacements = [
               ('quizzes/click-country/', 'quizzes/maps/click/countries/'),
@@ -57,6 +93,7 @@ jobs:
               ('quizzes/type-capital/', 'quizzes/capitals/type/countries/'),
               ('quizzes/type-flag/', 'quizzes/flags/type/countries/'),
               ('1.14.7', '1.15.0'),
+              ('1\\.14\\.7', '1\\.15\\.0'),
               ('20260910-memory-1', '20260914-routes-1'),
           ]
           for file in Path('tests').glob('*.test.js'):
@@ -68,6 +105,177 @@ jobs:
               text = text.replace('quizzes/flags/type/countries/us_states/', 'quizzes/flags/type/subdivisions/us_states/')
               if text != original:
                   file.write_text(text)
+
+          # The route-model test deliberately retains one legacy URL.
+          p = Path('tests/quiz_routes.test.js')
+          text = p.read_text().replace(
+              'routes.parsePath("/quizzes/flags/type/subdivisions/us_states/")',
+              'routes.parsePath("/quizzes/type-flag/us_states/")'
+          )
+          p.write_text(text)
+
+          # Landing pages now live four levels below /quizzes; discover them recursively.
+          p = Path('tests/landing_breadcrumbs.test.js')
+          text = p.read_text()
+          new_collector = '''function allLandingPages() {\n    const quizzesRoot = path.join(root, "quizzes");\n    const pages = [];\n    const walk = directory => {\n        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {\n            const filename = path.join(directory, entry.name);\n            if (entry.isDirectory()) { walk(filename); continue; }\n            if (!entry.isFile() || entry.name !== "index.html") continue;\n            const html = fs.readFileSync(filename, "utf8");\n            if (!html.includes("data-smurdy-quiz-page") || !html.includes('content="index, follow"')) continue;\n            const relative = path.relative(quizzesRoot, filename).replace(/\\\\/g, "/");\n            const parts = relative.split("/");\n            if (parts.length !== 5 || !["maps", "capitals", "flags"].includes(parts[0])) continue;\n            pages.push({ modeId: parts.slice(0, 3).join("/"), groupId: parts[3], filename, html });\n        }\n    };\n    walk(quizzesRoot);\n    return pages;\n}\n\n'''
+          text = re.sub(r'function allLandingPages\(\) \{[\s\S]*?\n\}\n\n', new_collector, text, count=1)
+          text = text.replace('quizzes\\/click-country\\/', 'quizzes\\/maps\\/click\\/countries\\/')
+          p.write_text(text)
+
+          def replace_test(pathname, title, body):
+              p = Path(pathname)
+              text = p.read_text()
+              pattern = r'test\("' + re.escape(title) + r'", \(\) => \{[\s\S]*?\n\}\);'
+              text, count = re.subn(pattern, body.strip(), text, count=1)
+              if count != 1:
+                  raise SystemExit(f'Could not replace test {title!r} in {pathname}')
+              p.write_text(text)
+
+          replace_test('tests/sharing.test.js', 'playable quiz pages use a mode-and-group-specific social preview image', r'''
+          test("playable quiz pages use a mode-and-group-specific social preview image", () => {
+              const pages = collectHtml().filter(page => /^quizzes\/(?:maps|capitals|flags)\/[^/]+\/(?:countries|subdivisions)\/[^/]+\/index\.html$/.test(page));
+              let playable = 0;
+              for (const page of pages) {
+                  const html = read(page);
+                  if (!/data-smurdy-quiz-page/i.test(html)) continue;
+                  playable++;
+                  const quizId = html.match(/data-quiz-id=["']([^"']+)["']/i)?.[1];
+                  const groupId = html.match(/data-quiz-group=["']([^"']+)["']/i)?.[1];
+                  assert.ok(quizId && groupId, `${page} is missing quiz identity`);
+                  const image = metaContent(html, "property", "og:image");
+                  assert.match(image, new RegExp(`/assets/social/quizzes/${quizId}/${groupId}\\.png\\?v=`), `${page} does not use its own social image`);
+                  const imagePath = path.join(root, "assets", "social", "quizzes", quizId, `${groupId}.png`);
+                  assert.ok(fs.existsSync(imagePath), `${page} references a missing social image`);
+                  assert.deepEqual(pngDimensions(imagePath), { width: 1200, height: 630 }, `${page} social image has wrong dimensions`);
+              }
+              assert.ok(playable > 100, "expected social previews for the full playable quiz catalog");
+          });''')
+
+          replace_test('tests/quiz_library.test.js', 'quiz directories share one design and flags expose the planned taxonomy', r'''
+          test("quiz directories share one design and flags expose the planned taxonomy", () => {
+              const manifest = fs.readFileSync(path.resolve(__dirname, "../src/js/manifest.js"), "utf8");
+              const allQuizzes = fs.readFileSync(path.resolve(__dirname, "../quizzes/index.html"), "utf8");
+              const maps = fs.readFileSync(path.resolve(__dirname, "../quizzes/maps/index.html"), "utf8");
+              const click = fs.readFileSync(path.resolve(__dirname, "../quizzes/maps/click/index.html"), "utf8");
+              const capitals = fs.readFileSync(path.resolve(__dirname, "../quizzes/capitals/index.html"), "utf8");
+              const flags = fs.readFileSync(path.resolve(__dirname, "../quizzes/flags/index.html"), "utf8");
+              assert.match(manifest, /id: "locate-flag"/);
+              assert.match(manifest, /id: "locate-capital"/);
+              assert.match(manifest, /status: "coming-soon"/);
+              for (const html of [allQuizzes, maps, click, capitals, flags]) assert.match(html, /styles\/quiz_directory\.css/);
+              assert.match(allQuizzes, /<h2>Categories<\/h2>/);
+              assert.match(allQuizzes, /directory-card-title">Maps/);
+              assert.match(allQuizzes, /directory-card-title">Capitals/);
+              assert.match(allQuizzes, /directory-card-title">Flags/);
+              assert.match(maps, /directory-card-title">Click/);
+              assert.match(maps, /directory-card-title">No Borders/);
+              assert.match(click, /directory-card-title">Countries/);
+              assert.match(click, /directory-card-title">Subdivisions/);
+              for (const html of [capitals, flags]) {
+                  assert.match(html, /directory-card-title">Type/);
+                  assert.match(html, /directory-card-title">Locate/);
+                  assert.match(html, /directory-card-disabled/);
+                  assert.doesNotMatch(html, /Coming soon!/);
+              }
+              assert.doesNotMatch(allQuizzes, /<ul>/);
+          });''')
+
+          replace_test('tests/quiz_library.test.js', 'generated quiz directory includes the capitals family', r'''
+          test("generated quiz directory includes the capitals family", () => {
+              const directory = fs.readFileSync(path.resolve(__dirname, "../quizzes/index.html"), "utf8");
+              const hub = fs.readFileSync(path.resolve(__dirname, "../quizzes/capitals/index.html"), "utf8");
+              assert.match(directory, /directory-card-title">Capitals/);
+              assert.match(directory, /\/quizzes\/capitals\//);
+              assert.match(hub, /Capital Quizzes/);
+              assert.match(hub, /directory-card-title">Type/);
+              assert.match(hub, /directory-card-title">Locate/);
+          });''')
+
+          replace_test('tests/flag_quiz.test.js', 'flag pages include the full landing and results experience', r'''
+          test("flag pages include the full landing and results experience", () => {
+              const html = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/europe/index.html"), "utf8");
+              const directory = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/index.html"), "utf8");
+              const subdivisions = fs.readFileSync(path.join(root, "quizzes/flags/type/subdivisions/index.html"), "utf8");
+              const flagHub = fs.readFileSync(path.join(root, "quizzes/flags/index.html"), "utf8");
+              const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
+              assert.match(html, /Flags packed into one continent/);
+              assert.match(html, /Flags to review|data-flag-review/);
+              assert.match(html, /data-flag-progress-bar/);
+              assert.match(html, /data-flag-time/);
+              assert.match(html, /data-smurdy-quiz-favorite/);
+              assert.match(html, /data-flag-retry/);
+              assert.match(html, /Countries included in this quiz \(44\)/);
+              assert.match(html, /class="included-grid"/);
+              assert.match(directory, /<h2>Quiz sets<\/h2>/);
+              assert.match(directory, /directory-card-title">Middle East/);
+              assert.match(directory, /directory-card-title">North America/);
+              assert.match(subdivisions, /directory-card-title">US States/);
+              assert.match(flagHub, /directory-card-title">Locate/);
+              assert.match(flagHub, /directory-card-disabled/);
+              assert.doesNotMatch(flagHub, /Coming soon!/);
+              assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
+              assert.match(html, /data-flag-restart>Restart/);
+              assert.match(html, /data-flag-retry hidden>Retry Missed/);
+              assert.match(html, /data-flag-after-actions hidden/);
+              assert.doesNotMatch(html, /flag-eyebrow|class="flag-exit"/);
+              assert.match(sitemap, /quizzes\/flags\/type\/countries\/oceania\//);
+          });''')
+
+          replace_test('tests/ui_conventions.test.js', 'disabled planned modes stay visible without promotional labels', r'''
+          test("disabled planned modes stay visible without promotional labels", () => {
+              const allQuizzes = read("quizzes/index.html");
+              const capitals = read("quizzes/capitals/index.html");
+              const flags = read("quizzes/flags/index.html");
+              assert.match(allQuizzes, /directory-card-title">Capitals/);
+              assert.match(allQuizzes, /directory-card-title">Flags/);
+              for (const html of [capitals, flags]) {
+                  assert.match(html, /directory-card-disabled/);
+                  assert.match(html, />Locate</);
+                  assert.doesNotMatch(html, /Coming soon!/i);
+                  assert.doesNotMatch(html, /Available now/i);
+              }
+          });''')
+
+          replace_test('tests/spanish_speaking.test.js', 'all public country quiz modes generate Spanish-speaking landing pages', r'''
+          test("all public country quiz modes generate Spanish-speaking landing pages", () => {
+              const routes = require(path.join(root, "src/js/quiz_routes.js"));
+              const modes = ["click-country", "type-country", "type-capital", "find-country", "find-point", "type-flag"];
+              for (const mode of modes) {
+                  const relative = routes.canonicalPath(mode, "spanish_speaking").replace(/^\//, "");
+                  const filename = path.join(root, relative, "index.html");
+                  assert.equal(fs.existsSync(filename), true, "Missing " + mode + " page");
+                  const html = fs.readFileSync(filename, "utf8");
+                  assert.match(html, /Spanish-Speaking Countries/);
+                  assert.match(html, /content="index, follow"/);
+                  assert.doesNotMatch(html, /noindex/);
+              }
+              const click = fs.readFileSync(path.join(root, "quizzes/maps/click/countries/spanish_speaking/index.html"), "utf8");
+              assert.match(click, /20 sovereign countries where Spanish is a national official or dominant language/);
+              const flags = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/spanish_speaking/index.html"), "utf8");
+              assert.match(flags, /same 20-country Spanish-speaking group/);
+          });''')
+
+          replace_test('tests/spanish_speaking.test.js', 'Spanish-speaking group appears on public discovery pages and sitemaps', r'''
+          test("Spanish-speaking group appears on public discovery pages and sitemaps", () => {
+              for (const relativePath of [
+                  "quizzes/maps/click/countries/index.html",
+                  "quizzes/maps/type/countries/index.html",
+                  "quizzes/capitals/type/countries/index.html",
+                  "quizzes/maps/find/countries/index.html",
+                  "quizzes/maps/find-point/countries/index.html",
+                  "quizzes/flags/type/countries/index.html"
+              ]) {
+                  const html = fs.readFileSync(path.join(root, relativePath), "utf8");
+                  assert.match(html, /Spanish-Speaking Countries/, relativePath + " should list the public group");
+              }
+              const allQuizzes = fs.readFileSync(path.join(root, "quizzes/index.html"), "utf8");
+              assert.match(allQuizzes, /directory-card-title">Maps/);
+              assert.match(allQuizzes, /directory-card-title">Capitals/);
+              assert.match(allQuizzes, /directory-card-title">Flags/);
+              const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
+              assert.match(sitemap, /quizzes\/maps\/click\/countries\/spanish_speaking\//);
+              assert.match(sitemap, /quizzes\/flags\/type\/countries\/spanish_speaking\//);
+          });''')
           PY
 
       - name: Install dependencies
@@ -86,6 +294,9 @@ jobs:
           node --check src/js/app_core.js
           node --check src/js/browse.js
           node --check src/js/share.js
+          node --check src/js/quiz_completion.js
+          node --check src/js/quiz_suggestions.js
+          node --check src/js/quiz_launch_intent.js
 
       - name: Tests
         id: tests
@@ -121,11 +332,13 @@ jobs:
           test -f quizzes/capitals/type/index.html
           test -f quizzes/flags/index.html
           grep -q '1.15.0' src/js/app_core.js
-          grep -q 'href="/quizzes/maps/"' quizzes/index.html
-          grep -q 'href="/quizzes/capitals/"' quizzes/index.html
-          grep -q 'href="/quizzes/flags/"' quizzes/index.html
+          grep -q 'directory-card-title">Maps' quizzes/index.html
+          grep -q 'directory-card-title">Capitals' quizzes/index.html
+          grep -q 'directory-card-title">Flags' quizzes/index.html
           grep -q 'href="/quizzes/maps/click/countries/"' quizzes/maps/click/index.html
           grep -q 'href="/quizzes/maps/click/subdivisions/"' quizzes/maps/click/index.html
+          grep -q 'directory-card-disabled' quizzes/capitals/index.html
+          grep -q 'directory-card-disabled' quizzes/flags/index.html
           grep -q 'https://smurdy.fun/quizzes/maps/click/countries/world/' sitemap.txt
           ! grep -q 'https://smurdy.fun/quizzes/click-country/world/' sitemap.txt
           git diff --check
