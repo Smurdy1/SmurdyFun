@@ -283,7 +283,7 @@
     }
 }
 
-/* smurdy-share-icon-button-v1 */
+/* smurdy-share-icon-button-v2 */
 .smurdy-page-share-trigger,
 #qb-header > .smurdy-page-share-trigger,
 .smurdy-page-share-trigger--quiz-topline,
@@ -297,12 +297,15 @@
     height: 38px;
     min-width: 38px;
     min-height: 38px;
+    box-sizing: border-box;
     padding: 0;
     border-radius: 7px;
     background: #f3f3f3;
     color: #343a3f;
     font-size: 0;
-    line-height: 1;
+    line-height: 0;
+    vertical-align: middle;
+    overflow: hidden;
 }
 
 .smurdy-page-share-trigger::before {
