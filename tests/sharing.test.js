@@ -124,3 +124,14 @@ test("share trigger is a global singleton across dynamic quiz remounts", () => {
     assert.match(source, /if \(state\.wired\) return/);
     assert.match(source, /state\.observer = new MutationObserver/);
 });
+
+
+test("share trigger uses the custom compact share icon", () => {
+    const styles = read("styles/share.css");
+    assert.ok(fs.existsSync(path.join(root, "assets/icons/share.png")));
+    assert.match(styles, /smurdy-share-icon-button-v1/);
+    assert.match(styles, /mask-image:\s*url\('\/assets\/icons\/share\.png'\)/);
+    assert.match(styles, /\.smurdy-page-share-trigger,[\s\S]*width:\s*38px/);
+    assert.match(styles, /font-size:\s*0/);
+    assert.match(styles, /html\[data-smurdy-theme="dark"\] body \.smurdy-page-share-trigger/);
+});
