@@ -1,0 +1,99 @@
+name: Finish normalized quiz routes
+
+on:
+  push:
+    branches: [feat/normalized-quiz-routes]
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/normalized-quiz-routes
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Reuse the prepared source migration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/oneoff-normalized-quiz-routes.yml').read_text().splitlines()
+          start = next(i for i, line in enumerate(source) if '- name: Apply normalized route architecture' in line)
+          run_line = next(i for i in range(start + 1, len(source)) if source[i].strip() == 'run: |')
+          body = []
+          for line in source[run_line + 1:]:
+              if line.startswith('      - name:'):
+                  break
+              body.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/apply-route-migration.sh').write_text('\n'.join(body) + '\n')
+          PY
+          bash /tmp/apply-route-migration.sh
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate routes and directories
+        run: npm run pages:generate
+
+      - name: Syntax checks
+        run: |
+          node --check src/js/quiz_routes.js
+          node --check tools/normalize_quiz_routes.js
+          node --check src/js/app.js
+          node --check src/js/app_core.js
+          node --check src/js/browse.js
+          node --check src/js/share.js
+
+      - name: Tests
+        id: tests
+        shell: bash
+        run: |
+          set +e
+          npm test 2>&1 | tee test-output.txt
+          status=${PIPESTATUS[0]}
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit $status
+
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: normalized-route-test-output
+          path: test-output.txt
+          if-no-files-found: ignore
+
+      - name: Route and directory audit
+        if: steps.tests.outcome == 'success'
+        run: |
+          test -f quizzes/maps/click/countries/world/index.html
+          test -f quizzes/maps/click/subdivisions/us_states/index.html
+          test -f quizzes/capitals/type/countries/world/index.html
+          test -f quizzes/capitals/type/subdivisions/us_states/index.html
+          test -f quizzes/flags/type/countries/world/index.html
+          test -f quizzes/flags/type/subdivisions/us_states/index.html
+          test -f quizzes/maps/index.html
+          test -f quizzes/maps/click/index.html
+          test -f quizzes/maps/click/countries/index.html
+          test -f quizzes/capitals/index.html
+          test -f quizzes/capitals/type/index.html
+          test -f quizzes/flags/index.html
+          grep -q '1.15.0' src/js/app_core.js
+          grep -q 'href="/quizzes/maps/"' quizzes/index.html
+          grep -q 'href="/quizzes/capitals/"' quizzes/index.html
+          grep -q 'href="/quizzes/flags/"' quizzes/index.html
+          grep -q 'href="/quizzes/maps/click/countries/"' quizzes/maps/click/index.html
+          grep -q 'href="/quizzes/maps/click/subdivisions/"' quizzes/maps/click/index.html
+          grep -q 'https://smurdy.fun/quizzes/maps/click/countries/world/' sitemap.txt
+          ! grep -q 'https://smurdy.fun/quizzes/click-country/world/' sitemap.txt
+          git diff --check
