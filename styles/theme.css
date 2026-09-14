@@ -316,3 +316,26 @@ html[data-smurdy-theme="dark"] .site-footer,
 html[data-smurdy-theme="dark"] .directory-footer {
     color: #aab3b9;
 }
+
+
+/* 404 dark-mode readability */
+html[data-smurdy-theme="dark"] body[data-smurdy-404] {
+    background: #171c20 !important;
+    color: #dfe4e7 !important;
+}
+
+html[data-smurdy-theme="dark"] body[data-smurdy-404] p {
+    color: #bbc3c8 !important;
+}
+
+html[data-smurdy-theme="dark"] body[data-smurdy-404] .uncharted {
+    color: #aab3b9 !important;
+}
+
+html[data-smurdy-theme="dark"] body[data-smurdy-404] nav {
+    border-color: #465159 !important;
+}
+
+html[data-smurdy-theme="dark"] body[data-smurdy-404] img {
+    filter: invert(1);
+}

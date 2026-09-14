@@ -33,8 +33,8 @@ test("dark theme assets are installed globally", () => {
     const quiz = read("quizzes/click-country/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
-        assert.match(source, /\/styles\/theme\.css\?v=20260911-dark-mode-3/);
-        assert.match(source, /\/src\/js\/theme\.js\?v=20260911-dark-mode-3/);
+        assert.match(source, /\/styles\/theme\.css\?v=20260914-dark-mode-4/);
+        assert.match(source, /\/src\/js\/theme\.js\?v=20260914-dark-mode-4/);
     }
 });
 

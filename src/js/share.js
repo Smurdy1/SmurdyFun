@@ -174,7 +174,7 @@
                     <p data-smurdy-page-share-preview-copy></p>
                 </div>
                 <div class="smurdy-page-share-actions">
-                    <button type="button" data-share-action="native">Share...</button>
+                    <button type="button" data-share-action="native">More</button>
                     <button type="button" data-share-action="copy">Copy link</button>
                     <button type="button" data-share-action="x">X</button>
                     <button type="button" data-share-action="facebook">Facebook</button>
@@ -349,7 +349,7 @@
             trigger = document.querySelector("[data-smurdy-page-share-trigger]") || document.createElement("button");
             trigger.type = "button";
             trigger.dataset.smurdyPageShareTrigger = "";
-            trigger.textContent = "Share";
+            trigger.textContent = "";
             trigger.setAttribute("aria-haspopup", "dialog");
             trigger.setAttribute("aria-label", "Share this page");
             state.trigger = trigger;

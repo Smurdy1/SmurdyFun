@@ -129,7 +129,7 @@ test("share trigger is a global singleton across dynamic quiz remounts", () => {
 test("share trigger uses the custom compact share icon", () => {
     const styles = read("styles/share.css");
     assert.ok(fs.existsSync(path.join(root, "assets/icons/share.png")));
-    assert.match(styles, /smurdy-share-icon-button-v1/);
+    assert.match(styles, /smurdy-share-icon-button-v2/);
     assert.match(styles, /mask-image:\s*url\('\/assets\/icons\/share\.png'\)/);
     assert.match(styles, /\.smurdy-page-share-trigger,[\s\S]*width:\s*38px/);
     assert.match(styles, /font-size:\s*0/);
@@ -142,4 +142,20 @@ test("page share trigger stays off 404 pages", () => {
     assert.match(source, /function isNotFoundPage\(\)/);
     assert.match(source, /\^404\\b/);
     assert.match(source, /if \(!document\.body \|\| isNotFoundPage\(\)\) return/);
+});
+
+
+test("share icon is icon-only, native share says More, and 404 dark mode is readable", () => {
+    const source = read("src/js/share.js");
+    const styles = read("styles/share.css");
+    const theme = read("styles/theme.css");
+    const notFound = read("404.html");
+    assert.match(source, /trigger\.textContent = ""/);
+    assert.doesNotMatch(source, /data-share-action="native">Share\.\.\.<\/button>/);
+    assert.match(source, /data-share-action="native">More<\/button>/);
+    assert.match(styles, /smurdy-share-icon-button-v2/);
+    assert.match(styles, /vertical-align:\s*middle/);
+    assert.match(notFound, /<body data-smurdy-404>/);
+    assert.match(theme, /404 dark-mode readability/);
+    assert.match(theme, /body\[data-smurdy-404\] p[\s\S]*color:\s*#bbc3c8/);
 });
