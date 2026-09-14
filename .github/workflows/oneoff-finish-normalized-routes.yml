@@ -41,9 +41,11 @@ jobs:
           bash /tmp/apply-route-migration.sh
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-package-lock --no-audit --no-fund
 
       - name: Generate routes and directories
+        env:
+          SITEMAP_LASTMOD: 2026-09-14
         run: npm run pages:generate
 
       - name: Syntax checks
