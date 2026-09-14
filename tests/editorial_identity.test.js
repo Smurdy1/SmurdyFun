@@ -25,10 +25,10 @@ test("landing personality covers the main geography sets with authored copy", ()
 });
 
 test("generated landing pages expose region-specific editorial fingerprints", () => {
-    const world = read("quizzes/click-country/world/index.html");
-    const europe = read("quizzes/click-country/europe/index.html");
-    const westAfrica = read("quizzes/click-country/west_africa/index.html");
-    const worldFlags = read("quizzes/type-flag/world/index.html");
+    const world = read("quizzes/maps/click/countries/world/index.html");
+    const europe = read("quizzes/maps/click/countries/europe/index.html");
+    const westAfrica = read("quizzes/maps/click/countries/west_africa/index.html");
+    const worldFlags = read("quizzes/flags/type/countries/world/index.html");
 
     /* Existing hand-curated page overrides still win; personality fills the gaps. */
     assert.match(world, /One round can jump from Argentina to Kyrgyzstan to Fiji/);
@@ -61,5 +61,5 @@ test("polish keeps hierarchy without bringing back component-heavy cards", () =>
 });
 
 test("visible app version is current for this polish release", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.14\.7"/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.15\.0"/);
 });

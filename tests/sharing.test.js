@@ -54,23 +54,21 @@ test("every public HTML page has the persistent page-share controls and large-ca
 });
 
 test("playable quiz pages use a mode-and-group-specific social preview image", () => {
-    const pages = collectHtml().filter(page => /^quizzes\/[^/]+\/[^/]+\/index\.html$/.test(page));
+    const pages = collectHtml().filter(page => /^quizzes\/(?:maps|capitals|flags)\/[^/]+\/(?:countries|subdivisions)\/[^/]+\/index\.html$/.test(page));
     let playable = 0;
-
     for (const page of pages) {
         const html = read(page);
         if (!/data-smurdy-quiz-page/i.test(html)) continue;
         playable++;
-        const match = page.match(/^quizzes\/([^/]+)\/([^/]+)\/index\.html$/);
-        const [, quizId, groupId] = match;
+        const quizId = html.match(/data-quiz-id=["']([^"']+)["']/i)?.[1];
+        const groupId = html.match(/data-quiz-group=["']([^"']+)["']/i)?.[1];
+        assert.ok(quizId && groupId, `${page} is missing quiz identity`);
         const image = metaContent(html, "property", "og:image");
-        assert.match(image, new RegExp(`/assets/social/quizzes/${quizId}/${groupId}\\.png\\?v=`), `${page} does not use its own social image`);
-
+        assert.ok(image.includes(`/assets/social/quizzes/${quizId}/${groupId}.png?v=`), `${page} does not use its own social image`);
         const imagePath = path.join(root, "assets", "social", "quizzes", quizId, `${groupId}.png`);
         assert.ok(fs.existsSync(imagePath), `${page} references a missing social image`);
         assert.deepEqual(pngDimensions(imagePath), { width: 1200, height: 630 }, `${page} social image has wrong dimensions`);
     }
-
     assert.ok(playable > 100, "expected social previews for the full playable quiz catalog");
 });
 

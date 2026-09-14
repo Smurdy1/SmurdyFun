@@ -13,7 +13,7 @@ test("subregional quizzes suggest a larger related group in the same mode", () =
     assert.equal(result.type, "larger-group");
     assert.equal(result.quizId, "click-country");
     assert.equal(result.groupId, "africa");
-    assert.equal(result.url, "/quizzes/click-country/africa/");
+    assert.equal(result.url, "/quizzes/maps/click/countries/africa/");
     assert.match(result.description, /same Click Countries mode/i);
 });
 
@@ -27,7 +27,7 @@ test("major-region quizzes suggest the same group in another mode", () => {
     assert.equal(result.type, "other-mode");
     assert.equal(result.quizId, "type-country");
     assert.equal(result.groupId, "europe");
-    assert.equal(result.url, "/quizzes/type-country/europe/");
+    assert.equal(result.url, "/quizzes/maps/type/countries/europe/");
 });
 
 test("mode progression gets harder instead of recommending the same quiz again", () => {

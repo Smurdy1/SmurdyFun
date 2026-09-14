@@ -48,7 +48,7 @@ test("trust-page navigation is available from core site pages", () => {
     for (const relativePath of [
         "index.html",
         "quizzes/index.html",
-        "quizzes/click-country/world/index.html",
+        "quizzes/maps/click/countries/world/index.html",
         "privacy/index.html"
     ]) {
         const html = read(relativePath);

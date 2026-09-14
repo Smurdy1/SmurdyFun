@@ -19,14 +19,14 @@ function memoryStorage() {
 test("launch intents match an exact clean quiz route and are one-time", () => {
     const storage = memoryStorage();
     let now = 1000;
-    let pathname = "/quizzes/type-flag/europe/";
+    let pathname = "/quizzes/flags/type/countries/europe/";
     const client = createClient({ storage, now: () => now, pathname: () => pathname });
 
     assert.equal(client.store("type-flag", "europe", "browser"), true);
     assert.equal(client.peekCurrent().reason, "browser");
-    pathname = "/quizzes/type-flag/asia/";
+    pathname = "/quizzes/flags/type/countries/asia/";
     assert.equal(client.peekCurrent(), null);
-    pathname = "/quizzes/type-flag/europe/";
+    pathname = "/quizzes/flags/type/countries/europe/";
     assert.equal(client.consumeCurrent().groupId, "europe");
     assert.equal(client.consumeCurrent(), null);
     assert.equal(storage.has(STORAGE_KEY), false);
@@ -38,12 +38,12 @@ test("launch intents expire and parse canonical paths", () => {
     const client = createClient({
         storage,
         now: () => now,
-        pathname: () => "/quizzes/type-country/world/"
+        pathname: () => "/quizzes/maps/type/countries/world/"
     });
     client.store("TYPE-COUNTRY", "WORLD", "weak_spots");
     now += 6 * 60 * 1000;
     assert.equal(client.peekCurrent(), null);
-    assert.deepEqual(parseQuizPath("/quizzes/type-flag/us_states/"), {
+    assert.deepEqual(parseQuizPath("/quizzes/flags/type/subdivisions/us_states/"), {
         quizId: "type-flag",
         groupId: "us_states"
     });

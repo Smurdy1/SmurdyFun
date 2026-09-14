@@ -1,15 +1,17 @@
 (function initQuizDefinitions(root, factory) {
     "use strict";
 
-    const api = factory();
+    const api = factory(root);
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     if (!root) return;
 
     root.SmurdyQuizDefinitions = api.createRegistry(
         () => root.SmurdyQuizManifest || []
     );
-})(typeof window !== "undefined" ? window : null, function createQuizDefinitionsApi() {
+})(typeof window !== "undefined" ? window : null, function createQuizDefinitionsApi(root) {
     "use strict";
+
+    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);
 
     const MODALITY_ADAPTERS = Object.freeze({
         map: Object.freeze({
@@ -142,7 +144,8 @@
             ? itemOrId
             : manifest.find(entry => normalizeId(entry?.id) === normalizeId(itemOrId));
         const id = normalizeId(item?.id || itemOrId) || "quiz";
-        return `/quizzes/${slug(id)}/${slug(groupId || "world")}/`;
+        return routeApi?.canonicalPath?.(id, groupId || "world", manifest) ||
+            `/quizzes/${slug(id)}/${slug(groupId || "world")}/`;
     }
 
     function createRegistry(manifestProvider = () => []) {

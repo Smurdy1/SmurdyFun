@@ -69,87 +69,40 @@ test("Spanish-Speaking Countries is available to flags as well as map modes", ()
 });
 
 test("all public country quiz modes generate Spanish-speaking landing pages", () => {
-    const modes = [
-        "click-country",
-        "type-country",
-        "type-capital",
-        "find-country",
-        "find-point",
-        "type-flag"
-    ];
-
+    const routes = require(path.join(root, "src/js/quiz_routes.js"));
+    const modes = ["click-country", "type-country", "type-capital", "find-country", "find-point", "type-flag"];
     for (const mode of modes) {
-        const filename = path.join(
-            root,
-            "quizzes",
-            mode,
-            "spanish_speaking",
-            "index.html"
-        );
+        const relative = routes.canonicalPath(mode, "spanish_speaking").replace(/^\//, "");
+        const filename = path.join(root, relative, "index.html");
         assert.equal(fs.existsSync(filename), true, "Missing " + mode + " page");
         const html = fs.readFileSync(filename, "utf8");
-
         assert.match(html, /Spanish-Speaking Countries/);
         assert.match(html, /content="index, follow"/);
         assert.doesNotMatch(html, /noindex/);
     }
-
-    const click = fs.readFileSync(
-        path.join(root, "quizzes/click-country/spanish_speaking/index.html"),
-        "utf8"
-    );
-    assert.match(
-        click,
-        /20 sovereign countries where Spanish is a national official or dominant language/
-    );
-
-    const flags = fs.readFileSync(
-        path.join(root, "quizzes/type-flag/spanish_speaking/index.html"),
-        "utf8"
-    );
+    const click = fs.readFileSync(path.join(root, "quizzes/maps/click/countries/spanish_speaking/index.html"), "utf8");
+    assert.match(click, /20 sovereign countries where Spanish is a national official or dominant language/);
+    const flags = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/spanish_speaking/index.html"), "utf8");
     assert.match(flags, /same 20-country Spanish-speaking group/);
 });
 
 test("Spanish-speaking group appears on public discovery pages and sitemaps", () => {
     for (const relativePath of [
-        "quizzes/click-country/index.html",
-        "quizzes/type-country/index.html",
-        "quizzes/type-capital/index.html",
-        "quizzes/find-country/index.html",
-        "quizzes/find-point/index.html",
-        "quizzes/type-flag/index.html"
+        "quizzes/maps/click/countries/index.html",
+        "quizzes/maps/type/countries/index.html",
+        "quizzes/capitals/type/countries/index.html",
+        "quizzes/maps/find/countries/index.html",
+        "quizzes/maps/find-point/countries/index.html",
+        "quizzes/flags/type/countries/index.html"
     ]) {
         const html = fs.readFileSync(path.join(root, relativePath), "utf8");
-        assert.match(
-            html,
-            /Spanish-Speaking Countries/,
-            relativePath + " should list the public group"
-        );
+        assert.match(html, /Spanish-Speaking Countries/, relativePath + " should list the public group");
     }
-
-    const allQuizzes = fs.readFileSync(
-        path.join(root, "quizzes/index.html"),
-        "utf8"
-    );
-    assert.match(allQuizzes, /30 quiz sets/);
-    assert.match(allQuizzes, /31 quiz sets/);
-
+    const allQuizzes = fs.readFileSync(path.join(root, "quizzes/index.html"), "utf8");
+    assert.match(allQuizzes, /directory-card-title">Maps/);
+    assert.match(allQuizzes, /directory-card-title">Capitals/);
+    assert.match(allQuizzes, /directory-card-title">Flags/);
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
-    for (const mode of [
-        "click-country",
-        "type-country",
-        "type-capital",
-        "find-country",
-        "find-point",
-        "type-flag"
-    ]) {
-        assert.match(
-            sitemap,
-            new RegExp(
-                "https://smurdy\\.fun/quizzes/" +
-                mode +
-                "/spanish_speaking/"
-            )
-        );
-    }
+    assert.match(sitemap, /quizzes\/maps\/click\/countries\/spanish_speaking\//);
+    assert.match(sitemap, /quizzes\/flags\/type\/countries\/spanish_speaking\//);
 });

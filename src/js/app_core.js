@@ -1097,7 +1097,8 @@ const SmurdyQuiz = {
                 else if (typeof quizRef === "object" && quizRef.quiz) qid = quizRef.quiz;
                 else if (typeof quizRef === "string" && quizRef.indexOf("/") !== -1) qid = quizRef.replace(/.*\//,"").replace(/\.[^/.]+$/, "");
                 if (qid) {
-                    const path = `/quizzes/${slug(qid)}/${slug(gid)}/`;
+                    const path = window.SmurdyQuizRoutes?.canonicalPath?.(qid, gid, window.SmurdyQuizManifest || []) ||
+                        `/quizzes/${slug(qid)}/${slug(gid)}/`;
                     if (location.pathname.replace(/\/$/,'') !== path.replace(/\/$/,'')) {
                         try { history.pushState({}, "", path); } catch (e) { /* ignore */ }
                     }
@@ -2322,7 +2323,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.14.7";
+const APP_VERSION = "1.15.0";
 
 function injectVersionBadge() {
     try {

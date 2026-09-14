@@ -193,6 +193,16 @@ function categoryTitle(category) {
     return ({ maps: "Map Quizzes", capitals: "Capital Quizzes", flags: "Flag Quizzes" })[category] || category;
 }
 
+function categoryShortTitle(category) {
+    return ({ maps: "Maps", capitals: "Capitals", flags: "Flags" })[category] || category;
+}
+
+function familyDirectoryTitle(category, interaction, family) {
+    if (category === "maps") return `${interactionLabel(interaction)} ${familyTitle(family)}`;
+    const place = family === "subdivisions" ? "Subdivision" : "Country";
+    return `${interactionLabel(interaction)} ${place} ${category === "capitals" ? "Capitals" : "Flags"}`;
+}
+
 function familyTitle(family) {
     return family === "subdivisions" ? "Subdivisions" : "Countries";
 }
@@ -203,7 +213,7 @@ function renderDirectories(records, manifest) {
     const rootCards = categoryOrder.map(category => {
         const count = playableRecords.filter(record => record.category === category).length;
         return {
-            title: categoryTitle(category).replace(/ Quizzes$/, ""),
+            title: categoryShortTitle(category),
             href: `/quizzes/${category}/`,
             description: category === "maps" ? "Names, locations, borders, and map recognition." : category === "capitals" ? "Country and subdivision capitals." : "Country, territory, and subdivision flags.",
             meta: `${count} quiz sets`,
@@ -260,7 +270,7 @@ function renderDirectories(records, manifest) {
                 };
             });
             writeHtml(`/quizzes/${category}/${interaction}/`, directoryShell({
-                title: `${interactionLabel(interaction)} ${categoryTitle(category).replace(/ Quizzes$/, "")}`,
+                title: `${interactionLabel(interaction)} ${categoryShortTitle(category)}`,
                 lead: "Choose what kind of places to practice.",
                 canonicalPath: `/quizzes/${category}/${interaction}/`,
                 breadcrumbs: [
@@ -279,11 +289,10 @@ function renderDirectories(records, manifest) {
                 const cards = familyRecords.map(record => ({
                     title: record.groupLabel,
                     href: record.canonicalPath,
-                    description: record.title,
-                    meta: "Open quiz"
+                    description: record.title
                 }));
                 writeHtml(`/quizzes/${category}/${interaction}/${family}/`, directoryShell({
-                    title: `${interactionLabel(interaction)} ${familyTitle(family)}`,
+                    title: familyDirectoryTitle(category, interaction, family),
                     lead: `Choose a ${family === "countries" ? "country" : "subdivision"} quiz set.`,
                     canonicalPath: `/quizzes/${category}/${interaction}/${family}/`,
                     breadcrumbs: [

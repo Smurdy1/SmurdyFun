@@ -30,7 +30,7 @@ test("theme is persisted with a compact icon toggle beside Weak Spots", () => {
 test("dark theme assets are installed globally", () => {
     const index = read("index.html");
     const about = read("about/index.html");
-    const quiz = read("quizzes/click-country/world/index.html");
+    const quiz = read("quizzes/maps/click/countries/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
         assert.match(source, /\/styles\/theme\.css\?v=20260914-dark-mode-5/);

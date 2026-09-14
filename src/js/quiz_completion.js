@@ -7,6 +7,8 @@
 })(typeof window !== "undefined" ? window : null, function createQuizCompletionApi(root) {
     "use strict";
 
+    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);
+
     const SHARE_STYLE_ID = "smurdy-quiz-completion-style-v1";
     const SHARE_SELECTOR = "[data-smurdy-share]";
     const DEFAULT_REVIEW_PAGE_SIZE = 6;
@@ -83,7 +85,7 @@
         const itemSingular = String(options.itemSingular || "place");
         const itemPlural = String(options.itemPlural || `${itemSingular}s`);
         const url = absoluteQuizUrl(
-            options.url || (quizId && groupId ? `/quizzes/${quizId}/${groupId}/` : "/")
+            options.url || (quizId && groupId ? (routeApi?.canonicalPath?.(quizId, groupId, root?.SmurdyQuizManifest || []) || `/quizzes/${quizId}/${groupId}/`) : "/")
         );
 
         const result = {

@@ -54,7 +54,7 @@ test("completion result is the shared source for stats, misses, and share data",
     assert.match(result.shareText, /Europe Flags/);
     assert.match(result.shareText, /80% accuracy \| 01:05 \| 4\/4 completed/);
     assert.doesNotMatch(result.shareText, /·/);
-    assert.equal(result.url, "https://smurdy.fun/quizzes/type-flag/europe/");
+    assert.equal(result.url, "https://smurdy.fun/quizzes/flags/type/countries/europe/");
 });
 
 test("shared miss description avoids implementation-looking separators", () => {

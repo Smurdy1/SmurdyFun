@@ -106,10 +106,11 @@ test("generated quiz pages keep the simplified editorial conventions", () => {
 
 test("disabled planned modes stay visible without promotional labels", () => {
     const allQuizzes = read("quizzes/index.html");
-    const capitals = read("quizzes/type-capital/index.html");
-    const flags = read("quizzes/type-flag/index.html");
-
-    for (const html of [allQuizzes, capitals, flags]) {
+    const capitals = read("quizzes/capitals/index.html");
+    const flags = read("quizzes/flags/index.html");
+    assert.match(allQuizzes, /directory-card-title">Capitals/);
+    assert.match(allQuizzes, /directory-card-title">Flags/);
+    for (const html of [capitals, flags]) {
         assert.match(html, /directory-card-disabled/);
         assert.match(html, />Locate</);
         assert.doesNotMatch(html, /Coming soon!/i);
