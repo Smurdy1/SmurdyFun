@@ -188,63 +188,40 @@ test("saved flag cards are distinct and browser play links launch them directly"
 });
 
 test("quiz directories share one design and flags expose the planned taxonomy", () => {
-    const manifest = fs.readFileSync(
-        path.resolve(__dirname, "../src/js/manifest.js"),
-        "utf8"
-    );
-    const allQuizzes = fs.readFileSync(
-        path.resolve(__dirname, "../quizzes/index.html"),
-        "utf8"
-    );
-    const modeHub = fs.readFileSync(
-        path.resolve(__dirname, "../quizzes/click-country/index.html"),
-        "utf8"
-    );
-
+    const manifest = fs.readFileSync(path.resolve(__dirname, "../src/js/manifest.js"), "utf8");
+    const allQuizzes = fs.readFileSync(path.resolve(__dirname, "../quizzes/index.html"), "utf8");
+    const maps = fs.readFileSync(path.resolve(__dirname, "../quizzes/maps/index.html"), "utf8");
+    const click = fs.readFileSync(path.resolve(__dirname, "../quizzes/maps/click/index.html"), "utf8");
+    const capitals = fs.readFileSync(path.resolve(__dirname, "../quizzes/capitals/index.html"), "utf8");
+    const flags = fs.readFileSync(path.resolve(__dirname, "../quizzes/flags/index.html"), "utf8");
     assert.match(manifest, /id: "locate-flag"/);
     assert.match(manifest, /id: "locate-capital"/);
-    assert.match(manifest, /title: "Locate the Capitals"/);
     assert.match(manifest, /status: "coming-soon"/);
-    assert.match(manifest, /families: \["countries", "subdivisions"\]/);
-    assert.match(allQuizzes, /styles\/quiz_directory\.css/);
-    assert.match(
-        allQuizzes,
-        /<h2>Capitals<\/h2>[\s\S]*?directory-card-title">Locate/
-    );
-    assert.doesNotMatch(allQuizzes, /Coming soon!/);
-    assert.match(allQuizzes, /<h2>Country maps<\/h2>/);
-    assert.match(allQuizzes, /<h2>Subdivision maps<\/h2>/);
-    assert.match(allQuizzes, /<h2>Flags<\/h2>/);
-    assert.match(modeHub, /styles\/quiz_directory\.css/);
-    assert.match(modeHub, /<h2>Main sets<\/h2>/);
-    assert.match(modeHub, /<h2>Regional sets<\/h2>/);
+    for (const html of [allQuizzes, maps, click, capitals, flags]) assert.match(html, /styles\/quiz_directory\.css/);
+    assert.match(allQuizzes, /<h2>Categories<\/h2>/);
+    assert.match(allQuizzes, /directory-card-title">Maps/);
+    assert.match(allQuizzes, /directory-card-title">Capitals/);
+    assert.match(allQuizzes, /directory-card-title">Flags/);
+    assert.match(maps, /directory-card-title">Click/);
+    assert.match(maps, /directory-card-title">No Borders/);
+    assert.match(click, /directory-card-title">Countries/);
+    assert.match(click, /directory-card-title">Subdivisions/);
+    for (const html of [capitals, flags]) {
+        assert.match(html, /directory-card-title">Type/);
+        assert.match(html, /directory-card-title">Locate/);
+        assert.match(html, /directory-card-disabled/);
+        assert.doesNotMatch(html, /Coming soon!/);
+    }
     assert.doesNotMatch(allQuizzes, /<ul>/);
-
-    const capitalHub = fs.readFileSync(
-        path.resolve(__dirname, "../quizzes/type-capital/index.html"),
-        "utf8"
-    );
-    assert.match(capitalHub, /<h2>Capital modes<\/h2>/);
-    assert.match(capitalHub, /directory-card-title">Locate/);
-    assert.doesNotMatch(capitalHub, /Coming soon!/);
-    assert.equal(
-        fs.existsSync(path.resolve(__dirname, "../quizzes/locate-capital")),
-        false
-    );
 });
 
 
 test("generated quiz directory includes the capitals family", () => {
-    const directory = fs.readFileSync(
-        path.resolve(__dirname, "../quizzes/index.html"),
-        "utf8"
-    );
-    const hub = fs.readFileSync(
-        path.resolve(__dirname, "../quizzes/type-capital/index.html"),
-        "utf8"
-    );
-
-    assert.match(directory, /<h2>Capitals<\/h2>/);
-    assert.match(directory, /\/quizzes\/type-capital\//);
-    assert.match(hub, /Type the Capitals Quizzes/);
+    const directory = fs.readFileSync(path.resolve(__dirname, "../quizzes/index.html"), "utf8");
+    const hub = fs.readFileSync(path.resolve(__dirname, "../quizzes/capitals/index.html"), "utf8");
+    assert.match(directory, /directory-card-title">Capitals/);
+    assert.match(directory, /\/quizzes\/capitals\//);
+    assert.match(hub, /Capital Quizzes/);
+    assert.match(hub, /directory-card-title">Type/);
+    assert.match(hub, /directory-card-title">Locate/);
 });

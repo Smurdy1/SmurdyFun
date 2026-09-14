@@ -7,6 +7,8 @@
 })(typeof window !== "undefined" ? window : null, function createQuizLaunchIntentApi(root) {
     "use strict";
 
+    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);
+
     const STORAGE_KEY = "smurdy-quiz-launch-v1";
     const MAX_AGE_MS = 5 * 60 * 1000;
 
@@ -16,17 +18,15 @@
     }
 
     function parseQuizPath(pathname) {
-        const match = String(pathname || "")
-            .match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/);
+        const shared = routeApi?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);
+        if (shared?.quizId && shared?.groupId) return { quizId: shared.quizId, groupId: shared.groupId };
+        const match = String(pathname || "").match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/);
         if (!match) return null;
-
         try {
             const quizId = normalizeId(decodeURIComponent(match[1]));
             const groupId = normalizeId(decodeURIComponent(match[2]));
             return quizId && groupId ? { quizId, groupId } : null;
-        } catch (_) {
-            return null;
-        }
+        } catch (_) { return null; }
     }
 
     function createClient({

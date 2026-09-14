@@ -98,8 +98,8 @@ test("missed flags remain in the question pool until answered correctly", () => 
 
 test("flag routes load the shared runner and declare the correct set", () => {
     const routes = {
-        world: "quizzes/type-flag/world/index.html",
-        us_states: "quizzes/type-flag/us_states/index.html"
+        world: "quizzes/flags/type/countries/world/index.html",
+        us_states: "quizzes/flags/type/subdivisions/us_states/index.html"
     };
 
     for (const [setId, relativePath] of Object.entries(routes)) {
@@ -115,16 +115,11 @@ test("flag routes load the shared runner and declare the correct set", () => {
 });
 
 test("flag pages include the full landing and results experience", () => {
-    const html = fs.readFileSync(
-        path.join(root, "quizzes/type-flag/europe/index.html"),
-        "utf8"
-    );
-    const directory = fs.readFileSync(
-        path.join(root, "quizzes/type-flag/index.html"),
-        "utf8"
-    );
+    const html = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/europe/index.html"), "utf8");
+    const directory = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/index.html"), "utf8");
+    const subdivisions = fs.readFileSync(path.join(root, "quizzes/flags/type/subdivisions/index.html"), "utf8");
+    const flagHub = fs.readFileSync(path.join(root, "quizzes/flags/index.html"), "utf8");
     const sitemap = fs.readFileSync(path.join(root, "sitemap.txt"), "utf8");
-
     assert.match(html, /Flags packed into one continent/);
     assert.match(html, /Flags to review|data-flag-review/);
     assert.match(html, /data-flag-progress-bar/);
@@ -133,18 +128,17 @@ test("flag pages include the full landing and results experience", () => {
     assert.match(html, /data-flag-retry/);
     assert.match(html, /Countries included in this quiz \(44\)/);
     assert.match(html, /class="included-grid"/);
-    assert.match(directory, /<h2>Main sets<\/h2>/);
-    assert.match(directory, /<h2>Regional sets<\/h2>/);
+    assert.match(directory, /<h2>Quiz sets<\/h2>/);
     assert.match(directory, /directory-card-title">Middle East/);
-    assert.match(directory, /<h2>Subdivisions<\/h2>/);
     assert.match(directory, /directory-card-title">North America/);
-    assert.match(directory, /directory-card-title">US States/);
-    assert.match(directory, /directory-card-title">Locate/);
-    assert.doesNotMatch(directory, /Coming soon!/);
+    assert.match(subdivisions, /directory-card-title">US States/);
+    assert.match(flagHub, /directory-card-title">Locate/);
+    assert.match(flagHub, /directory-card-disabled/);
+    assert.doesNotMatch(flagHub, /Coming soon!/);
     assert.match(html, /class="flag-button" href="\/">Back<\/a>/);
     assert.match(html, /data-flag-restart>Restart/);
     assert.match(html, /data-flag-retry hidden>Retry Missed/);
     assert.match(html, /data-flag-after-actions hidden/);
     assert.doesNotMatch(html, /flag-eyebrow|class="flag-exit"/);
-    assert.match(sitemap, /quizzes\/type-flag\/oceania\//);
+    assert.match(sitemap, /quizzes\/flags\/type\/countries\/oceania\//);
 });

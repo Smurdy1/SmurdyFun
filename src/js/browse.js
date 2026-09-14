@@ -130,7 +130,7 @@
 
         const params = new URLSearchParams(location.search);
         const hasQuizParam = !!params.get("quiz");
-        const isQuizPath = /^\/quizzes\/[^\/]+\/[^\/]+\/?$/.test(location.pathname);
+        const isQuizPath = Boolean(window.SmurdyQuizRoutes?.parsePath?.(location.pathname, baseManifest)) || /^\/quizzes\/[^\/]+\/[^\/]+\/?$/.test(location.pathname);
         const quizIsRunning = isQuizPath || hasQuizParam;
 
         if (!isMobile) {
@@ -191,8 +191,8 @@
                 "quiz"
             );
         const quizId = slug(rawQuizId);
-        const path = `/quizzes/${quizId}/${slug(groupId || "world")}/`;
-        return path;
+        return window.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId || "world", baseManifest) ||
+            `/quizzes/${quizId}/${slug(groupId || "world")}/`;
     }
 
     function isPlainLeftClick(e) {
@@ -2885,6 +2885,7 @@
             /^[a-z0-9_-]+$/.test(cleanGroupId)
         ) {
             window.location.assign(
+                window.SmurdyQuizRoutes?.canonicalPath?.(cleanQuizId, cleanGroupId, baseManifest) ||
                 `/quizzes/${cleanQuizId}/${cleanGroupId}/`
             );
             return;

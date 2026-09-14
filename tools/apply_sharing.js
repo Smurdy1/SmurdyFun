@@ -4,7 +4,7 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const SITE_ORIGIN = "https://smurdy.fun";
-const ASSET_VERSION = "20260914-sharing-6";
+const ASSET_VERSION = "20260914-sharing-7";
 const THEME_ASSET_VERSION = "20260914-dark-mode-5";
 const SKIP_DIRECTORIES = new Set([".git", ".github", ".backups", "Old", "node_modules"]);
 
@@ -57,10 +57,13 @@ function canonicalFromHtml(html, relativePath) {
 
 function quizRoute(relativePath, html) {
     if (!/data-smurdy-quiz-page/i.test(html)) return null;
+    const body = html.match(/<body\b[^>]*data-smurdy-quiz-page[^>]*>/i)?.[0] || "";
+    const quizId = extractAttribute(body, /<body\b[^>]*>/i, "data-quiz-id");
+    const groupId = extractAttribute(body, /<body\b[^>]*>/i, "data-quiz-group");
+    if (quizId && groupId) return { quizId, groupId };
     const slashPath = relativePath.replace(/\\/g, "/");
     const match = slashPath.match(/^quizzes\/([^/]+)\/([^/]+)\/index\.html$/i);
-    if (!match) return null;
-    return { quizId: match[1], groupId: match[2] };
+    return match ? { quizId: match[1], groupId: match[2] } : null;
 }
 
 function replaceOrInsertMeta(html, attributeName, key, content) {

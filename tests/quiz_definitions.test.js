@@ -82,7 +82,7 @@ test("quiz definitions expose explicit modality adapters", () => {
 test("definition registry owns canonical paths and legacy subdivision aliases", () => {
     assert.equal(
         registry.landingPath("type-flag", "south_america"),
-        "/quizzes/type-flag/south_america/"
+        "/quizzes/flags/type/countries/south_america/"
     );
     assert.equal(
         registry.resolveLegacyQuizId("click-country", { groupSet: "subdivision_groups" }),
@@ -110,15 +110,15 @@ test("shared landing shell keeps one compact action row", () => {
 
 test("map and flag landing pages use one shared Play action", () => {
     const map = fs.readFileSync(
-        path.join(root, "quizzes/click-country/europe/index.html"),
+        path.join(root, "quizzes/maps/click/countries/europe/index.html"),
         "utf8"
     );
     const capitals = fs.readFileSync(
-        path.join(root, "quizzes/type-capital/latin_america/index.html"),
+        path.join(root, "quizzes/capitals/type/countries/latin_america/index.html"),
         "utf8"
     );
     const flags = fs.readFileSync(
-        path.join(root, "quizzes/type-flag/europe/index.html"),
+        path.join(root, "quizzes/flags/type/countries/europe/index.html"),
         "utf8"
     );
 
@@ -147,7 +147,7 @@ test("map and flag landing pages use one shared Play action", () => {
 
 test("US state capitals landing page uses the shared capitals mode", () => {
     const html = fs.readFileSync(
-        path.join(root, "quizzes/type-capital/us_states/index.html"),
+        path.join(root, "quizzes/capitals/type/subdivisions/us_states/index.html"),
         "utf8"
     );
 

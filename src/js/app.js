@@ -4,15 +4,19 @@
     const ASSET_VERSION = "20260910-suggestions-1";
 
     const urlParams = new URLSearchParams(window.location.search);
-    const cleanPathMatch = window.location.pathname.match(
+    const routeInfo = window.SmurdyQuizRoutes?.parsePath?.(
+        window.location.pathname,
+        window.SmurdyQuizManifest || []
+    ) || null;
+    const cleanPathMatch = routeInfo ? null : window.location.pathname.match(
         /^\/quizzes\/([^/]+)\/([^/]+)\/?$/
     );
-    const pathQuizId = cleanPathMatch
+    const pathQuizId = routeInfo?.quizId || (cleanPathMatch
         ? decodeURIComponent(cleanPathMatch[1])
-        : null;
-    const pathGroupId = cleanPathMatch
+        : null);
+    const pathGroupId = routeInfo?.groupId || (cleanPathMatch
         ? decodeURIComponent(cleanPathMatch[2])
-        : null;
+        : null);
 
     const quizDefinitions = window.SmurdyQuizDefinitions || null;
     const supportedQuizIds = new Set(
@@ -70,6 +74,7 @@
     );
     const cleanUsesSubdivisions = Boolean(
         groupSetOverride === "subdivision_groups" ||
+        routeInfo?.family === "subdivisions" ||
         cleanDefinition?.family === "subdivisions" ||
         (cleanQuizId && cleanQuizId.includes("subdivision"))
     );
@@ -87,6 +92,7 @@
 
     if (legacyQuizId) {
         const canonicalPath =
+            window.SmurdyQuizRoutes?.canonicalPath?.(legacyQuizId, cleanGroupId, window.SmurdyQuizManifest || []) ||
             `/quizzes/${safeSlug(legacyQuizId)}/${safeSlug(cleanGroupId)}/`;
         const canonicalUrl = new URL(
             canonicalPath,

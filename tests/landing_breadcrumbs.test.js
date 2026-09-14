@@ -12,28 +12,19 @@ function escapeRegex(value) {
 function allLandingPages() {
     const quizzesRoot = path.join(root, "quizzes");
     const pages = [];
-
-    for (const modeEntry of fs.readdirSync(quizzesRoot, { withFileTypes: true })) {
-        if (!modeEntry.isDirectory()) continue;
-        const modeDir = path.join(quizzesRoot, modeEntry.name);
-
-        for (const groupEntry of fs.readdirSync(modeDir, { withFileTypes: true })) {
-            if (!groupEntry.isDirectory()) continue;
-            const filename = path.join(modeDir, groupEntry.name, "index.html");
-            if (!fs.existsSync(filename)) continue;
-
+    const walk = directory => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const filename = path.join(directory, entry.name);
+            if (entry.isDirectory()) { walk(filename); continue; }
+            if (!entry.isFile() || entry.name !== "index.html") continue;
             const html = fs.readFileSync(filename, "utf8");
-            if (!html.includes("data-smurdy-quiz-page")) continue;
-
-            pages.push({
-                modeId: modeEntry.name,
-                groupId: groupEntry.name,
-                filename,
-                html
-            });
+            if (!html.includes("data-smurdy-quiz-page") || !html.includes('content="index, follow"')) continue;            const relative = path.relative(quizzesRoot, filename).split(path.sep).join("/");
+            const parts = relative.split("/");
+            if (parts.length !== 5 || !["maps", "capitals", "flags"].includes(parts[0])) continue;
+            pages.push({ modeId: (parts[0] === "maps" ? parts.slice(0, 3) : parts.slice(0, 2)).join("/"), groupId: parts[3], filename, html });
         }
-    }
-
+    };
+    walk(quizzesRoot);
     return pages;
 }
 
@@ -41,14 +32,14 @@ test("shared landing breadcrumbs make every parent level clickable", () => {
     const shell = require(path.join(root, "tools/quiz_page_shell.js"));
     const html = shell.renderLandingBreadcrumbs({
         root: "https://smurdy.fun",
-        modeHref: "/quizzes/click-country/",
+        modeHref: "/quizzes/maps/click/countries/",
         modeLabel: "Click the Countries",
         groupLabel: "World"
     });
 
     assert.match(
         html,
-        /<a href="https:\/\/smurdy\.fun\/">Smurdy<\/a>[\s\S]*?<a href="https:\/\/smurdy\.fun\/quizzes\/">All quizzes<\/a>[\s\S]*?<a href="https:\/\/smurdy\.fun\/quizzes\/click-country\/">Click the Countries<\/a>[\s\S]*?<span aria-current="page">World<\/span>/
+        /<a href="https:\/\/smurdy\.fun\/">Smurdy<\/a>[\s\S]*?<a href="https:\/\/smurdy\.fun\/quizzes\/">All quizzes<\/a>[\s\S]*?<a href="https:\/\/smurdy\.fun\/quizzes\/maps\/click\/countries\/">Click the Countries<\/a>[\s\S]*?<span aria-current="page">World<\/span>/
     );
 });
 
@@ -94,15 +85,15 @@ test("all quiz landing pages use Smurdy > All quizzes > mode > current group", (
 
 test("representative landing breadcrumbs use the public mode names", () => {
     const click = fs.readFileSync(
-        path.join(root, "quizzes/click-country/world/index.html"),
+        path.join(root, "quizzes/maps/click/countries/world/index.html"),
         "utf8"
     );
     const capitals = fs.readFileSync(
-        path.join(root, "quizzes/type-capital/world/index.html"),
+        path.join(root, "quizzes/capitals/type/countries/world/index.html"),
         "utf8"
     );
     const flags = fs.readFileSync(
-        path.join(root, "quizzes/type-flag/world/index.html"),
+        path.join(root, "quizzes/flags/type/countries/world/index.html"),
         "utf8"
     );
 

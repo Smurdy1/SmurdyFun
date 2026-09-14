@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260910-memory-1";
+const ASSET_VERSION = "20260914-routes-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -104,6 +104,7 @@ function renderFooter({ root = "", className = "" } = {}) {
 function renderLandingScripts({ root = "" } = {}) {
     const scripts = [
         `/src/js/manifest.js?v=${ASSET_VERSION}`,
+        `/src/js/quiz_routes.js?v=${ASSET_VERSION}`,
         `/src/js/quiz_definitions.js?v=${ASSET_VERSION}`,
         `/src/js/quiz_landing.js?v=${ASSET_VERSION}`
     ];

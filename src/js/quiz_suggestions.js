@@ -7,6 +7,8 @@
 })(typeof window !== "undefined" ? window : null, function createQuizSuggestionsApi(root) {
     "use strict";
 
+    const routeApi = root?.SmurdyQuizRoutes || (typeof require === "function" ? require("./quiz_routes.js") : null);
+
     const STYLE_ID = "smurdy-quiz-suggestions-style-v1";
     const DIALOG_SELECTOR = "[data-smurdy-quiz-suggestion-dialog]";
 
@@ -94,7 +96,8 @@
     }
 
     function routeFor(quizId, groupId) {
-        return `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`;
+        return routeApi?.canonicalPath?.(quizId, groupId, root?.SmurdyQuizManifest || []) ||
+            `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`;
     }
 
     function alternateModeFor(result) {

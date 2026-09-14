@@ -47,10 +47,11 @@
     }
 
     function routeContext(pathname = location.pathname) {
-        const match = String(pathname || "").match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/i);
-        if (!match) return null;
-        const quizId = decodeURIComponent(match[1]);
-        const groupId = decodeURIComponent(match[2]);
+        const shared = window.SmurdyQuizRoutes?.parsePath?.(pathname, window.SmurdyQuizManifest || []);
+        const match = shared ? null : String(pathname || "").match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/i);
+        if (!shared && !match) return null;
+        const quizId = shared?.quizId || decodeURIComponent(match[1]);
+        const groupId = shared?.groupId || decodeURIComponent(match[2]);
         const modeLabel = MODE_LABELS[quizId] || humanize(quizId);
         const groupLabel = GROUP_LABELS[groupId] || humanize(groupId);
         return {
@@ -60,7 +61,7 @@
             groupLabel,
             title: `${groupLabel}: ${modeLabel} | Smurdy`,
             description: `Try the ${groupLabel} ${modeLabel.toLowerCase()} quiz on Smurdy.`,
-            url: `${SITE_ORIGIN}/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`,
+            url: `${SITE_ORIGIN}${window.SmurdyQuizRoutes?.canonicalPath?.(quizId, groupId, window.SmurdyQuizManifest || []) || `/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}/`}`,
             image: `${SITE_ORIGIN}/assets/social/quizzes/${encodeURIComponent(quizId)}/${encodeURIComponent(groupId)}.png?v=${SHARE_ASSET_VERSION}`,
             imageAlt: `${groupLabel} ${modeLabel} quiz on Smurdy`,
             isQuiz: true

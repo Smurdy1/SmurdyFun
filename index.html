@@ -19,12 +19,12 @@
     <meta property="og:description" content="Interactive geography quizzes with maps, countries, regions, and point guessing.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://smurdy.fun/">
-    <meta property="og:image" content="https://smurdy.fun/assets/social/smurdy.png?v=20260914-sharing-6">
+    <meta property="og:image" content="https://smurdy.fun/assets/social/smurdy.png?v=20260914-sharing-7">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Smurdy - Geography quizzes">
     <meta name="twitter:description" content="Interactive geography quizzes with maps, countries, regions, and point guessing.">
-    <meta name="twitter:image" content="https://smurdy.fun/assets/social/smurdy.png?v=20260914-sharing-6">
+    <meta name="twitter:image" content="https://smurdy.fun/assets/social/smurdy.png?v=20260914-sharing-7">
     <link
         rel="stylesheet"
         href="https://unpkg.com/maplibre-gl@5.20.1/dist/maplibre-gl.css"
@@ -44,7 +44,7 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Smurdy geography quizzes">
   <meta name="twitter:image:alt" content="Smurdy geography quizzes">
-  <link rel="stylesheet" href="/styles/share.css?v=20260914-sharing-6" data-smurdy-share-asset>
+  <link rel="stylesheet" href="/styles/share.css?v=20260914-sharing-7" data-smurdy-share-asset>
   <script data-smurdy-theme-bootstrap>try{if(localStorage.getItem("smurdy-theme")==="dark"){document.documentElement.dataset.smurdyTheme="dark";document.documentElement.style.colorScheme="dark"}else{document.documentElement.dataset.smurdyTheme="light";document.documentElement.style.colorScheme="light"}}catch(_){}</script>
   <link rel="stylesheet" href="/styles/theme.css?v=20260914-dark-mode-5" data-smurdy-theme-asset>
 </head>
@@ -89,11 +89,11 @@
             <strong>Explore geography quizzes</strong>
             <a href="/quizzes/">All quizzes</a>
             <div>
-                <a href="/quizzes/click-country/world/">World</a>
-                <a href="/quizzes/click-country/europe/">Europe</a>
-                <a href="/quizzes/click-country/asia/">Asia</a>
-                <a href="/quizzes/click-country/africa/">Africa</a>
-                <a href="/quizzes/click-subdivision/us_states/">US States</a>
+                <a href="/quizzes/maps/click/countries/world/">World</a>
+                <a href="/quizzes/maps/click/countries/europe/">Europe</a>
+                <a href="/quizzes/maps/click/countries/asia/">Asia</a>
+                <a href="/quizzes/maps/click/countries/africa/">Africa</a>
+                <a href="/quizzes/maps/click/subdivisions/us_states/">US States</a>
             </div>
         </nav>
     </div>
@@ -106,9 +106,10 @@
      <script src="/src/js/weak_spots.js?v=20260910-ui-detail-1" defer></script>
      <script src="/src/js/quiz_library.js?v=20260909-editorial-1" defer></script>
      <script src="/src/js/capital_quiz.js?v=20260909-editorial-1" defer></script>
-     <script src="/src/js/manifest.js?v=20260909-editorial-1" defer></script>
-     <script src="/src/js/quiz_definitions.js?v=20260909-editorial-1" defer></script>
-     <script src="/src/js/app.js?v=20260910-suggestions-1" defer></script>
+     <script src="/src/js/manifest.js?v=20260914-routes-1" defer></script>
+     <script src="/src/js/quiz_routes.js?v=20260914-routes-1" defer></script>
+     <script src="/src/js/quiz_definitions.js?v=20260914-routes-1" defer></script>
+     <script src="/src/js/app.js?v=20260914-routes-1" defer></script>
      <script src="/src/js/browse.js?v=20260909-editorial-1" defer></script>
 <!-- smurdy-global-map-control-visibility-v1 -->
 <script>
@@ -119,7 +120,7 @@
         try {
             return (
                 new URLSearchParams(location.search).has("quiz") ||
-                /^\/quizzes\/[^/]+\/[^/]+\/?$/.test(location.pathname)
+                /^\/quizzes\/(?:[^/]+\/[^/]+|[^/]+\/[^/]+\/[^/]+\/[^/]+)\/?$/.test(location.pathname)
             );
         } catch (_) {
             return false;
@@ -303,7 +304,7 @@
     );
 })();
 </script>
-  <script src="/src/js/share.js?v=20260914-sharing-6" defer data-smurdy-share-asset></script>
+  <script src="/src/js/share.js?v=20260914-sharing-7" defer data-smurdy-share-asset></script>
   <script src="/src/js/theme.js?v=20260914-dark-mode-5" defer data-smurdy-theme-asset></script>
 </body>
  </html>

@@ -50,7 +50,7 @@ test("grammar-sensitive templates do not splice raw group labels into prose", ()
 
 test("known awkward group names render naturally", () => {
     const spanishCapital = read(
-        "quizzes/type-capital/spanish_speaking/index.html"
+        "quizzes/capitals/type/countries/spanish_speaking/index.html"
     );
     assert.match(
         spanishCapital,
@@ -66,27 +66,27 @@ test("known awkward group names render naturally", () => {
         /countries in Spanish-Speaking Countries/
     );
 
-    const worldType = read("quizzes/type-country/world/index.html");
+    const worldType = read("quizzes/maps/type/countries/world/index.html");
     assert.match(worldType, /names and locations of the world/);
     assert.doesNotMatch(worldType, /locations of World/);
 
-    const euType = read("quizzes/type-country/european_union/index.html");
+    const euType = read("quizzes/maps/type/countries/european_union/index.html");
     assert.match(euType, /names and locations of the European Union/);
     assert.doesNotMatch(euType, /locations of European Union/);
 
-    const balkans = read("quizzes/find-country/balkans/index.html");
+    const balkans = read("quizzes/maps/find/countries/balkans/index.html");
     assert.match(balkans, /knowledge of the Balkans/);
 
-    const americas = read("quizzes/find-country/americas/index.html");
+    const americas = read("quizzes/maps/find/countries/americas/index.html");
     assert.match(americas, /knowledge of the Americas/);
 });
 
 test("subdivision prose refers to the parent geography, not the group title", () => {
-    const clickStates = read("quizzes/click-subdivision/us_states/index.html");
+    const clickStates = read("quizzes/maps/click/subdivisions/us_states/index.html");
     assert.match(clickStates, /internal map of the United States/);
     assert.doesNotMatch(clickStates, /inside US States/);
 
-    const findStates = read("quizzes/find-subdivision/us_states/index.html");
+    const findStates = read("quizzes/maps/find/subdivisions/us_states/index.html");
     assert.match(findStates, /outer shape of the United States/);
     assert.doesNotMatch(findStates, /inside US States/);
 });
