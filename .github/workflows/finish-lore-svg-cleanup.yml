@@ -85,6 +85,14 @@ jobs:
               if '1\\.15\\.0' not in s:
                   raise SystemExit(f"Expected version assertion missing from {test_file}")
               p.write_text(s.replace('1\\.15\\.0', '1\\.16\\.2'))
+
+          sharing = Path("tests/sharing.test.js")
+          s = sharing.read_text()
+          old = '''    for (const page of pages) {\n        const html = read(page);\n        assert.match(html, /\\/styles\\/share\\.css\\?v=/, `${page} is missing share.css`);'''
+          new = '''    for (const page of pages) {\n        const html = read(page);\n        if (/\\bnoindex\\b/i.test(metaContent(html, "name", "robots"))) continue;\n        assert.match(html, /\\/styles\\/share\\.css\\?v=/, `${page} is missing share.css`);'''
+          if old not in s:
+              raise SystemExit("Sharing test public-page loop did not match expected source")
+          sharing.write_text(s.replace(old, new, 1))
           PY
       - name: Install dependencies
         run: npm install --no-package-lock
