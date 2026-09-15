@@ -1,0 +1,35 @@
+name: Full regression suite once
+
+on:
+  push:
+    branches:
+      - remove-redrawn-lore-svgs-cleanup
+    paths:
+      - .github/workflows/full-tests-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: remove-redrawn-lore-svgs-cleanup
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run full test suite
+        run: npm test
+      - name: Remove one-time workflow
+        run: |
+          git rm .github/workflows/full-tests-once.yml
+          git config user.name 'Smurdy'
+          git config user.email '110361649+Smurdy1@users.noreply.github.com'
+          git commit -m 'Remove one-time full-test workflow'
+          git push origin HEAD:remove-redrawn-lore-svgs-cleanup
