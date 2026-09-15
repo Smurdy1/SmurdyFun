@@ -24,7 +24,6 @@
     }
 
     function styleIndicator(element, share = false) {
-        if (!element) return;
         element.style.color = "#2e8b57";
         element.style.fontWeight = "700";
         element.style.lineHeight = "1.25";
@@ -51,11 +50,8 @@
         }
         indicator.hidden = false;
 
-        if (before && before.parentNode === container) {
-            container.insertBefore(indicator, before);
-        } else if (indicator.parentNode !== container) {
-            container.appendChild(indicator);
-        }
+        if (before && before.parentNode === container) container.insertBefore(indicator, before);
+        else if (indicator.parentNode !== container) container.appendChild(indicator);
         return indicator;
     }
 
@@ -116,10 +112,7 @@
 
     function install() {
         if (!root) return;
-        if (root.SmurdyQuizCompletion) {
-            patchCompletion(root.SmurdyQuizCompletion);
-            return;
-        }
+        if (root.SmurdyQuizCompletion) return patchCompletion(root.SmurdyQuizCompletion);
 
         let pendingValue;
         try {
