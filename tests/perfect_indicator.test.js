@@ -43,8 +43,8 @@ test("Perfect appears once in page UI and is added to the generated share image"
     assert.match(source, /fillText\("Perfect", 72, 525\)/);
 });
 
-test("quiz session loads the perfect indicator for both map and flag quizzes", () => {
+test("quiz session loads the updated perfect module for both map and flag quizzes", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/quiz_session.js"), "utf8");
-    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-1/);
+    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-2/);
     assert.match(source, /data-smurdy-perfect-module|smurdyPerfectModule/);
 });
