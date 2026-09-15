@@ -17,10 +17,7 @@
         if (!result) return false;
         const total = Math.max(0, Number(result.total) || 0);
         const completed = Math.max(0, Number(result.completedCount) || 0);
-        return total > 0 &&
-            completed === total &&
-            Number(result.accuracyPercent) === 100 &&
-            result.hasMisses !== true;
+        return total > 0 && completed === total && Number(result.accuracyPercent) === 100 && result.hasMisses !== true;
     }
 
     function styleIndicator(element, share = false) {
@@ -103,10 +100,7 @@
             return originalHideShare(container);
         };
 
-        Object.defineProperty(api, "__smurdyPerfectPatched", {
-            value: true,
-            enumerable: false
-        });
+        Object.defineProperty(api, "__smurdyPerfectPatched", { value: true, enumerable: false });
         return api;
     }
 
@@ -130,12 +124,5 @@
         } catch (_) {}
     }
 
-    return {
-        isPerfectResult,
-        renderBrowserIndicator,
-        renderShareIndicator,
-        hideIndicators,
-        patchCompletion,
-        install
-    };
+    return { isPerfectResult, renderBrowserIndicator, renderShareIndicator, hideIndicators, patchCompletion, install };
 });
