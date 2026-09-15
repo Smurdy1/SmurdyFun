@@ -26,6 +26,7 @@
     function styleIndicator(element) {
         element.style.color = PERFECT_COLOR;
         element.style.fontWeight = "700";
+        element.style.marginLeft = "0.45em";
     }
 
     function findCompletionStatus(container) {
@@ -66,16 +67,12 @@
             wrap = document.createElement("span");
             wrap.dataset.smurdyPerfectWrap = "";
 
-            const separator = document.createElement("span");
-            separator.setAttribute("aria-hidden", "true");
-            separator.textContent = " · ";
-
             const indicator = document.createElement("span");
             indicator.dataset.smurdyPerfect = "";
             indicator.textContent = "Perfect";
             styleIndicator(indicator);
 
-            wrap.append(separator, indicator);
+            wrap.appendChild(indicator);
             status.appendChild(wrap);
         }
 
@@ -126,15 +123,12 @@
 
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-        // Keep Perfect attached to the result identity instead of floating as a separate section.
         ctx.font = "600 25px Arial, Helvetica, sans-serif";
         const modeWidth = ctx.measureText(String(result.modeLabel || "")).width;
-        const separatorX = 72 + modeWidth + 12;
-        ctx.fillStyle = "#555";
-        ctx.fillText("·", separatorX, 310);
+        const perfectX = 72 + modeWidth + 18;
         ctx.fillStyle = PERFECT_COLOR;
         ctx.font = "700 25px Arial, Helvetica, sans-serif";
-        ctx.fillText("Perfect", separatorX + 20, 310);
+        ctx.fillText("Perfect", perfectX, 310);
         return canvasToBlob(canvas);
     }
 
