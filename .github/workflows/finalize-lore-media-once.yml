@@ -1,0 +1,306 @@
+name: Finalize lore media once
+
+on:
+  push:
+    branches:
+      - remove-redrawn-lore-svgs-cleanup
+    paths:
+      - .github/workflows/finalize-lore-media-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: remove-redrawn-lore-svgs-cleanup
+          fetch-depth: 0
+
+      - name: Patch lore to use only original media
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('src/js/lore.js')
+          s = p.read_text()
+          s = s.replace('const RELEASE_VERSION = "1.16.0";', 'const RELEASE_VERSION = "1.16.1";')
+          replacements = {
+              '/assets/lore/turnover-reverse.svg': '/assets/lore/turnover.png',
+              '/assets/lore/eye-offset.webp': '/assets/lore/eye-offset.png',
+              '/assets/lore/empty-eye.webp': '/assets/lore/eye-empty.png',
+              '/assets/lore/forsaken8-box.webp': '/assets/lore/cat-box.png',
+              '/assets/lore/jailtime-redacted.webp': '/assets/lore/jailtime.png',
+              '/assets/lore/forsaken8.webp': '/assets/lore/forsaken8.png',
+              '/assets/lore/route-4824.webp': '/assets/lore/route-4824.png',
+              '/assets/lore/bouvet.webp': '/assets/lore/bouvet.png',
+              '/assets/lore/tps.webp': '/assets/lore/tps.png',
+              '/assets/lore/overlap.webp': '/assets/lore/overlap.png',
+          }
+          for old, new in replacements.items():
+              s = s.replace(old, new)
+
+          share_fn = r'''async function loadLoreImage(src) {
+        return new Promise((resolve, reject) => {
+            const image = new root.Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error("Lore image decode failed"));
+            image.src = src;
+        });
+    }
+
+    async function add1313ToShareImage(blob, result) {
+        if (!share1313?.get(result) || !root?.document || !root?.URL || !root?.Image) return blob;
+        try {
+            const image = await blobImage(blob);
+            const eye = await loadLoreImage("/assets/lore/eye-outline.png");
+            const canvas = root.document.createElement("canvas");
+            canvas.width = image.naturalWidth || image.width;
+            canvas.height = image.naturalHeight || image.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return blob;
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            const size = Math.max(28, Math.round(canvas.width * 0.045));
+            const x = canvas.width - size - 34;
+            const y = canvas.height - size - 28;
+            ctx.save();
+            ctx.globalAlpha = 0.72;
+            ctx.drawImage(eye, x, y, size, size);
+            ctx.fillStyle = "rgba(20,20,20,.72)";
+            ctx.font = "12px ui-monospace, monospace";
+            ctx.fillText("1313", x - 2, y - 5);
+            ctx.restore();
+            return await canvasBlob(canvas);
+        } catch (_) {
+            return blob;
+        }
+    }
+
+    function patchCompletion()'''
+          s, count = re.subn(r'async function add1313ToShareImage\(blob, result\) \{.*?\n    \}\n\n    function patchCompletion\(\)', share_fn, s, flags=re.S)
+          if count != 1:
+              raise SystemExit(f'share function replacement count={count}')
+
+          archive_fn = r'''function renderArchive() {
+        const main = pageRoot("lore-archive");
+        const title = root.document.createElement("h1");
+        title.textContent = "archive";
+        const list = root.document.createElement("div");
+        list.className = "lore-archive-list";
+        const output = root.document.createElement("div");
+        output.className = "lore-archive-output";
+
+        // Almost every supplied artifact lives somewhere in this pool. Only one record is
+        // recoverable for a given seed; the rest behave like dead or disputed records.
+        const files = [
+            ["FILE 8-BCE", "image", "/assets/lore/forsaken8.png"],
+            ["SUBJECT 121", "image", "/assets/lore/cat-dark.png"],
+            ["RECOVERED 03/17", "image", "/assets/lore/eye-bars.png"],
+            ["ROUTE 4824", "image", "/assets/lore/road.png"],
+            ["ARCHIVE 1353", "image", "/assets/lore/smurdencryption.png"],
+            ["OBSERVATION INCOMPLETE", "image", "/assets/lore/eye-batman.png"],
+            ["SOURCE DISPUTED", "image", "/assets/lore/purple-shadow.jpg"],
+            ["BASELINE A", "image", "/assets/lore/eye-normal-a.png"],
+            ["BASELINE B", "image", "/assets/lore/eye-normal-b.png"],
+            ["WINDOW RECORD", "image", "/assets/lore/cat-window.png"],
+            ["STATUS: FORSAKEN", "image", "/assets/lore/tree.png"],
+            ["SIGNAL LOST", "image", "/assets/lore/sign.png"],
+            ["HYPER", "image", "/assets/lore/hyper-dark.png"],
+            ["SINCE 1984", "image", "/assets/lore/since-1984.png"],
+            ["FAN RECORD", "image", "/assets/lore/faucet-fan.png"],
+            ["OBJECT 505", "image", "/assets/lore/pumpkin.png"],
+            ["STRUCTURE UNCHANGED", "image", "/assets/lore/old-map.png"],
+            ["EARLY ICON", "image", "/assets/lore/pixel-creature.png"],
+            ["EYE / RED", "image", "/assets/lore/eye-red.png"],
+            ["EYE / OUTLINE", "image", "/assets/lore/eye-outline.png"],
+            ["AUDIO 5729", "audio", "/assets/lore/trombone.wav"],
+            ["5729.txt", "text", "DEPREHENSVM PERFECI\nNO FURTHER RECORD."]
+        ];
+        const recovered = variant("archive-recovered", files.length);
+        files.forEach((file, index) => {
+            const button = root.document.createElement("button");
+            button.type = "button";
+            button.textContent = file[0];
+            button.addEventListener("click", () => {
+                output.replaceChildren();
+                if (index !== recovered) {
+                    output.textContent = variant(`archive-dead-${index}`, 3) === 0 ? "NO FURTHER RECORD." : "";
+                    return;
+                }
+                if (file[1] === "text") {
+                    output.textContent = file[2];
+                    return;
+                }
+                output.textContent = "RECOVERED";
+                if (file[1] === "audio") {
+                    const audio = root.document.createElement("audio");
+                    audio.controls = true;
+                    audio.preload = "none";
+                    audio.src = file[2];
+                    output.appendChild(audio);
+                    return;
+                }
+                output.appendChild(artifact(file[2]));
+            });
+            list.appendChild(button);
+        });
+        main.append(title, list, output);
+    }
+
+    function renderSecretPage()'''
+          s, count = re.subn(r'function renderArchive\(\) \{.*?\n    \}\n\n    function renderSecretPage\(\)', archive_fn, s, flags=re.S)
+          if count != 1:
+              raise SystemExit(f'archive replacement count={count}')
+
+          p.write_text(s)
+
+          # Bust lore script caches everywhere without changing launch-intent ordering.
+          for file in [Path('index.html'), Path('src/js/quiz_session.js'), *Path('.').glob('*/index.html')]:
+              if not file.exists():
+                  continue
+              text = file.read_text()
+              text = re.sub(r'lore\.js\?v=2026091[45]-lore-[123]', 'lore.js?v=20260915-lore-3', text)
+              file.write_text(text)
+
+          test = Path('tests/lore_system.test.js')
+          t = test.read_text().replace('assert.equal(lore.RELEASE_VERSION, "1.16.0");', 'assert.equal(lore.RELEASE_VERSION, "1.16.1");')
+          t = t.replace('/\\/src\\/js\\/lore\\.js\\?v=20260914-lore-2/', '/\\/src\\/js\\/lore\\.js\\?v=20260915-lore-3/')
+          t += r'''
+
+test("lore visuals are originals or generated Smurdy Encryption, never redraw SVGs", () => {
+    const source = read("src/js/lore.js");
+    assert.doesNotMatch(source, /assets\/lore\/[^"']+\.svg/);
+    assert.doesNotMatch(source, /assets\/lore\/[^"']+\.webp/);
+    const originals = [
+        "eye-bars.png", "overlap.png", "cat-dark.png", "eye-normal-a.png", "eye-empty.png",
+        "turnover.png", "tps.png", "tree.png", "sign.png", "forsaken8.png", "eye-batman.png",
+        "jailtime.png", "cat-box.png", "hyper-dark.png", "cat-window.png", "since-1984.png",
+        "faucet-fan.png", "road.png", "eye-outline.png", "route-4824.png", "bouvet.png",
+        "eye-offset.png", "pumpkin.png", "old-map.png", "pixel-creature.png", "eye-red.png",
+        "eye-normal-b.png", "purple-shadow.jpg"
+    ];
+    for (const asset of originals) {
+        assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "lore", asset)), asset);
+        assert.match(source, new RegExp(asset.replace(".", "\\.")), `lore should use ${asset}`);
+    }
+    assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "lore", "trombone.wav")));
+    assert.match(source, /trombone\.wav/);
+    assert.match(source, /audio\.preload = "none"/);
+    assert.doesNotMatch(source, /autoplay/);
+});
+'''
+          test.write_text(t)
+          PY
+
+      - name: Generate one Smurdy Encryption archive artifact
+        shell: bash
+        run: |
+          cat > /tmp/gen_cipher.py <<'PY'
+          from PIL import Image, ImageDraw, ImageFont
+          import math
+
+          MAP={chr(65+i):i+1 for i in range(26)}
+          def bits(n): return [(n>>s)&1 for s in (4,3,2,1,0)]
+          def seg(d,a,b,w):
+              d.line([a,b],fill=0,width=w)
+              r=w/2
+              for x,y in (a,b): d.ellipse((x-r,y-r,x+r,y+r),fill=0)
+          def disk(d,c,r):
+              x,y=c; d.ellipse((x-r,y-r,x+r,y+r),fill=0)
+          def block(d,xy,letters,caps,cell=56,w=11):
+              ox,oy=xy; u=cell
+              p={'tl':(ox,oy),'tm':(ox+u,oy),'tr':(ox+2*u,oy),'ml':(ox,oy+u),'c':(ox+u,oy+u),'mr':(ox+2*u,oy+u),'bl':(ox,oy+2*u),'bm':(ox+u,oy+2*u),'br':(ox+2*u,oy+2*u),'qtl':(ox+.5*u,oy+.5*u),'qtr':(ox+1.5*u,oy+.5*u),'qbl':(ox+.5*u,oy+1.5*u),'qbr':(ox+1.5*u,oy+1.5*u)}
+              data=[]
+              for i in range(5): data += bits(MAP[letters[i]]) if i<len(letters) else [0]*5
+              g=[data[i*5:(i+1)*5] for i in range(5)]
+              specs=[
+                [('bl','bm'),('ml','bl'),('bl','c'),('ml','bm'),'qbl'],
+                [('tl','ml'),('tl','tm'),('tl','c'),('ml','tm'),'qtl'],
+                [('tm','tr'),('tr','mr'),('tr','c'),('tm','mr'),'qtr'],
+                [('mr','br'),('bm','br'),('br','c'),('bm','mr'),'qbr'],
+                [('ml','c'),('tm','c'),('c','mr'),('c','bm'),'c']]
+              for gi in range(5):
+                for bi in range(5):
+                  if not g[gi][bi]: continue
+                  sp=specs[gi][bi]
+                  if bi==4: disk(d,p[sp],12 if gi<4 else 13)
+                  else: seg(d,p[sp[0]],p[sp[1]],w)
+              if any(caps):
+                apex=(ox-.84*u,oy+u)
+                if caps[0]: seg(d,apex,(ox,oy),10)
+                if caps[1]: seg(d,apex,(ox,oy+2*u),10)
+                if caps[2]: seg(d,apex,(ox,oy+u),10)
+                if caps[3]: disk(d,(ox-.42*u,oy+.5*u),10)
+                if caps[4]: disk(d,(ox-.42*u,oy+1.5*u),10)
+          def modifier(d,x,y,kind,pos,size=52,w=9):
+              cx=x+size*.5; top=y+size*.02; shoulder=y+size*.50; bottom=y+size*1.95
+              dx=size*.23; xs={'l':cx-dx,'c':cx,'r':cx+dx}; half=size*.33; left=cx-half; right=cx+half
+              if kind=='space':
+                r=size*.31; cy=y+size*.35; d.ellipse((cx-r,cy-r,cx+r,cy+r),outline=0,width=w); st=cy+r
+              elif kind=='period':
+                seg(d,(left,shoulder),(cx,top),w); seg(d,(cx,top),(right,shoulder),w); seg(d,(left,shoulder),(right,shoulder),w); st=shoulder
+              elif kind=='comma':
+                seg(d,(left,shoulder),(cx,top),w); seg(d,(cx,top),(right,shoulder),w); st=shoulder
+              else:
+                bar=y+size*.28; seg(d,(left,bar),(right,bar),w); st=bar
+              pat={1:('c',),2:('l',),3:('l','c'),4:('l','r'),5:('l','c','r')}[pos]
+              for k in pat: seg(d,(xs[k],st),(xs[k],bottom),w)
+          def version(d,x,y,h=58,w=9):
+              ww=h*.58; seg(d,(x,y),(x,y+h),w); seg(d,(x,y),(x+.43*ww,y),w); seg(d,(x,y+h),(x+.43*ww,y+h),w)
+              pts=[]
+              for i in range(40):
+                a=-math.pi/2+math.pi*i/39; pts.append((x+.43*ww+.5*ww*math.cos(a),y+h/2+h/2*math.sin(a)))
+              d.line(pts,fill=0,width=w); seg(d,(x+.05*ww,y+h/2),(x+.76*ww,y+h/2),max(4,w-2))
+          text='OCVLVS SMVRDII OMNIA VIDET'
+          toks=[]
+          for ch in text:
+              if ch.isalpha(): toks.append(('l',ch))
+              elif ch==' ': toks.append(('s',' '))
+          groups=[]; i=0
+          while i<len(toks):
+              while i<len(toks) and toks[i][0]=='s': i+=1
+              if i>=len(toks): break
+              letters=[]; caps=[]; mods=[]
+              while i<len(toks):
+                  typ,val=toks[i]
+                  if typ=='l':
+                      if len(letters)>=5: break
+                      letters.append(val.upper()); caps.append(val.isupper()); i+=1
+                  else:
+                      if letters: mods.append(('space',len(letters)))
+                      i+=1
+              groups.append((letters,caps,mods))
+          S=4; cell=56*S; margin=36*S; gap=36*S; dslot=55*S; x0=margin+dslot+40*S; y=margin+25*S
+          widths=[]
+          for _,_,mods in groups: widths.append(2*cell+(34*S if not mods else 45*S+len(mods)*50*S))
+          W=x0+sum(widths)+margin; H=2*cell+2*margin+60*S
+          im=Image.new('L',(W,H),255); d=ImageDraw.Draw(im); version(d,margin,y+cell-29*S,h=58*S,w=9*S)
+          x=x0
+          for letters,caps,mods in groups:
+              block(d,(x,y),letters,caps,cell,w=11*S); mx=x+2*cell+22*S
+              for j,(kind,pos) in enumerate(mods): modifier(d,mx+j*50*S,y,kind,pos,size=52*S,w=9*S)
+              x+=2*cell+(34*S if not mods else 45*S+len(mods)*50*S)
+          im=im.resize((im.width//S,im.height//S),Image.Resampling.LANCZOS).convert('RGB')
+          im.save('assets/lore/smurdencryption.png')
+          PY
+          python /tmp/gen_cipher.py
+
+      - name: Run lore regression tests
+        shell: bash
+        run: |
+          node --test tests/lore_system.test.js
+
+      - name: Commit final lore media update and remove this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/finalize-lore-media-once.yml
+          git config user.name 'Smurdy'
+          git config user.email '110361649+Smurdy1@users.noreply.github.com'
+          git add -A
+          git commit -m '1.16.1 Use original lore artifacts throughout'
+          git push origin HEAD:remove-redrawn-lore-svgs-cleanup
