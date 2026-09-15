@@ -35,22 +35,24 @@ test("perfect means the quiz was completed with no mistakes", () => {
     }), false);
 });
 
-test("Perfect is integrated with map and flag completion status instead of forming a separate section", () => {
+test("Perfect is integrated with map and flag completion status without a decorative separator", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
     assert.match(source, /\.flag-result\.is-finished/);
     assert.match(source, /#quiz-target/);
     assert.match(source, /data-smurdy-perfect-wrap/);
-    assert.match(source, /separator\.textContent = " · "/);
+    assert.match(source, /marginLeft = "0\.45em"/);
+    assert.doesNotMatch(source, /separator\.textContent/);
+    assert.doesNotMatch(source, /fillText\("·"/);
     assert.doesNotMatch(source, /data-smurdy-perfect-share/);
-    assert.doesNotMatch(source, /marginTop = "10px"/);
 });
 
-test("generated share images integrate Perfect beside the result identity", () => {
+test("generated share images place Perfect beside the result identity without a separator glyph", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
     assert.match(source, /addPerfectToShareImage/);
     assert.match(source, /measureText\(String\(result\.modeLabel/);
-    assert.match(source, /fillText\("Perfect", separatorX \+ 20, 310\)/);
+    assert.match(source, /fillText\("Perfect", perfectX, 310\)/);
     assert.doesNotMatch(source, /fillText\("Perfect", 72, 525\)/);
+    assert.doesNotMatch(source, /fillText\("·"/);
 });
 
 test("quiz session loads the inline-status perfect module for both map and flag quizzes", () => {
