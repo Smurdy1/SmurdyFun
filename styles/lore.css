@@ -24,6 +24,8 @@ body[data-lore-page] {
     display: block;
     max-width: min(90vw, 860px);
     max-height: 86vh;
+    width: auto;
+    height: auto;
     object-fit: contain;
 }
 
