@@ -3,7 +3,7 @@
 
     if (root?.document && !root.document.querySelector('script[data-smurdy-perfect-module]')) {
         const script = root.document.createElement("script");
-        script.src = "/src/js/perfect.js?v=20260914-perfect-1";
+        script.src = "/src/js/perfect.js?v=20260914-perfect-2";
         script.async = true;
         script.dataset.smurdyPerfectModule = "";
         root.document.head.appendChild(script);
