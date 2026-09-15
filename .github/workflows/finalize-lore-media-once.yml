@@ -23,6 +23,7 @@ jobs:
           python-version: '3.12'
       - name: Apply lore cleanup
         run: |
+          sed -i 's/20260914-lore-2/20260915-lore-3/g' tests/lore_system.test.js
           sed -i 's/, share_fn, s, flags=re.S)/, lambda _: share_fn, s, flags=re.S)/' tools/finalize_lore_once.py
           sed -i 's/, archive_fn, s, flags=re.S)/, lambda _: archive_fn, s, flags=re.S)/' tools/finalize_lore_once.py
           python tools/finalize_lore_once.py
