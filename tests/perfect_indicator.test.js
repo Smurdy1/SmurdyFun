@@ -5,7 +5,7 @@ const path = require("node:path");
 
 const perfect = require("../src/js/perfect.js");
 
-test("perfect requires a completed quiz with 100% accuracy and every item correct first try", () => {
+test("perfect requires a completed quiz with no mistakes", () => {
     assert.equal(perfect.isPerfectResult({
         total: 10,
         completedCount: 10,
@@ -35,23 +35,14 @@ test("perfect requires a completed quiz with 100% accuracy and every item correc
     }), false);
 });
 
-test("perfect share text adds one plain Perfect line", () => {
-    const result = {
-        total: 4,
-        completedCount: 4,
-        accuracyPercent: 100,
-        firstTryCorrect: 4,
-        shareText: "I finished Europe Flags on Smurdy\n100% accuracy | 00:21 | 4/4 completed\nCan you beat it? https://smurdy.fun/"
-    };
-    const decorated = perfect.decorateShareText(result);
-    assert.equal(
-        decorated,
-        "I finished Europe Flags on Smurdy\nPerfect\n100% accuracy | 00:21 | 4/4 completed\nCan you beat it? https://smurdy.fun/"
-    );
-    assert.equal((decorated.match(/Perfect/g) || []).length, 1);
+test("perfect feature stays limited to the indicator surfaces", () => {
+    const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
+    assert.match(source, /smurdy-perfect-indicator/);
+    assert.match(source, /smurdy-share-perfect/);
+    assert.doesNotMatch(source, /buildShareImageBlob|sharePerfectResult|stats|RELEASE_VERSION/);
 });
 
-test("quiz session loads the perfect-result module for both map and flag runners", () => {
+test("quiz session loads the small perfect-result module for map and flag quizzes", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/quiz_session.js"), "utf8");
     assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-1/);
     assert.match(source, /data-smurdy-perfect-module|smurdyPerfectModule/);
