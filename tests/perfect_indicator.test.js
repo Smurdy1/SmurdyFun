@@ -35,7 +35,7 @@ test("perfect means the quiz was completed with no mistakes", () => {
     }), false);
 });
 
-test("perfect feature is only an indicator, not a stats or share-image system", () => {
+test("perfect feature stays indicator-only", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
     assert.match(source, /data-smurdy-perfect/);
     assert.match(source, /data-smurdy-perfect-share/);
