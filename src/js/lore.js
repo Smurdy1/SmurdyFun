@@ -16,7 +16,7 @@
     /* 8 was never correct */
 
     const MASTER_ENABLED = true;
-    const RELEASE_VERSION = "1.16.0";
+    const RELEASE_VERSION = "1.16.1";
     const STORAGE_KEY = "smurdy-lore-v1";
     const LORE_STYLE_ID = "smurdy-lore-runtime-style";
     const SAFE_PATHS = new Set([
@@ -258,7 +258,7 @@
         const eye = brandEye();
         if (!eye) return false;
         if (!eye.dataset.smurdyLoreOriginalSrc) eye.dataset.smurdyLoreOriginalSrc = eye.getAttribute("src") || "";
-        eye.src = "/assets/lore/turnover-reverse.svg";
+        eye.src = "/assets/lore/turnover.png";
         eye.alt = "";
         setState({ seen_eye_variant: true });
         return true;
@@ -340,14 +340,14 @@
             else if (offsetEye) {
                 const eye = brandEye();
                 if (eye) {
-                    eye.src = "/assets/lore/eye-offset.webp";
+                    eye.src = "/assets/lore/eye-offset.png";
                     eye.alt = "";
                     setState({ seen_eye_variant: true });
                 }
             } else if (emptyEye) {
                 const eye = brandEye();
                 if (eye) {
-                    eye.src = "/assets/lore/empty-eye.webp";
+                    eye.src = "/assets/lore/eye-empty.png";
                     eye.alt = "";
                     setState({ seen_eye_variant: true });
                 }
@@ -547,7 +547,7 @@
         if (image.dataset.smurdyLoreChecked === src) return;
         image.dataset.smurdyLoreChecked = src;
         if (!roll("uk-box", 8888)) return;
-        image.src = "/assets/lore/forsaken8-box.webp";
+        image.src = "/assets/lore/cat-box.png";
         setState({ seen_cat_box: true });
         increment("forbidden8_count");
     }
@@ -643,30 +643,35 @@
         });
     }
 
+    async function loadLoreImage(src) {
+        return new Promise((resolve, reject) => {
+            const image = new root.Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error("Lore image decode failed"));
+            image.src = src;
+        });
+    }
+
     async function add1313ToShareImage(blob, result) {
         if (!share1313?.get(result) || !root?.document || !root?.URL || !root?.Image) return blob;
         try {
             const image = await blobImage(blob);
+            const eye = await loadLoreImage("/assets/lore/eye-outline.png");
             const canvas = root.document.createElement("canvas");
             canvas.width = image.naturalWidth || image.width;
             canvas.height = image.naturalHeight || image.height;
             const ctx = canvas.getContext("2d");
             if (!ctx) return blob;
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-            const x = canvas.width - 74;
-            const y = canvas.height - 48;
+            const size = Math.max(28, Math.round(canvas.width * 0.045));
+            const x = canvas.width - size - 34;
+            const y = canvas.height - size - 28;
             ctx.save();
-            ctx.strokeStyle = "rgba(20,20,20,.72)";
+            ctx.globalAlpha = 0.72;
+            ctx.drawImage(eye, x, y, size, size);
             ctx.fillStyle = "rgba(20,20,20,.72)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.ellipse(x, y - 8, 15, 8, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(x, y - 8, 3.4, 0, Math.PI * 2);
-            ctx.fill();
             ctx.font = "12px ui-monospace, monospace";
-            ctx.fillText("1313", x + 21, y - 4);
+            ctx.fillText("1313", x - 2, y - 5);
             ctx.restore();
             return await canvasBlob(canvas);
         } catch (_) {
@@ -760,7 +765,7 @@
         setState({ seen_jailtime: true });
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        wrap.appendChild(artifact("/assets/lore/jailtime-redacted.webp"));
+        wrap.appendChild(artifact("/assets/lore/jailtime.png"));
         if (activeMarch17()) wrap.appendChild(smallCopy("RECOVERED 03/17"));
         main.appendChild(wrap);
     }
@@ -775,7 +780,7 @@
         const main = pageRoot();
         if (choice <= 4) return;
         if (choice <= 6) {
-            main.appendChild(artifact("/assets/lore/forsaken8-box.webp"));
+            main.appendChild(artifact("/assets/lore/cat-box.png"));
             setState({ seen_cat_box: true });
             return;
         }
@@ -785,7 +790,7 @@
             main.appendChild(copy);
             return;
         }
-        main.appendChild(artifact("/assets/lore/forsaken8.webp"));
+        main.appendChild(artifact("/assets/lore/forsaken8.png"));
     }
 
     function render4824() {
@@ -795,7 +800,7 @@
         const title = root.document.createElement("h1");
         title.className = "lore-route-title";
         title.textContent = "route";
-        wrap.append(title, artifact("/assets/lore/route-4824.webp"));
+        wrap.append(title, artifact("/assets/lore/route-4824.png"));
         main.appendChild(wrap);
     }
 
@@ -809,7 +814,7 @@
         }
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        const icon = artifact("/assets/lore/turnover-reverse.svg");
+        const icon = artifact("/assets/lore/turnover.png");
         icon.className = "lore-1313-icon";
         const lines = activeJan17()
             ? ["RETURN CONFIRMED.", "returned by another route", ""]
@@ -832,7 +837,7 @@
             const text = root.document.createElement("div");
             text.className = "lore-bouvet-reveal";
             text.textContent = "OLIM INSVLA BOVVET VINCAM";
-            main.append(text, artifact("/assets/lore/bouvet.webp"));
+            main.append(text, artifact("/assets/lore/bouvet.png"));
             return;
         }
         const choice = variant("bouvet-page", 4);
@@ -855,7 +860,7 @@
         setState({ seen_tps: true });
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        wrap.appendChild(artifact("/assets/lore/tps.webp"));
+        wrap.appendChild(artifact("/assets/lore/tps.png"));
         if (variant("tps-caption", 2) === 1) wrap.appendChild(smallCopy("STRUCTURE UNCHANGED."));
         main.appendChild(wrap);
     }
@@ -863,7 +868,7 @@
     function renderOverlap() {
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        wrap.appendChild(artifact("/assets/lore/overlap.webp"));
+        wrap.appendChild(artifact("/assets/lore/overlap.png"));
         if (variant("overlap-caption", 2) === 1) wrap.appendChild(smallCopy("Overlap remained negligible."));
         main.appendChild(wrap);
     }
@@ -883,15 +888,30 @@
         list.className = "lore-archive-list";
         const output = root.document.createElement("div");
         output.className = "lore-archive-output";
+
         const files = [
-            ["FILE 8-BCE", "text", "STATUS: FORSAKEN\nSOURCE DISPUTED"],
-            ["SUBJECT 121", "text", "SUBJECT UNCHANGED"],
-            ["RECOVERED 03/17", "image", "/assets/lore/eye-bars.webp"],
-            ["ROUTE 4824", "text", "STRUCTURE UNCHANGED."],
-            ["ARCHIVE 1353", "image", "/assets/lore/encryption.webp"],
-            ["OBSERVATION INCOMPLETE", "image", "/assets/lore/eye-signal.webp"],
-            ["5729.txt", "text", "DEPREHENSVM PERFECI\nNO FURTHER RECORD."],
-            ["SOURCE DISPUTED", "image", "/assets/lore/archive-purple.webp"]
+            ["FILE 8-BCE", "image", "/assets/lore/forsaken8.png"],
+            ["SUBJECT 121", "image", "/assets/lore/cat-dark.png"],
+            ["RECOVERED 03/17", "image", "/assets/lore/eye-bars.png"],
+            ["ROUTE 4824", "image", "/assets/lore/road.png"],
+            ["ARCHIVE 1353", "image", "/assets/lore/smurdencryption.png"],
+            ["OBSERVATION INCOMPLETE", "image", "/assets/lore/eye-batman.png"],
+            ["SOURCE DISPUTED", "image", "/assets/lore/purple-shadow.jpg"],
+            ["BASELINE A", "image", "/assets/lore/eye-normal-a.png"],
+            ["BASELINE B", "image", "/assets/lore/eye-normal-b.png"],
+            ["WINDOW RECORD", "image", "/assets/lore/cat-window.png"],
+            ["STATUS: FORSAKEN", "image", "/assets/lore/tree.png"],
+            ["SIGNAL LOST", "image", "/assets/lore/sign.png"],
+            ["HYPER", "image", "/assets/lore/hyper-dark.png"],
+            ["SINCE 1984", "image", "/assets/lore/since-1984.png"],
+            ["FAN RECORD", "image", "/assets/lore/faucet-fan.png"],
+            ["OBJECT 505", "image", "/assets/lore/pumpkin.png"],
+            ["STRUCTURE UNCHANGED", "image", "/assets/lore/old-map.png"],
+            ["EARLY ICON", "image", "/assets/lore/pixel-creature.png"],
+            ["EYE / RED", "image", "/assets/lore/eye-red.png"],
+            ["EYE / OUTLINE", "image", "/assets/lore/eye-outline.png"],
+            ["AUDIO 5729", "audio", "/assets/lore/trombone.wav"],
+            ["5729.txt", "text", "DEPREHENSVM PERFECI\nNO FURTHER RECORD."]
         ];
         const recovered = variant("archive-recovered", files.length);
         files.forEach((file, index) => {
@@ -906,10 +926,18 @@
                 }
                 if (file[1] === "text") {
                     output.textContent = file[2];
-                } else {
-                    output.textContent = "RECOVERED";
-                    output.appendChild(artifact(file[2]));
+                    return;
                 }
+                output.textContent = "RECOVERED";
+                if (file[1] === "audio") {
+                    const audio = root.document.createElement("audio");
+                    audio.controls = true;
+                    audio.preload = "none";
+                    audio.src = file[2];
+                    output.appendChild(audio);
+                    return;
+                }
+                output.appendChild(artifact(file[2]));
             });
             list.appendChild(button);
         });

@@ -7,7 +7,7 @@ const lore = require("../src/js/lore.js");
 const read = relative => fs.readFileSync(path.join(__dirname, "..", relative), "utf8");
 
 test("lore release is a minor feature release and state schema is non-identifying", () => {
-    assert.equal(lore.RELEASE_VERSION, "1.16.0");
+    assert.equal(lore.RELEASE_VERSION, "1.16.1");
     const state = lore.blankState("seed");
     assert.equal(state.lore_seed, "seed");
     assert.equal(state.seen_cat_box, false);
@@ -36,9 +36,9 @@ test("lore bootstrap stays off the flag browser launch-intent critical path", ()
 
     assert.doesNotMatch(launch, /data-smurdy-lore-module|\/src\/js\/lore\.js/);
     assert.match(session, /data-smurdy-lore-module/);
-    assert.match(session, /\/src\/js\/lore\.js\?v=20260914-lore-2/);
+    assert.match(session, /\/src\/js\/lore\.js\?v=20260915-lore-3/);
     assert.match(home, /quiz_launch_intent\.js\?v=20260914-launch-intent-hotfix-1/);
-    assert.match(home, /lore\.js\?v=20260914-lore-2/);
+    assert.match(home, /lore\.js\?v=20260915-lore-3/);
     assert.ok(home.indexOf("quiz_launch_intent.js") < home.indexOf("lore.js"));
 });
 
@@ -86,4 +86,28 @@ test("turnover poem text and inside-code vocabulary are preserved", () => {
     assert.match(source, /The long con never ends/);
     assert.match(source, /where the fields lie/);
     assert.match(source, /OCVLVS SMVRDII OMNIA VIDET/);
+});
+
+
+test("lore visuals are originals or generated Smurdy Encryption, never redraw SVGs", () => {
+    const source = read("src/js/lore.js");
+    assert.doesNotMatch(source, /assets\/lore\/[^"']+\.svg/);
+    assert.doesNotMatch(source, /assets\/lore\/[^"']+\.webp/);
+    const originals = [
+        "eye-bars.png", "overlap.png", "cat-dark.png", "eye-normal-a.png", "eye-empty.png",
+        "turnover.png", "tps.png", "tree.png", "sign.png", "forsaken8.png", "eye-batman.png",
+        "jailtime.png", "cat-box.png", "hyper-dark.png", "cat-window.png", "since-1984.png",
+        "faucet-fan.png", "road.png", "eye-outline.png", "route-4824.png", "bouvet.png",
+        "eye-offset.png", "pumpkin.png", "old-map.png", "pixel-creature.png", "eye-red.png",
+        "eye-normal-b.png", "purple-shadow.jpg"
+    ];
+    for (const asset of originals) {
+        assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "lore", asset)), asset);
+        assert.match(source, new RegExp(asset.replace(".", "\\.")), `lore should use ${asset}`);
+    }
+    assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "lore", "trombone.wav")));
+    assert.match(source, /trombone\.wav/);
+    assert.match(source, /audio\.preload = "none"/);
+    assert.doesNotMatch(source, /autoplay/);
+    assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "lore", "smurdencryption.png")));
 });
