@@ -29,10 +29,17 @@ test("stable lore choices are deterministic per seed", () => {
     assert.notEqual(lore.hash32("1353"), lore.hash32("1313"));
 });
 
-test("lore loader is attached to the shared quiz launch module", () => {
-    const source = read("src/js/quiz_launch_intent.js");
-    assert.match(source, /data-smurdy-lore-module/);
-    assert.match(source, /\/src\/js\/lore\.js\?v=20260914-lore-1/);
+test("lore bootstrap stays off the flag browser launch-intent critical path", () => {
+    const launch = read("src/js/quiz_launch_intent.js");
+    const session = read("src/js/quiz_session.js");
+    const home = read("index.html");
+
+    assert.doesNotMatch(launch, /data-smurdy-lore-module|\/src\/js\/lore\.js/);
+    assert.match(session, /data-smurdy-lore-module/);
+    assert.match(session, /\/src\/js\/lore\.js\?v=20260914-lore-2/);
+    assert.match(home, /quiz_launch_intent\.js\?v=20260914-launch-intent-hotfix-1/);
+    assert.match(home, /lore\.js\?v=20260914-lore-2/);
+    assert.ok(home.indexOf("quiz_launch_intent.js") < home.indexOf("lore.js"));
 });
 
 test("lore stays local and production URLs cannot force debug events", () => {
