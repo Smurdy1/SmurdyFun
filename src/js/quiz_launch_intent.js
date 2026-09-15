@@ -1,6 +1,14 @@
 (function initQuizLaunchIntent(root, factory) {
     "use strict";
 
+    if (root?.document && !root.document.querySelector('script[data-smurdy-lore-module]')) {
+        const loreScript = root.document.createElement("script");
+        loreScript.src = "/src/js/lore.js?v=20260914-lore-1";
+        loreScript.async = true;
+        loreScript.dataset.smurdyLoreModule = "";
+        root.document.head.appendChild(loreScript);
+    }
+
     const api = factory(root);
     if (typeof module === "object" && module.exports) module.exports = api;
     if (root) root.SmurdyQuizLaunchIntent = api;
