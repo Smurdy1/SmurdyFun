@@ -35,16 +35,26 @@ test("perfect means the quiz was completed with no mistakes", () => {
     }), false);
 });
 
-test("Perfect appears once in page UI and is added to the generated share image", () => {
+test("Perfect is integrated with map and flag completion status instead of forming a separate section", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
-    assert.match(source, /data-smurdy-perfect/);
+    assert.match(source, /\.flag-result\.is-finished/);
+    assert.match(source, /#quiz-target/);
+    assert.match(source, /data-smurdy-perfect-wrap/);
+    assert.match(source, /separator\.textContent = " · "/);
     assert.doesNotMatch(source, /data-smurdy-perfect-share/);
-    assert.match(source, /addPerfectToShareImage/);
-    assert.match(source, /fillText\("Perfect", 72, 525\)/);
+    assert.doesNotMatch(source, /marginTop = "10px"/);
 });
 
-test("quiz session loads the updated perfect module for both map and flag quizzes", () => {
+test("generated share images integrate Perfect beside the result identity", () => {
+    const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
+    assert.match(source, /addPerfectToShareImage/);
+    assert.match(source, /measureText\(String\(result\.modeLabel/);
+    assert.match(source, /fillText\("Perfect", separatorX \+ 20, 310\)/);
+    assert.doesNotMatch(source, /fillText\("Perfect", 72, 525\)/);
+});
+
+test("quiz session loads the inline-status perfect module for both map and flag quizzes", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/quiz_session.js"), "utf8");
-    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-2/);
+    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-3/);
     assert.match(source, /data-smurdy-perfect-module|smurdyPerfectModule/);
 });
