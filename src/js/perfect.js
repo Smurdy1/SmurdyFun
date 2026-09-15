@@ -11,7 +11,9 @@
     "use strict";
 
     const BROWSER_SELECTOR = "[data-smurdy-perfect]";
-    const SHARE_SELECTOR = "[data-smurdy-perfect-share]";
+    const PERFECT_COLOR = "#2e8b57";
+    let originalBuildShareImageBlob = null;
+    let originalShareResult = null;
 
     function isPerfectResult(result) {
         if (!result) return false;
@@ -20,11 +22,11 @@
         return total > 0 && completed === total && Number(result.accuracyPercent) === 100 && result.hasMisses !== true;
     }
 
-    function styleIndicator(element, share = false) {
-        element.style.color = "#2e8b57";
+    function styleIndicator(element) {
+        element.style.color = PERFECT_COLOR;
         element.style.fontWeight = "700";
         element.style.lineHeight = "1.25";
-        element.style.marginTop = share ? "2px" : "10px";
+        element.style.marginTop = "10px";
     }
 
     function renderBrowserIndicator(container, result, before) {
@@ -52,52 +54,177 @@
         return indicator;
     }
 
-    function renderShareIndicator(section, result) {
-        if (!section) return null;
-        const document = section.ownerDocument || root?.document;
-        if (!document) return null;
-
-        let indicator = section.querySelector(SHARE_SELECTOR);
-        if (!isPerfectResult(result)) {
-            if (indicator) indicator.hidden = true;
-            return indicator;
-        }
-
-        if (!indicator) {
-            indicator = document.createElement("div");
-            indicator.dataset.smurdyPerfectShare = "";
-            indicator.textContent = "Perfect";
-            styleIndicator(indicator, true);
-            const copy = section.querySelector(".smurdy-share-copy");
-            if (copy) copy.appendChild(indicator);
-            else section.insertBefore(indicator, section.firstChild);
-        }
-        indicator.hidden = false;
-        return indicator;
+    function hideIndicator(container) {
+        const indicator = container?.querySelector?.(BROWSER_SELECTOR);
+        if (indicator) indicator.hidden = true;
     }
 
-    function hideIndicators(container) {
-        const browser = container?.querySelector?.(BROWSER_SELECTOR);
-        if (browser) browser.hidden = true;
-        const share = container?.querySelector?.(SHARE_SELECTOR);
-        if (share) share.hidden = true;
+    function canvasToBlob(canvas) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Canvas export failed.")), "image/png");
+        });
+    }
+
+    function imageFromBlob(blob) {
+        return new Promise((resolve, reject) => {
+            if (!root?.URL || !root?.Image) {
+                reject(new Error("Share image tools are unavailable."));
+                return;
+            }
+            const url = root.URL.createObjectURL(blob);
+            const image = new root.Image();
+            image.onload = () => {
+                root.URL.revokeObjectURL(url);
+                resolve(image);
+            };
+            image.onerror = () => {
+                root.URL.revokeObjectURL(url);
+                reject(new Error("Could not read the share image."));
+            };
+            image.src = url;
+        });
+    }
+
+    async function addPerfectToShareImage(blob, result) {
+        if (!isPerfectResult(result) || !root?.document) return blob;
+
+        const image = await imageFromBlob(blob);
+        const canvas = root.document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return blob;
+
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = PERFECT_COLOR;
+        ctx.font = "700 28px Arial, Helvetica, sans-serif";
+        ctx.fillText("Perfect", 72, 525);
+        return canvasToBlob(canvas);
+    }
+
+    async function writeSharePayloadToClipboard(blob, text) {
+        const navigator = root?.navigator;
+        if (!navigator?.clipboard || !root?.ClipboardItem) return false;
+        try {
+            await navigator.clipboard.write([new root.ClipboardItem({
+                "image/png": blob,
+                "text/plain": new Blob([text], { type: "text/plain" })
+            })]);
+            return true;
+        } catch (_) {
+            try {
+                await navigator.clipboard.write([new root.ClipboardItem({ "image/png": blob })]);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    }
+
+    function downloadBlob(blob, filename) {
+        const document = root?.document;
+        if (!document || !root?.URL) return;
+        const url = root.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        root.setTimeout(() => root.URL.revokeObjectURL(url), 1500);
+    }
+
+    async function sharePerfectResult(result, button, api) {
+        if (!result || !button || button.disabled) return;
+        if (!isPerfectResult(result)) {
+            return originalShareResult?.(result, button);
+        }
+
+        const originalText = "Share result";
+        button.disabled = true;
+        button.textContent = "Preparing...";
+        try {
+            const blob = await api.buildShareImageBlob(result);
+            const FileCtor = root?.File || File;
+            const file = new FileCtor([blob], result.shareFilename, { type: "image/png" });
+            const navigator = root?.navigator;
+
+            if (
+                typeof navigator?.share === "function" &&
+                typeof navigator?.canShare === "function" &&
+                navigator.canShare({ files: [file] })
+            ) {
+                button.textContent = "Sharing...";
+                try {
+                    await navigator.share({ files: [file], text: result.shareText, title: result.shareTitle });
+                    button.textContent = "Shared";
+                } catch (error) {
+                    if (error?.name === "AbortError") {
+                        button.disabled = false;
+                        button.textContent = originalText;
+                        return;
+                    }
+                    throw error;
+                }
+            } else {
+                button.textContent = "Copying...";
+                const copied = await writeSharePayloadToClipboard(blob, result.shareText);
+                if (copied) button.textContent = "Copied image";
+                else {
+                    downloadBlob(blob, result.shareFilename);
+                    button.textContent = "Downloaded";
+                }
+            }
+
+            root?.setTimeout?.(() => {
+                button.disabled = false;
+                button.textContent = originalText;
+            }, 1400);
+        } catch (error) {
+            console.warn("Smurdy perfect share result failed:", error);
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+    function bindShareButton(section, api) {
+        if (!section) return;
+        let button = section.querySelector(".smurdy-share-button");
+        if (!button || button.dataset.smurdyPerfectImageBound === "true") return;
+
+        const replacement = button.cloneNode(true);
+        replacement.dataset.smurdyPerfectImageBound = "true";
+        button.replaceWith(replacement);
+        button = replacement;
+        button.addEventListener("click", () => sharePerfectResult(section._smurdyResult, button, api));
     }
 
     function patchCompletion(api) {
         if (!api || api.__smurdyPerfectPatched) return api;
         const originalRenderShare = api.renderShare;
         const originalHideShare = api.hideShare;
+        originalBuildShareImageBlob = api.buildShareImageBlob;
+        originalShareResult = api.shareResult;
+
+        api.buildShareImageBlob = async function buildPerfectShareImageBlob(result) {
+            const blob = await originalBuildShareImageBlob(result);
+            return addPerfectToShareImage(blob, result);
+        };
 
         api.renderShare = function renderPerfectShare(container, result, options = {}) {
             const section = originalRenderShare(container, result, options);
             renderBrowserIndicator(container, result, section);
-            renderShareIndicator(section, result);
+            bindShareButton(section, api);
             return section;
         };
 
         api.hideShare = function hidePerfectShare(container) {
-            hideIndicators(container);
+            hideIndicator(container);
             return originalHideShare(container);
+        };
+
+        api.shareResult = function sharePerfect(result, button) {
+            return sharePerfectResult(result, button, api);
         };
 
         Object.defineProperty(api, "__smurdyPerfectPatched", { value: true, enumerable: false });
@@ -124,5 +251,12 @@
         } catch (_) {}
     }
 
-    return { isPerfectResult, renderBrowserIndicator, renderShareIndicator, hideIndicators, patchCompletion, install };
+    return {
+        isPerfectResult,
+        renderBrowserIndicator,
+        hideIndicator,
+        addPerfectToShareImage,
+        patchCompletion,
+        install
+    };
 });
