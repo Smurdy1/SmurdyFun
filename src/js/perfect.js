@@ -11,6 +11,7 @@
     "use strict";
 
     const BROWSER_SELECTOR = "[data-smurdy-perfect]";
+    const WRAP_SELECTOR = "[data-smurdy-perfect-wrap]";
     const PERFECT_COLOR = "#2e8b57";
     let originalBuildShareImageBlob = null;
     let originalShareResult = null;
@@ -25,38 +26,66 @@
     function styleIndicator(element) {
         element.style.color = PERFECT_COLOR;
         element.style.fontWeight = "700";
-        element.style.lineHeight = "1.25";
-        element.style.marginTop = "10px";
     }
 
-    function renderBrowserIndicator(container, result, before) {
+    function findCompletionStatus(container) {
+        if (!container?.querySelector) return null;
+        return container.querySelector(".flag-result.is-finished") || container.querySelector("#quiz-target");
+    }
+
+    function removeLegacyIndicator(container) {
+        const legacy = container?.querySelector?.(`${BROWSER_SELECTOR}:not(${WRAP_SELECTOR} ${BROWSER_SELECTOR})`);
+        if (legacy) legacy.remove();
+    }
+
+    function renderBrowserIndicator(container, result) {
         if (!container) return null;
         const document = container.ownerDocument || root?.document;
         if (!document) return null;
 
-        let indicator = container.querySelector(BROWSER_SELECTOR);
+        removeLegacyIndicator(container);
+        let wrap = container.querySelector(WRAP_SELECTOR);
+
         if (!isPerfectResult(result)) {
-            if (indicator) indicator.hidden = true;
-            return indicator;
+            if (wrap) wrap.remove();
+            return null;
         }
 
-        if (!indicator) {
-            indicator = document.createElement("div");
+        const status = findCompletionStatus(container);
+        if (!status) {
+            if (wrap) wrap.remove();
+            return null;
+        }
+
+        if (wrap && wrap.parentNode !== status) {
+            wrap.remove();
+            wrap = null;
+        }
+
+        if (!wrap) {
+            wrap = document.createElement("span");
+            wrap.dataset.smurdyPerfectWrap = "";
+
+            const separator = document.createElement("span");
+            separator.setAttribute("aria-hidden", "true");
+            separator.textContent = " · ";
+
+            const indicator = document.createElement("span");
             indicator.dataset.smurdyPerfect = "";
-            indicator.setAttribute("role", "status");
             indicator.textContent = "Perfect";
             styleIndicator(indicator);
-        }
-        indicator.hidden = false;
 
-        if (before && before.parentNode === container) container.insertBefore(indicator, before);
-        else if (indicator.parentNode !== container) container.appendChild(indicator);
-        return indicator;
+            wrap.append(separator, indicator);
+            status.appendChild(wrap);
+        }
+
+        return wrap.querySelector(BROWSER_SELECTOR);
     }
 
     function hideIndicator(container) {
-        const indicator = container?.querySelector?.(BROWSER_SELECTOR);
-        if (indicator) indicator.hidden = true;
+        const wrap = container?.querySelector?.(WRAP_SELECTOR);
+        if (wrap) wrap.remove();
+        removeLegacyIndicator(container);
     }
 
     function canvasToBlob(canvas) {
@@ -96,9 +125,16 @@
         if (!ctx) return blob;
 
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        // Keep Perfect attached to the result identity instead of floating as a separate section.
+        ctx.font = "600 25px Arial, Helvetica, sans-serif";
+        const modeWidth = ctx.measureText(String(result.modeLabel || "")).width;
+        const separatorX = 72 + modeWidth + 12;
+        ctx.fillStyle = "#555";
+        ctx.fillText("·", separatorX, 310);
         ctx.fillStyle = PERFECT_COLOR;
-        ctx.font = "700 28px Arial, Helvetica, sans-serif";
-        ctx.fillText("Perfect", 72, 525);
+        ctx.font = "700 25px Arial, Helvetica, sans-serif";
+        ctx.fillText("Perfect", separatorX + 20, 310);
         return canvasToBlob(canvas);
     }
 
@@ -213,7 +249,7 @@
 
         api.renderShare = function renderPerfectShare(container, result, options = {}) {
             const section = originalRenderShare(container, result, options);
-            renderBrowserIndicator(container, result, section);
+            renderBrowserIndicator(container, result);
             bindShareButton(section, api);
             return section;
         };
