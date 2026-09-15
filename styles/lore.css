@@ -120,4 +120,110 @@ body[data-lore-page] {
 
 .lore-fields span {
     font: 15px/1.4 Georgia, "Times New Roman", serif;
+    opacity: .58;
+}
+
+.lore-ocean { background: #aac1c1 !important; }
+
+.lore-archive {
+    width: min(90vw, 720px);
+    margin: 8vh auto;
+    color: #bcbcbc;
+    font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.lore-archive h1 {
+    margin: 0 0 24px;
+    color: #dedede;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.lore-archive-list {
+    border-top: 1px solid #2b2b2b;
+}
+
+.lore-archive button {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #222;
+    border-radius: 0;
+    padding: 9px 0;
+    background: transparent;
+    color: #aaa;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.lore-archive button:hover { color: #ddd; }
+
+.lore-archive-output {
+    min-height: 34px;
+    margin-top: 24px;
+    color: #858585;
+    white-space: pre-wrap;
+}
+
+.lore-archive-output img {
+    display: block;
+    max-width: min(76vw, 520px);
+    max-height: 48vh;
+    margin-top: 16px;
+    object-fit: contain;
+}
+
+.lore-1313-icon {
+    width: min(38vw, 210px);
+    opacity: .72;
+    filter: invert(1);
+}
+
+.lore-number {
+    color: #c4c4c4;
+    font: 44px/1 Georgia, "Times New Roman", serif;
+    opacity: .8;
+}
+
+.lore-bouvet-coordinates,
+.lore-oibv {
+    color: #bcbcbc;
+    font: 15px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: .12em;
+}
+
+.lore-bouvet-reveal {
+    max-width: 620px;
+    color: #b7b7b7;
+    font: 16px/1.6 Georgia, "Times New Roman", serif;
+    letter-spacing: .08em;
+    text-align: center;
+}
+
+.lore-bouvet-home-link {
+    display: block;
+    width: max-content;
+    margin: 18px 12px 8px auto;
+    color: inherit;
+    font-size: 11px;
+    opacity: .52;
+    text-decoration: none;
+}
+
+.lore-bouvet-home-link:hover { opacity: .78; }
+
+.smurdy-lore-eye-react {
+    transform: translateX(2px) rotate(-2deg) !important;
+    opacity: .72 !important;
+}
+
+.smurdy-lore-bttc {
+    display: block;
+    margin-top: 3px;
+    color: #777;
+    font: 9px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 400;
+    letter-spacing: .12em;
 }
