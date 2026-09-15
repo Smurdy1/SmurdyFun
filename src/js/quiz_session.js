@@ -1,6 +1,14 @@
 (function initQuizSession(root, factory) {
     "use strict";
 
+    if (root?.document && !root.document.querySelector('script[data-smurdy-perfect-module]')) {
+        const script = root.document.createElement("script");
+        script.src = "/src/js/perfect.js?v=20260914-perfect-1";
+        script.async = true;
+        script.dataset.smurdyPerfectModule = "";
+        root.document.head.appendChild(script);
+    }
+
     const api = factory();
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     if (root) root.SmurdyQuizSession = api;
