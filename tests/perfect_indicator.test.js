@@ -35,15 +35,16 @@ test("perfect means the quiz was completed with no mistakes", () => {
     }), false);
 });
 
-test("perfect feature stays indicator-only", () => {
+test("Perfect appears once in page UI and is added to the generated share image", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
     assert.match(source, /data-smurdy-perfect/);
-    assert.match(source, /data-smurdy-perfect-share/);
-    assert.doesNotMatch(source, /buildShareImageBlob|sharePerfectResult|RELEASE_VERSION/);
+    assert.doesNotMatch(source, /data-smurdy-perfect-share/);
+    assert.match(source, /addPerfectToShareImage/);
+    assert.match(source, /fillText\("Perfect", 72, 525\)/);
 });
 
-test("quiz session loads the perfect indicator for both map and flag quizzes", () => {
+test("quiz session loads the updated perfect module for both map and flag quizzes", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/quiz_session.js"), "utf8");
-    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-1/);
+    assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-2/);
     assert.match(source, /data-smurdy-perfect-module|smurdyPerfectModule/);
 });
