@@ -20,7 +20,7 @@
         const loadLore = () => {
             if (root.document.querySelector('script[data-smurdy-lore-module]')) return;
             const script = root.document.createElement("script");
-            script.src = "/src/js/lore.js?v=20260914-lore-2";
+            script.src = "/src/js/lore.js?v=20260915-lore-3";
             script.async = true;
             script.dataset.smurdyLoreModule = "";
             root.document.head.appendChild(script);

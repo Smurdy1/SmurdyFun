@@ -16,7 +16,7 @@
     /* 8 was never correct */
 
     const MASTER_ENABLED = true;
-    const RELEASE_VERSION = "1.16.0";
+    const RELEASE_VERSION = "1.16.2";
     const STORAGE_KEY = "smurdy-lore-v1";
     const LORE_STYLE_ID = "smurdy-lore-runtime-style";
     const SAFE_PATHS = new Set([
@@ -209,6 +209,7 @@
         style.textContent = `
             .smurdy-lore-bttc{display:block;margin-top:3px;color:#777;font:9px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:400;letter-spacing:.12em}
             .smurdy-lore-eye-react{transform:translateX(2px) rotate(-2deg)!important;opacity:.72!important}
+            .smurdy-lore-eye-reverse{transform:scaleX(-1)!important}
             .lore-bouvet-home-link{display:block;width:max-content;margin:18px 12px 8px auto;color:inherit;font-size:11px;opacity:.52;text-decoration:none}
             .lore-bouvet-home-link:hover{opacity:.78}
         `;
@@ -257,9 +258,7 @@
     function replaceEyeWithReverse() {
         const eye = brandEye();
         if (!eye) return false;
-        if (!eye.dataset.smurdyLoreOriginalSrc) eye.dataset.smurdyLoreOriginalSrc = eye.getAttribute("src") || "";
-        eye.src = "/assets/lore/turnover-reverse.svg";
-        eye.alt = "";
+        eye.classList.add("smurdy-lore-eye-reverse");
         setState({ seen_eye_variant: true });
         return true;
     }
@@ -809,7 +808,7 @@
         }
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        const icon = artifact("/assets/lore/turnover-reverse.svg");
+        const icon = artifact("/assets/images/smurdeye-transparent.png?v=20260825-logo-1");
         icon.className = "lore-1313-icon";
         const lines = activeJan17()
             ? ["RETURN CONFIRMED.", "returned by another route", ""]

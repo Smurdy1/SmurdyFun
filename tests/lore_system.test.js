@@ -7,7 +7,7 @@ const lore = require("../src/js/lore.js");
 const read = relative => fs.readFileSync(path.join(__dirname, "..", relative), "utf8");
 
 test("lore release is a minor feature release and state schema is non-identifying", () => {
-    assert.equal(lore.RELEASE_VERSION, "1.16.0");
+    assert.equal(lore.RELEASE_VERSION, "1.16.2");
     const state = lore.blankState("seed");
     assert.equal(state.lore_seed, "seed");
     assert.equal(state.seen_cat_box, false);
@@ -36,9 +36,9 @@ test("lore bootstrap stays off the flag browser launch-intent critical path", ()
 
     assert.doesNotMatch(launch, /data-smurdy-lore-module|\/src\/js\/lore\.js/);
     assert.match(session, /data-smurdy-lore-module/);
-    assert.match(session, /\/src\/js\/lore\.js\?v=20260914-lore-2/);
+    assert.match(session, /\/src\/js\/lore\.js\?v=20260915-lore-3/);
     assert.match(home, /quiz_launch_intent\.js\?v=20260914-launch-intent-hotfix-1/);
-    assert.match(home, /lore\.js\?v=20260914-lore-2/);
+    assert.match(home, /lore\.js\?v=20260915-lore-3/);
     assert.ok(home.indexOf("quiz_launch_intent.js") < home.indexOf("lore.js"));
 });
 
@@ -73,6 +73,20 @@ test("secret pages are noindex and there is no public lore hub", () => {
     assert.equal(fs.existsSync(path.join(__dirname, "..", "lore", "index.html")), false);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "secrets", "index.html")), false);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "arg", "index.html")), false);
+});
+
+test("redrawn lore SVGs stay removed and live lore uses original assets", () => {
+    const source = read("src/js/lore.js");
+    const removed = [
+        "empty-eye.svg", "encryption.svg", "eye-bars.svg", "eye-offset.svg",
+        "eye-signal.svg", "forsaken8-box.svg", "forsaken8.svg", "turnover-reverse.svg"
+    ];
+    for (const file of removed) {
+        assert.equal(fs.existsSync(path.join(__dirname, "..", "assets", "lore", file)), false, file);
+    }
+    assert.doesNotMatch(source, /\/assets\/lore\/[^"']+\.svg/);
+    assert.match(source, /smurdeye-transparent\.png/);
+    assert.match(source, /smurdy-lore-eye-reverse/);
 });
 
 test("turnover poem text and inside-code vocabulary are preserved", () => {
