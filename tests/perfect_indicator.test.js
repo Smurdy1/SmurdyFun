@@ -5,44 +5,44 @@ const path = require("node:path");
 
 const perfect = require("../src/js/perfect.js");
 
-test("perfect requires a completed quiz with no mistakes", () => {
+test("perfect means the quiz was completed with no mistakes", () => {
     assert.equal(perfect.isPerfectResult({
         total: 10,
         completedCount: 10,
         accuracyPercent: 100,
-        firstTryCorrect: 10
+        hasMisses: false
     }), true);
 
     assert.equal(perfect.isPerfectResult({
         total: 10,
         completedCount: 10,
+        accuracyPercent: 100,
+        hasMisses: true
+    }), false);
+
+    assert.equal(perfect.isPerfectResult({
+        total: 10,
+        completedCount: 10,
         accuracyPercent: 90,
-        firstTryCorrect: 9
+        hasMisses: true
     }), false);
 
     assert.equal(perfect.isPerfectResult({
         total: 10,
         completedCount: 9,
         accuracyPercent: 100,
-        firstTryCorrect: 9
-    }), false);
-
-    assert.equal(perfect.isPerfectResult({
-        total: 0,
-        completedCount: 0,
-        accuracyPercent: 100,
-        firstTryCorrect: 0
+        hasMisses: false
     }), false);
 });
 
-test("perfect feature stays limited to the indicator surfaces", () => {
+test("perfect feature is only an indicator, not a stats or share-image system", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/perfect.js"), "utf8");
-    assert.match(source, /smurdy-perfect-indicator/);
-    assert.match(source, /smurdy-share-perfect/);
-    assert.doesNotMatch(source, /buildShareImageBlob|sharePerfectResult|stats|RELEASE_VERSION/);
+    assert.match(source, /data-smurdy-perfect/);
+    assert.match(source, /data-smurdy-perfect-share/);
+    assert.doesNotMatch(source, /buildShareImageBlob|sharePerfectResult|RELEASE_VERSION/);
 });
 
-test("quiz session loads the small perfect-result module for map and flag quizzes", () => {
+test("quiz session loads the perfect indicator for both map and flag quizzes", () => {
     const source = fs.readFileSync(path.join(__dirname, "../src/js/quiz_session.js"), "utf8");
     assert.match(source, /\/src\/js\/perfect\.js\?v=20260914-perfect-1/);
     assert.match(source, /data-smurdy-perfect-module|smurdyPerfectModule/);
