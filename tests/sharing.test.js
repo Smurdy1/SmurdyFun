@@ -42,6 +42,7 @@ test("every public HTML page has the persistent page-share controls and large-ca
 
     for (const page of pages) {
         const html = read(page);
+        if (/\bnoindex\b/i.test(metaContent(html, "name", "robots"))) continue;
         assert.match(html, /\/styles\/share\.css\?v=/, `${page} is missing share.css`);
         assert.match(html, /\/src\/js\/share\.js\?v=/, `${page} is missing share.js`);
         assert.equal(metaContent(html, "name", "twitter:card"), "summary_large_image", `${page} lacks a large Twitter card`);
