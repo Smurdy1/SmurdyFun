@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 240" role="img" aria-label="">
+  <rect width="1500" height="240" fill="#fff"/>
+  <g stroke="#111" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M42 120l35-35v70zM128 174V62l68-62v174M235 68v102M235 112h54M289 68v102"/>
+    <circle cx="325" cy="92" r="13" fill="#111"/><circle cx="376" cy="143" r="13" fill="#111"/>
+    <path d="M310 166L391 66M407 55l95 120M502 55l-95 120M535 67v106M566 67v106M597 67v106M628 67v106M681 55l-62 62 62 62M701 55l62 62-62 62M780 78h72v84h-72z"/>
+    <circle cx="816" cy="119" r="12" fill="#111"/>
+    <path d="M887 82c18-32 36 32 54 0s36 32 54 0 36 32 54 0M887 118c18-32 36 32 54 0s36 32 54 0 36 32 54 0M887 154c18-32 36 32 54 0s36 32 54 0 36 32 54 0M1097 174V62l70 112M1167 62v112M1207 120h92M1253 74v92M1316 120l42-42v84zM1376 55v120"/>
+  </g>
+  <text x="40" y="222" font-family="monospace" font-size="16" fill="#555">OCVLVS SMVRDII OMNIA VIDET</text>
+</svg>
