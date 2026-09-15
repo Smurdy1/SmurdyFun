@@ -12,6 +12,22 @@
     const api = factory();
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     if (root) root.SmurdyQuizSession = api;
+
+    // Lore is deliberately loaded only after the shared quiz session API is ready.
+    // Keeping it out of quiz_launch_intent prevents optional lore from ever sitting
+    // on the critical path used by browser Play -> landing-page auto-launch.
+    if (root?.document && !root.document.querySelector('script[data-smurdy-lore-module]')) {
+        const loadLore = () => {
+            if (root.document.querySelector('script[data-smurdy-lore-module]')) return;
+            const script = root.document.createElement("script");
+            script.src = "/src/js/lore.js?v=20260914-lore-2";
+            script.async = true;
+            script.dataset.smurdyLoreModule = "";
+            root.document.head.appendChild(script);
+        };
+        if (typeof root.setTimeout === "function") root.setTimeout(loadLore, 0);
+        else loadLore();
+    }
 })(typeof window !== "undefined" ? window : null, function createQuizSessionApi() {
     "use strict";
 
