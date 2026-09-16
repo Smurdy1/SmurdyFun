@@ -9,13 +9,6 @@ function read(relativePath) {
     return fs.readFileSync(path.join(root, relativePath), "utf8");
 }
 
-function modeParagraph(html, heading) {
-    const match = html.match(
-        new RegExp("<h2>" + heading + "<\\/h2>\\s*<p>(.*?)<\\/p>", "s")
-    );
-    return match ? match[1] : "";
-}
-
 test("grammar-sensitive templates do not splice raw group labels into prose", () => {
     const descriptions = JSON.parse(read("src/data/quiz_page_descriptions.json"));
 
@@ -58,7 +51,7 @@ test("known awkward group names render naturally", () => {
     );
     assert.match(
         spanishCapital,
-        /Use this when you know the countries in this set and want to add capital-city recall without losing the geographic context of the map\./
+        /Use this once the countries or states themselves are familiar and you want to add the capitals\./
     );
     assert.doesNotMatch(spanishCapital, /<h2>When this mode helps<\/h2>/);
     assert.doesNotMatch(
