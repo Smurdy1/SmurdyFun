@@ -1,6 +1,6 @@
 "use strict";
 
-const ASSET_VERSION = "20260914-routes-1";
+const ASSET_VERSION = "20260915-bugfix-1";
 
 function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -37,18 +37,22 @@ function renderBrand({ root = "", className = "" } = {}) {
 
 function renderLandingBreadcrumbs({
     root = "",
+    categoryHref,
+    categoryLabel,
     modeHref,
     modeLabel,
     groupLabel
 } = {}) {
-    if (!modeHref || !modeLabel || !groupLabel) {
-        throw new Error("renderLandingBreadcrumbs requires modeHref, modeLabel, and groupLabel");
+    if (!categoryHref || !categoryLabel || !modeHref || !modeLabel || !groupLabel) {
+        throw new Error("renderLandingBreadcrumbs requires category, mode, and group breadcrumb data");
     }
 
     return `<nav class="breadcrumbs" aria-label="Breadcrumb">
       <a href="${escapeHtml(joinRoot(root, "/"))}">Smurdy</a>
       <span aria-hidden="true">›</span>
       <a href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>
+      <span aria-hidden="true">›</span>
+      <a href="${escapeHtml(joinRoot(root, categoryHref))}">${escapeHtml(categoryLabel)}</a>
       <span aria-hidden="true">›</span>
       <a href="${escapeHtml(joinRoot(root, modeHref))}">${escapeHtml(modeLabel)}</a>
       <span aria-hidden="true">›</span>

@@ -31,6 +31,8 @@ test("trust-page copy keeps the creator's direct voice", () => {
     assert.match(copy, /I go by Smurdy online/);
     assert.match(copy, /the easiest way to tell me/);
     assert.doesNotMatch(copy, /not just|—/i);
+    assert.doesNotMatch(copy, /one rule I keep coming back to/i);
+    assert.match(copy, /If a feature makes the normal quiz slower to start, it needs a good reason/);
 });
 
 test("About explains the neutral quiz-entity policy", () => {

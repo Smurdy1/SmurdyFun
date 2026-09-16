@@ -72,7 +72,7 @@
     async function prepareInitialLaunchIntent() {
         await ensureScript(
             "data-smurdy-launch-intent",
-            "/src/js/quiz_launch_intent.js?v=20260903-final-unity-1",
+            "/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2",
             () => Boolean(window.SmurdyQuizLaunchIntent)
         );
 
@@ -154,10 +154,32 @@
         }
     }
 
+    function waitForFlagController(timeoutMs = 2000) {
+        const ready = window.SmurdyFlagQuizController;
+        if (ready?.launchQuiz) return Promise.resolve(ready);
+
+        return new Promise(resolve => {
+            const started = Date.now();
+            const check = () => {
+                const controller = window.SmurdyFlagQuizController;
+                if (controller?.launchQuiz) {
+                    resolve(controller);
+                    return;
+                }
+                if (Date.now() - started >= timeoutMs) {
+                    resolve(null);
+                    return;
+                }
+                window.setTimeout(check, 16);
+            };
+            check();
+        });
+    }
+
     async function launchQuiz(intent = null) {
         if (!launchButton) return;
         if (modality === "flag") {
-            const controller = window.SmurdyFlagQuizController;
+            const controller = await waitForFlagController();
             if (!controller?.launchQuiz) {
                 console.error("Flag quiz controller is not ready.");
                 return;

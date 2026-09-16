@@ -33,8 +33,8 @@ test("dark theme assets are installed globally", () => {
     const quiz = read("quizzes/maps/click/countries/world/index.html");
     for (const source of [index, about, quiz]) {
         assert.match(source, /data-smurdy-theme-bootstrap/);
-        assert.match(source, /\/styles\/theme\.css\?v=20260914-dark-mode-5/);
-        assert.match(source, /\/src\/js\/theme\.js\?v=20260914-dark-mode-5/);
+        assert.match(source, /\/styles\/theme\.css\?v=20260915-dark-mode-6/);
+        assert.match(source, /\/src\/js\/theme\.js\?v=20260915-dark-mode-6/);
     }
 });
 
@@ -72,6 +72,18 @@ test("dark mode keeps timer readable and directory link unhighlighted", () => {
     assert.doesNotMatch(theme, /\.qb-play,\s*\nhtml\[data-smurdy-theme="dark"\] #quiz-browser \.qb-directory-primary/);
 });
 
+
+test("dark mode covers favorites, Weak Spots, and suggestion actions", () => {
+    const theme = read("src/js/theme.js");
+    const css = read("styles/theme.css");
+    assert.match(theme, /qb-favorite\[aria-pressed="true"\][\s\S]*#ffd54f/);
+    assert.match(css, /qb-favorite\[aria-pressed="true"\][\s\S]*#ffd54f/);
+    assert.match(css, /#weak-spots-practice-next[\s\S]*background:\s*#242b30/);
+    assert.match(css, /\.quiz-review-country[\s\S]*background:\s*#242b30/);
+    assert.match(css, /\.weak-spot-item[\s\S]*background:\s*#242b30/);
+    assert.match(css, /\.smurdy-quiz-suggestion-play[\s\S]*background:\s*#2489c9/);
+    assert.match(css, /\.smurdy-quiz-suggestion-play[\s\S]*color:\s*#ffffff/);
+});
 
 test("share dialog action buttons use dark surfaces", () => {
     const css = read("styles/theme.css");

@@ -1617,7 +1617,7 @@
         return `Practice the countries and locations of ${label} on an interactive map.`;
     }
 
-    function memberCountForGroup(group) {
+    function memberCountForGroup(group, manifestItem = null, groupId = "") {
         const members = Array.isArray(group?.members)
             ? group.members
             : (
@@ -1626,14 +1626,26 @@
                     : []
             );
         const declaredCount = Number(group?.memberCount);
-        return Number.isFinite(declaredCount) && declaredCount > 0
+        let count = Number.isFinite(declaredCount) && declaredCount > 0
             ? declaredCount
             : members.length;
+
+        if (categoryKeyForManifest(manifestItem) === "maps") {
+            const hasPalestine = members.some(
+                name => String(name || "").trim().toLowerCase() === "palestine"
+            );
+            if (hasPalestine) count -= 1;
+            else if (String(groupId) === "world" && members.length === 0 && count === 201) count -= 1;
+        }
+
+        return Math.max(0, count);
     }
 
-    function tagsForGroup(id, group, family) {
+    function tagsForGroup(id, group, family, memberCountOverride = null) {
         const tags = [];
-        const memberCount = memberCountForGroup(group);
+        const memberCount = Number.isFinite(memberCountOverride)
+            ? memberCountOverride
+            : memberCountForGroup(group);
 
         if (family === "subdivisions") {
             tags.push("subdivisions");
@@ -1697,6 +1709,8 @@
                 selectedFamily ||
                 fallbackFamily;
 
+            const memberCount = memberCountForGroup(group, manifestItem, id);
+
             out.push({
                 id,
                 label: group.label || getFriendlyTypeLabel(id),
@@ -1707,10 +1721,10 @@
                     pageDescriptions,
                     categoryKeyForManifest(manifestItem)
                 ),
-                tags: tagsForGroup(id, group, family),
+                tags: tagsForGroup(id, group, family, memberCount),
                 meta: group,
                 manifest: manifestItem,
-                memberCount: memberCountForGroup(group),
+                memberCount,
                 featured:
                     family === "countries" &&
                     id === "world"
