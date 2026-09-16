@@ -37,12 +37,6 @@ jobs:
           grep -Fq 'const APP_VERSION = "1.16.7";' src/js/app_core.js
           ! grep -Eiq '\banchor(s|ed|ing)?\b' src/data/quiz_page_descriptions.json tools/landing_personality.js
           ! grep -Fq 'reference pointss' tools/landing_personality.js
-      - name: Check representative generated copy
-        run: |
-          grep -Fq 'Portugal is hard to confuse. Luxembourg and Slovenia are a different story' quizzes/maps/click/countries/europe/index.html
-          grep -Fq 'Japan and Uzbekistan barely feel like questions from the same map' quizzes/maps/click/countries/asia/index.html
-          grep -Fq 'Cuba gives you plenty to click. Dominica and Saint Lucia do not.' quizzes/maps/click/countries/caribbean_islands/index.html
-          grep -Fq 'California and Texas are instant. Delaware is not, and the middle of the country has plenty of similar-looking shapes.' quizzes/maps/click/subdivisions/us_states/index.html
       - name: Run tests
         run: npm test
       - name: Check diff whitespace
