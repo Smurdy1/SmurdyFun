@@ -1,0 +1,223 @@
+name: Finish 1.16.4 small fixes
+on:
+  push:
+    branches: [fix/1.16.4-small-fixes]
+permissions:
+  contents: write
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/1.16.4-small-fixes
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f"missing expected text in {path}: {old[:100]!r}")
+              p.write_text(s.replace(old, new, 1))
+
+          def replace_all_text(old, new, suffixes=(".html", ".js", ".css")):
+              for p in Path(".").rglob("*"):
+                  if not p.is_file() or p.suffix not in suffixes or ".git" in p.parts or "node_modules" in p.parts:
+                      continue
+                  try:
+                      s = p.read_text()
+                  except UnicodeDecodeError:
+                      continue
+                  if old in s:
+                      p.write_text(s.replace(old, new))
+
+          # 1) One shared Weak Spots continuation component for map + flag runners.
+          completion = Path("src/js/quiz_completion.js")
+          s = completion.read_text()
+          s = s.replace(
+              '    const DEFAULT_REVIEW_PAGE_SIZE = 6;\n',
+              '    const DEFAULT_REVIEW_PAGE_SIZE = 6;\n    const PRACTICE_CONTINUATION_ID = "weak-spots-practice-next";\n',
+              1
+          )
+          share_css_anchor = '''            [data-smurdy-share] {\n                width: 100%;'''
+          practice_css = '''            #weak-spots-practice-next {\n                width: 100%;\n                margin-top: 14px;\n                padding: 11px 12px;\n                border: 1px solid #d8dde2;\n                border-radius: 8px;\n                background: #f7f8fa;\n                display: flex;\n                align-items: center;\n                gap: 10px;\n                box-sizing: border-box;\n            }\n            #weak-spots-practice-next[hidden] { display: none; }\n            #weak-spots-practice-next strong { font-size: 13px; }\n            #weak-spots-practice-next span {\n                margin-right: auto;\n                color: #626262;\n                font-size: 12px;\n            }\n            #weak-spots-practice-next button {\n                flex: 0 0 auto;\n                padding: 8px 12px;\n                border: 1px solid #0077cc;\n                border-radius: 5px;\n                background: #0077cc;\n                color: #fff;\n                font: inherit;\n                font-weight: 700;\n                cursor: pointer;\n            }\n            #weak-spots-practice-next button:hover { background: #005fa3; }\n            #weak-spots-practice-next button:focus-visible {\n                outline: 3px solid rgba(0,119,204,.28);\n                outline-offset: 2px;\n            }\n'''
+          if share_css_anchor not in s:
+              raise SystemExit("completion share CSS anchor missing")
+          s = s.replace(share_css_anchor, practice_css + share_css_anchor, 1)
+          mobile_anchor = '''            @media (max-width: 700px) {\n                [data-smurdy-share] { align-items: stretch; flex-direction: column; }'''
+          mobile_replacement = '''            @media (max-width: 700px) {\n                #weak-spots-practice-next { align-items: stretch; flex-direction: column; }\n                #weak-spots-practice-next span { margin-right: 0; }\n                #weak-spots-practice-next button { width: 100%; }\n                [data-smurdy-share] { align-items: stretch; flex-direction: column; }'''
+          if mobile_anchor not in s:
+              raise SystemExit("completion mobile anchor missing")
+          s = s.replace(mobile_anchor, mobile_replacement, 1)
+          render_share_anchor = '''    function renderShare(container, result, options = {}) {'''
+          shared_method = '''    function renderPracticeContinuation(container, stage, options = {}) {\n        if (!container || !stage) return null;\n        const document = container.ownerDocument || root?.document;\n        if (!document) return null;\n        injectShareStyles(document);\n\n        let section = document.getElementById(PRACTICE_CONTINUATION_ID);\n        if (!section) {\n            section = document.createElement("section");\n            section.id = PRACTICE_CONTINUATION_ID;\n        }\n\n        const count = Array.isArray(stage.names) ? stage.names.length : 0;\n        const title = document.createElement("strong");\n        title.textContent = "Next Weak Spots round";\n        const detail = document.createElement("span");\n        detail.textContent = `${stage.label} (${count} ${count === 1 ? "place" : "places"})`;\n        const button = document.createElement("button");\n        button.type = "button";\n        button.textContent = "Continue";\n        button.addEventListener("click", () => {\n            if (typeof options.onContinue === "function") options.onContinue(stage);\n        });\n        section.replaceChildren(title, detail, button);\n\n        const before = options.before;\n        if (before && before.parentNode === container) container.insertBefore(section, before);\n        else if (section.parentNode !== container) container.appendChild(section);\n        section.hidden = false;\n        return section;\n    }\n\n'''
+          if render_share_anchor not in s:
+              raise SystemExit("renderShare anchor missing")
+          s = s.replace(render_share_anchor, shared_method + render_share_anchor, 1)
+          s = s.replace(
+              '        renderSummary,\n        renderShare,',
+              '        renderSummary,\n        renderPracticeContinuation,\n        renderShare,',
+              1
+          )
+          completion.write_text(s)
+
+          # Map runner now delegates the continuation UI to the shared component.
+          runner = Path("src/js/quiz_runner.js")
+          s = runner.read_text()
+          old = '''    function showPracticeContinuation(stage) {\n        if (!stage) return;\n\n        const panel = document.getElementById("quiz-panel");\n        if (!panel) return;\n\n        let section = document.getElementById("weak-spots-practice-next");\n        if (!section) {\n            section = document.createElement("section");\n            section.id = "weak-spots-practice-next";\n            const share = panel.querySelector("[data-smurdy-share]");\n            if (share && share.parentNode === panel) panel.insertBefore(section, share);\n            else panel.appendChild(section);\n        }\n\n        const count = Array.isArray(stage.names) ? stage.names.length : 0;\n        section.innerHTML =\n            '<strong>Next Weak Spots round</strong>' +\n            '<span>' + stage.label + ' (' + count + ' ' +\n                (count === 1 ? 'place' : 'places') + ')</span>' +\n            '<button type="button">Continue</button>';\n        section.querySelector("button").addEventListener("click", () => {\n            window.SmurdyWeakSpots?.openPracticeStage?.(stage);\n        });\n        section.hidden = false;\n    }\n'''
+          new = '''    function showPracticeContinuation(stage) {\n        if (!stage) return;\n        const panel = document.getElementById("quiz-panel");\n        if (!panel) return;\n        completion.renderPracticeContinuation?.(panel, stage, {\n            before: panel.querySelector("[data-smurdy-share]"),\n            onContinue(nextStage) {\n                window.SmurdyWeakSpots?.openPracticeStage?.(nextStage);\n            }\n        });\n    }\n'''
+          if old not in s:
+              raise SystemExit("map continuation block missing")
+          runner.write_text(s.replace(old, new, 1))
+
+          # Flag runner uses the exact same shared component instead of a one-off button.
+          flag = Path("src/js/flag_quiz.js")
+          s = flag.read_text()
+          old = '''        function removePracticeContinuation() {\n            afterActions?.querySelector?.("[data-weak-spots-next]")?.remove();\n        }\n\n        function showPracticeContinuation(stage) {\n            removePracticeContinuation();\n            if (!stage || !afterActions) return;\n            const button = document.createElement("button");\n            button.className = "flag-button";\n            button.type = "button";\n            button.dataset.weakSpotsNext = "";\n            button.textContent = `Continue: ${stage.label}`;\n            button.addEventListener("click", () => {\n                root.SmurdyWeakSpots?.openPracticeStage?.(stage);\n            });\n            afterActions.prepend(button);\n        }\n'''
+          new = '''        function removePracticeContinuation() {\n            document.getElementById("weak-spots-practice-next")?.remove();\n        }\n\n        function showPracticeContinuation(stage) {\n            removePracticeContinuation();\n            if (!stage || !game) return;\n            completion.renderPracticeContinuation?.(game, stage, {\n                before: game.querySelector("[data-smurdy-share]") || afterActions,\n                onContinue(nextStage) {\n                    root.SmurdyWeakSpots?.openPracticeStage?.(nextStage);\n                }\n            });\n        }\n'''
+          if old not in s:
+              raise SystemExit("flag continuation block missing")
+          flag.write_text(s.replace(old, new, 1))
+
+          # 2) Turnover: no face div; Smurdy-blue field; black redaction bars reveal text on selection while eyes stay visible.
+          lore = Path("src/js/lore.js")
+          s = lore.read_text()
+          old = '''        const face = root.document.createElement("div");\n        face.className = "lore-turnover-face";\n        const poem = root.document.createElement("div");\n        poem.className = "lore-turnover-text";\n        const lines = [\n            "OLIM • INSVLAM • BOVVET • VINCAM",\n            "COLVMBAM • MENDACEM • VICI",\n            "III👁️XVII • IN • I👁️+XVII • VERSVM • EST",\n            "ININVESTIGABILEM • INVENI",\n            "AETERNVM • AMBVLANS • ITERVM • EFFVGIAM",\n            "DEPREHENSVM • PERFECI"\n        ];\n        for (const line of lines) {\n            const p = root.document.createElement("p");\n            p.textContent = line;\n            poem.appendChild(p);\n        }\n        const end = root.document.createElement("span");\n        end.className = "lore-turnover-end";\n        end.textContent = "The long con never ends";\n        main.append(face, poem, end);'''
+          new = '''        const poem = root.document.createElement("div");\n        poem.className = "lore-turnover-text";\n        const lines = [\n            "OLIM • INSVLAM • BOVVET • VINCAM",\n            "COLVMBAM • MENDACEM • VICI",\n            "III👁️XVII • IN • I👁️+XVII • VERSVM • EST",\n            "ININVESTIGABILEM • INVENI",\n            "AETERNVM • AMBVLANS • ITERVM • EFFVGIAM",\n            "DEPREHENSVM • PERFECI"\n        ];\n\n        function appendRedactedText(node, text) {\n            const parts = String(text).split("👁️");\n            parts.forEach((part, index) => {\n                if (part) {\n                    const redacted = root.document.createElement("span");\n                    redacted.className = "lore-turnover-redacted";\n                    redacted.textContent = part;\n                    node.appendChild(redacted);\n                }\n                if (index < parts.length - 1) {\n                    const eye = root.document.createElement("span");\n                    eye.className = "lore-turnover-eye";\n                    eye.textContent = "👁️";\n                    node.appendChild(eye);\n                }\n            });\n        }\n\n        for (const line of lines) {\n            const p = root.document.createElement("p");\n            appendRedactedText(p, line);\n            poem.appendChild(p);\n        }\n        const end = root.document.createElement("span");\n        end.className = "lore-turnover-end";\n        appendRedactedText(end, "The long con never ends");\n        main.append(poem, end);'''
+          if old not in s:
+              raise SystemExit("Turnover render block missing")
+          lore.write_text(s.replace(old, new, 1))
+
+          lore_css = Path("styles/lore.css")
+          s = lore_css.read_text()
+          s = re.sub(r'''\.lore-turnover \{.*?\n\}\n\n\.lore-turnover-face \{.*?\.lore-turnover-face::after \{ right: 24%; \}\n\n''', '''.lore-turnover {\n    position: relative;\n    min-height: 100vh;\n    display: grid;\n    place-items: center;\n    overflow: hidden;\n    background: #0077cc;\n}\n\n''', s, count=1, flags=re.S)
+          old_text_css = '''.lore-turnover-text {\n    position: relative;\n    z-index: 1;\n    width: min(88vw, 760px);\n    color: #020202;\n    font: 18px/2.05 Georgia, "Times New Roman", serif;\n    letter-spacing: .11em;\n    text-align: center;\n    user-select: text;\n}\n\n.lore-turnover-text p { margin: 0; }\n.lore-turnover-text ::selection {\n    color: #000;\n    background: #e8e8e8;\n}\n'''
+          new_text_css = '''.lore-turnover-text {\n    position: relative;\n    z-index: 1;\n    width: min(88vw, 760px);\n    font: 18px/2.05 Georgia, "Times New Roman", serif;\n    letter-spacing: .11em;\n    text-align: center;\n    user-select: text;\n}\n\n.lore-turnover-text p { margin: 0; }\n.lore-turnover-redacted {\n    background: #000;\n    color: #000;\n}\n.lore-turnover-redacted::selection {\n    background: #000;\n    color: #fff;\n}\n.lore-turnover-eye {\n    background: transparent;\n    color: initial;\n}\n.lore-turnover-eye::selection { background: rgba(0, 0, 0, .28); }\n'''
+          if old_text_css not in s:
+              raise SystemExit("Turnover text CSS block missing")
+          s = s.replace(old_text_css, new_text_css, 1)
+          old_end = '''.lore-turnover-end {\n    position: fixed;\n    right: 3px;\n    bottom: 2px;\n    color: #fff;\n    font-size: 1px;\n    line-height: 1;\n    letter-spacing: 0;\n    user-select: text;\n}\n'''
+          new_end = '''.lore-turnover-end {\n    position: fixed;\n    right: 3px;\n    bottom: 2px;\n    font-size: 1px;\n    line-height: 1;\n    letter-spacing: 0;\n    user-select: text;\n}\n'''
+          if old_end not in s:
+              raise SystemExit("Turnover end CSS block missing")
+          lore_css.write_text(s.replace(old_end, new_end, 1))
+
+          # 3 + 4) Dark-mode feedback action and favorites.
+          theme = Path("styles/theme.css")
+          s = theme.read_text()
+          old = '''html[data-smurdy-theme="dark"] [data-smurdy-quiz-favorite][aria-pressed="true"],\nhtml[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"] {\n    border-color: #b99222;\n    background: #4a3c13;\n    color: #fff3c2;\n}\n'''
+          new = '''html[data-smurdy-theme="dark"] [data-smurdy-quiz-favorite][aria-pressed="true"],\nhtml[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"] {\n    border-color: #b99222 !important;\n    background: #4a3c13 !important;\n    color: #ffd54f !important;\n}\n\nhtml[data-smurdy-theme="dark"] .button-link {\n    border-color: #2489c9 !important;\n    background: #2489c9 !important;\n    color: #fff !important;\n}\nhtml[data-smurdy-theme="dark"] .button-link:hover,\nhtml[data-smurdy-theme="dark"] .button-link:focus-visible {\n    border-color: #3298d8 !important;\n    background: #3298d8 !important;\n    color: #fff !important;\n}\n'''
+          if old not in s:
+              raise SystemExit("landing favorite theme block missing")
+          theme.write_text(s.replace(old, new, 1))
+
+          theme_js = Path("src/js/theme.js")
+          s = theme_js.read_text()
+          anchor = '''html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {\n    border-color: #a98229 !important;\n    background: #3d3217 !important;\n    color: #ffd54f !important;\n}\n'''
+          addition = anchor + '''\nhtml[data-smurdy-theme="dark"] [data-smurdy-quiz-favorite][aria-pressed="true"],\nhtml[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"] {\n    border-color: #b99222 !important;\n    background: #4a3c13 !important;\n    color: #ffd54f !important;\n}\n'''
+          if anchor not in s:
+              raise SystemExit("runtime favorite anchor missing")
+          theme_js.write_text(s.replace(anchor, addition, 1))
+
+          # 5) Remove the About-page aside entirely, plus now-unused maker-note CSS.
+          about = Path("about/index.html")
+          s = about.read_text()
+          s = s.replace('''\n    <aside class="maker-note">If a feature makes the normal quiz slower to start, it needs a good reason.</aside>\n''', '\n', 1)
+          about.write_text(s)
+
+          info = Path("styles/info_pages.css")
+          s = info.read_text()
+          s = re.sub(r'''\n/\* 1\.14\.6 editorial structure: one authored note, no new card system\. \*/\n\.maker-note \{.*?\.maker-note strong \{ color: #171717; \}\n''', '\n', s, count=1, flags=re.S)
+          info.write_text(s)
+
+          # Version + cache keys.
+          replace_once("src/js/app_core.js", 'const APP_VERSION = "1.16.3";', 'const APP_VERSION = "1.16.4";')
+          replace_all_text("20260915-dark-mode-6", "20260916-dark-mode-7")
+          replace_all_text("20260914-lore-1", "20260916-lore-2")
+          replace_all_text("20260915-lore-3", "20260916-lore-4")
+          replace_all_text("quiz_completion.js?v=20260909-editorial-1", "quiz_completion.js?v=20260916-completion-2")
+          replace_all_text("quiz_completion.js?v=20260908-capitals-1", "quiz_completion.js?v=20260916-completion-2")
+          replace_all_text("flag_quiz.js?v=20260909-editorial-1", "flag_quiz.js?v=20260916-weakspots-parity-1")
+          replace_once("src/js/app.js", 'loadScript("/src/js/app_core.js", function() {', 'loadScript("/src/js/app_core.js?v=20260916-small-fixes-1", function() {')
+          replace_once("index.html", '/src/js/app.js?v=20260914-routes-1', '/src/js/app.js?v=20260916-small-fixes-1')
+
+          # Update tests and add regression coverage.
+          runtime = Path("tests/runtime_memory.test.js")
+          s = runtime.read_text().replace('const APP_VERSION = "1\\.16\\.3";', 'const APP_VERSION = "1\\.16\\.4";')
+          runtime.write_text(s)
+
+          editorial = Path("tests/editorial_identity.test.js")
+          s = editorial.read_text()
+          s = s.replace('    assert.match(info, /\\.maker-note/);\n    assert.match(about, /class="maker-note"/);\n', '    assert.doesNotMatch(info, /\\.maker-note/);\n    assert.doesNotMatch(about, /class="maker-note"/);\n')
+          s = s.replace('/const APP_VERSION = "1\\.16\\.3"/', '/const APP_VERSION = "1\\.16\\.4"/')
+          editorial.write_text(s)
+
+          trust = Path("tests/trust_pages.test.js")
+          s = trust.read_text().replace(
+              '    assert.match(copy, /If a feature makes the normal quiz slower to start, it needs a good reason/);',
+              '    assert.doesNotMatch(copy, /If a feature makes the normal quiz slower to start, it needs a good reason/);\n    assert.doesNotMatch(copy, /class="maker-note"/);'
+          )
+          trust.write_text(s)
+
+          theme_test = Path("tests/theme.test.js")
+          s = theme_test.read_text()
+          s = s.replace('20260915-dark-mode-6', '20260916-dark-mode-7')
+          marker = '    assert.match(css, /qb-favorite\\[aria-pressed="true"\\][\\s\\S]*#ffd54f/);\n'
+          add = marker + '    assert.match(css, /data-smurdy-quiz-favorite\\]\\[aria-pressed="true"\\][\\s\\S]*color:\\s*#ffd54f\\s*!important/);\n'
+          if marker not in s:
+              raise SystemExit("theme test favorite marker missing")
+          s = s.replace(marker, add, 1)
+          suggestion = '    assert.match(css, /\\.smurdy-quiz-suggestion-play[\\s\\S]*color:\\s*#ffffff/);\n'
+          s = s.replace(suggestion, suggestion + '    assert.match(css, /\\.button-link\\s*\\{[\\s\\S]*background:\\s*#2489c9\\s*!important[\\s\\S]*color:\\s*#fff\\s*!important/);\n', 1)
+          theme_test.write_text(s)
+
+          lore_test = Path("tests/lore_system.test.js")
+          s = lore_test.read_text()
+          marker = 'test("turnover poem text and inside-code vocabulary are preserved", () => {\n'
+          regression = '''test("Turnover poem uses redaction bars instead of the face artwork", () => {\n    const source = read("src/js/lore.js");\n    const css = read("styles/lore.css");\n    assert.doesNotMatch(source, /lore-turnover-face/);\n    assert.doesNotMatch(css, /lore-turnover-face/);\n    assert.match(source, /lore-turnover-redacted/);\n    assert.match(source, /lore-turnover-eye/);\n    assert.match(css, /\\.lore-turnover\\s*\\{[\\s\\S]*background:\\s*#0077cc/);\n    assert.match(css, /\\.lore-turnover-redacted\\s*\\{[\\s\\S]*background:\\s*#000;[\\s\\S]*color:\\s*#000/);\n    assert.match(css, /\\.lore-turnover-redacted::selection[\\s\\S]*color:\\s*#fff/);\n    assert.match(css, /\\.lore-turnover-eye\\s*\\{[\\s\\S]*background:\\s*transparent/);\n});\n\n'''
+          if marker not in s:
+              raise SystemExit("lore test marker missing")
+          s = s.replace(marker, regression + marker, 1)
+          lore_test.write_text(s)
+
+          completion_test = Path("tests/quiz_completion.test.js")
+          s = completion_test.read_text()
+          s = s.replace(
+              '    assert.match(flagRunner, /completion\\.retryMissed/);\n',
+              '    assert.match(flagRunner, /completion\\.retryMissed/);\n    assert.match(mapRunner, /completion\\.renderPracticeContinuation/);\n    assert.match(flagRunner, /completion\\.renderPracticeContinuation/);\n    assert.doesNotMatch(flagRunner, /Continue: \\${stage\\.label}/);\n',
+              1
+          )
+          s = s.replace('quiz_completion\\.js\\?v=20260908-capitals-1', 'quiz_completion\\.js\\?v=20260916-completion-2')
+          completion_test.write_text(s)
+          PY
+      - name: Install dependencies
+        run: npm install --no-package-lock
+      - name: Validate JavaScript
+        run: |
+          node --check src/js/quiz_completion.js
+          node --check src/js/quiz_runner.js
+          node --check src/js/flag_quiz.js
+          node --check src/js/lore.js
+          node --check src/js/theme.js
+          node --check src/js/app.js
+          node --check src/js/app_core.js
+      - name: Run full test suite
+        run: npm test
+      - name: Check patch hygiene
+        run: git diff --check
+      - name: Commit release
+        run: |
+          rm .github/workflows/finish-1-16-4-small-fixes.yml
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix Weak Spots parity and small UI issues"
+          git push origin HEAD:fix/1.16.4-small-fixes
