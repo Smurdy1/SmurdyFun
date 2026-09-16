@@ -30,11 +30,10 @@ test("generated landing pages expose region-specific editorial fingerprints", ()
     const westAfrica = read("quizzes/maps/click/countries/west_africa/index.html");
     const worldFlags = read("quizzes/flags/type/countries/world/index.html");
 
-    /* Existing hand-curated page overrides still win; personality fills the gaps. */
     assert.match(world, /One round can jump from Argentina to Kyrgyzstan to Fiji/);
     assert.match(world, /Why World feels different/);
-    assert.match(europe, /Europe in this quiz/);
-    assert.match(europe, /Learn Europe through border relationships/);
+    assert.match(europe, /standard Europe map quiz/);
+    assert.match(europe, /crowded middle of the continent/);
     assert.match(westAfrica, /A compact coast with a wide Sahel/);
     assert.match(westAfrica, /Senegal, Ghana, Niger, and Nigeria/);
     assert.match(worldFlags, /Why World feels different/);
@@ -61,5 +60,5 @@ test("polish keeps hierarchy without bringing back component-heavy cards", () =>
 });
 
 test("visible app version is current for this polish release", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.6"/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.7"/);
 });
