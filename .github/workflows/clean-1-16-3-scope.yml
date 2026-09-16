@@ -1,0 +1,40 @@
+name: Clean 1.16.3 scope
+
+on:
+  push:
+    branches:
+      - fix/1.16.3-bug-batch
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    if: github.event.head_commit.message != 'Clean 1.16.3 release scope'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/1.16.3-bug-batch
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restore hidden lore pages
+        run: |
+          git checkout origin/main -- 1313 4824 8 archive bouvet fields jailtime overlap turnover tps
+      - name: Validate
+        run: |
+          npm install --no-package-lock
+          npm test
+          git diff --check
+      - name: Commit scoped release
+        run: |
+          rm .github/workflows/clean-1-16-3-scope.yml
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git add -A
+          git commit -m "Clean 1.16.3 release scope"
+          git push origin HEAD:fix/1.16.3-bug-batch
