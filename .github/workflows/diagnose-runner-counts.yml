@@ -1,0 +1,72 @@
+name: Diagnose runner map counts
+
+on:
+  push:
+    branches:
+      - fix/1.16.3-bug-batch-diagnostic
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reproduce quiz runner canonical pools
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const groups = JSON.parse(fs.readFileSync('src/data/country_groups.json','utf8'));
+          const countries = JSON.parse(fs.readFileSync('src/data/countries.json','utf8'));
+          const aliases = JSON.parse(fs.readFileSync('src/data/aliases.json','utf8'));
+          const { getCanonicalCountryName } = require('./src/js/quiz_entities.js');
+          const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+          const normalizeAnswer = value => String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+          function allowedSetFor(group) {
+            const members = group?.members || group?.countries || [];
+            if (!members.length) return null;
+            const allowed = new Set();
+            for (const name of members) {
+              allowed.add(normalizeAnswer(name));
+              const direct = aliases[name];
+              if (Array.isArray(direct)) direct.forEach(a => allowed.add(normalizeAnswer(a)));
+              for (const [canonical, vals] of Object.entries(aliases)) {
+                if (Array.isArray(vals) && vals.some(v => normalizeAnswer(v) === normalizeAnswer(name))) {
+                  allowed.add(normalizeAnswer(canonical));
+                  vals.forEach(a => allowed.add(normalizeAnswer(a)));
+                }
+              }
+            }
+            return allowed;
+          }
+          function pool(groupId) {
+            const byKey = new Map();
+            for (const f of countries.features || []) {
+              const p = f.properties || {};
+              const featureName = getCanonicalCountryName(f);
+              const sovereign = String(p.sovereignt || p.SOVEREIGNT || p.sovereignty || p.ADMIN || p.admin || featureName || '').trim();
+              if (!sovereign) continue;
+              const key = norm(sovereign);
+              if (!key) continue;
+              if (!byKey.has(key)) byKey.set(key,{key, feature:f, featureName, displayName:p.sovereignt||p.SOVEREIGNT||p.admin||p.ADMIN||p.name||p.NAME||featureName});
+            }
+            let arr=[...byKey.values()];
+            const group=groups[groupId];
+            const allowed=allowedSetFor(group);
+            if (allowed?.size) {
+              arr=arr.filter(entry => {
+                const p=entry.feature?.properties||{};
+                const candidates=[p.admin,p.ADMIN,p.NAME_LONG,p.name_long,p.BRK_NAME,entry.featureName,entry.displayName,getCanonicalCountryName(entry.feature),p.name,p.NAME,p.sovereignt,p.SOVEREIGNT];
+                return candidates.some(c=>c && allowed.has(normalizeAnswer(c)));
+              });
+            }
+            return arr;
+          }
+          for (const id of ['world','europe','asia','middle_east','africa','mena','eurasia']) {
+            const g=groups[id]||{};
+            const raw=(g.members||g.countries||[]).length || Number(g.memberCount||0);
+            const p=pool(id);
+            console.log(JSON.stringify({id, raw, runnerCount:p.length, names:p.map(x=>x.displayName)}));
+          }
+          NODE
