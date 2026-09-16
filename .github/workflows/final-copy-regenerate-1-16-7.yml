@@ -42,7 +42,7 @@ jobs:
           grep -Fq 'Portugal is hard to confuse. Luxembourg and Slovenia are a different story' quizzes/maps/click/countries/europe/index.html
           grep -Fq 'Japan and Uzbekistan barely feel like questions from the same map' quizzes/maps/click/countries/asia/index.html
           grep -Fq 'Cuba gives you plenty to click. Dominica and Saint Lucia do not.' quizzes/maps/click/countries/caribbean_islands/index.html
-          grep -Fq 'California and Texas are obvious. The Great Plains and the Northeast are where the easy familiarity starts to break down.' quizzes/maps/click/subdivisions/us_states/index.html
+          grep -Fq 'California and Texas are instant. Delaware is not, and the middle of the country has plenty of similar-looking shapes.' quizzes/maps/click/subdivisions/us_states/index.html
       - name: Run tests
         run: npm test
       - name: Check diff whitespace
