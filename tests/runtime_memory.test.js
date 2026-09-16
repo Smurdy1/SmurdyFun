@@ -41,6 +41,23 @@ test("MapLibre tile retention is capped and stale tiny data is released", () => 
 test("memory fix is versioned and cache-busted", () => {
     assert.match(read("src/js/app.js"), /20260916-memory-2/);
     assert.match(read("tools/quiz_page_shell.js"), /20260915-bugfix-1/);
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.5";/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.6";/);
     assert.match(read("src/js/app_core.js"), /quiz_runner\.js\?v=20260910-memory-1/);
+});
+
+
+test("share remount observer cannot self-sustain through its own class mutation", () => {
+    const source = read("src/js/share.js");
+    assert.match(source, /if \(trigger\.className !== desiredClassName\) trigger\.className = desiredClassName/);
+    assert.doesNotMatch(source, /observe\(document\.body, \{ childList: true, subtree: true, attributes: true/);
+    assert.match(source, /state\.observer\.observe\(document\.body, \{ childList: true, subtree: true \}\)/);
+    assert.match(source, /observeVisibilityHosts\(\)/);
+});
+
+test("both MapLibre maps cap retained tiles and background homepage releases its temporary map", () => {
+    const source = read("src/js/app_core.js");
+    assert.ok((source.match(/maxTileCacheSize: 64/g) || []).length >= 2);
+    assert.match(source, /document\.addEventListener\("visibilitychange"/);
+    assert.match(source, /SmurdyQuiz\.hideMainMenuMap\(\)/);
+    assert.match(source, /menuMapSuspendedForVisibility/);
 });

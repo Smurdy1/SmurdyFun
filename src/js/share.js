@@ -326,7 +326,11 @@
         if (!trigger?.isConnected && !document.body) return;
         const mount = resolveTriggerMount();
         if (!mount?.host) return;
-        trigger.className = `smurdy-page-share-trigger smurdy-page-share-trigger--${mount.variant}`;
+        const desiredClassName = `smurdy-page-share-trigger smurdy-page-share-trigger--${mount.variant}`;
+        // Setting className to the value it already has still creates an attribute
+        // mutation in browsers. Because the share observer reacts on animation frames,
+        // an unconditional write here could keep the observer alive forever.
+        if (trigger.className !== desiredClassName) trigger.className = desiredClassName;
         if (trigger.parentNode !== mount.host) mount.host.appendChild(trigger);
     }
 
@@ -377,8 +381,71 @@
                 mountTrigger(trigger);
             });
         };
-        state.observer = new MutationObserver(queueMount);
-        state.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-hidden", "style", "class"] });
+
+        // Only visibility changes on the handful of elements that can become a
+        // share-button host matter. Observing class/style changes across the whole
+        // body also observes MapLibre's internal DOM and used to let our own
+        // trigger.className write re-queue this callback every frame.
+        const visibilityHostSelector = [
+            "#quiz-browser",
+            "[data-flag-game]",
+            "#quiz-panel",
+            "[data-smurdy-quiz-actions]"
+        ].join(",");
+        const structureSelector = [
+            visibilityHostSelector,
+            "#qb-header",
+            ".flag-game-title-row",
+            ".panel-brand",
+            ".site-header-inner",
+            ".directory-shell",
+            ".directory-breadcrumbs",
+            "main"
+        ].join(",");
+
+        const nodeTouchesMountStructure = node => Boolean(
+            node &&
+            node.nodeType === 1 &&
+            (node.matches?.(structureSelector) || node.querySelector?.(structureSelector))
+        );
+
+        const observeVisibilityHosts = () => {
+            document.querySelectorAll(visibilityHostSelector).forEach(host => {
+                state.observer.observe(host, {
+                    attributes: true,
+                    attributeFilter: ["hidden", "aria-hidden", "style", "class"]
+                });
+            });
+        };
+
+        state.observer = new MutationObserver(mutations => {
+            let relevant = false;
+            for (const mutation of mutations) {
+                if (mutation.type === "attributes") {
+                    // Attribute records can only come from explicitly observed hosts.
+                    relevant = true;
+                    break;
+                }
+                if (mutation.type !== "childList") continue;
+                if (mutation.target?.matches?.(structureSelector)) {
+                    relevant = true;
+                    break;
+                }
+                const nodes = [
+                    ...Array.from(mutation.addedNodes || []),
+                    ...Array.from(mutation.removedNodes || [])
+                ];
+                if (nodes.some(nodeTouchesMountStructure)) {
+                    relevant = true;
+                    break;
+                }
+            }
+            if (!relevant) return;
+            observeVisibilityHosts();
+            queueMount();
+        });
+        state.observer.observe(document.body, { childList: true, subtree: true });
+        observeVisibilityHosts();
         window.addEventListener("resize", queueMount);
         window.addEventListener("popstate", queueMount);
         window.addEventListener("hashchange", queueMount);
