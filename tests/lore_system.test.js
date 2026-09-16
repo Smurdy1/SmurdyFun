@@ -36,9 +36,9 @@ test("lore bootstrap stays off the flag browser launch-intent critical path", ()
 
     assert.doesNotMatch(launch, /data-smurdy-lore-module|\/src\/js\/lore\.js/);
     assert.match(session, /data-smurdy-lore-module/);
-    assert.match(session, /\/src\/js\/lore\.js\?v=20260915-lore-3/);
+    assert.match(session, /\/src\/js\/lore\.js\?v=20260916-lore-4/);
     assert.match(home, /quiz_launch_intent\.js\?v=20260915-launch-intent-2/);
-    assert.match(home, /lore\.js\?v=20260915-lore-3/);
+    assert.match(home, /lore\.js\?v=20260916-lore-4/);
     assert.ok(home.indexOf("quiz_launch_intent.js") < home.indexOf("lore.js"));
 });
 
@@ -87,6 +87,19 @@ test("redrawn lore SVGs stay removed and live lore uses original assets", () => 
     assert.doesNotMatch(source, /\/assets\/lore\/[^"']+\.svg/);
     assert.match(source, /smurdeye-transparent\.png/);
     assert.match(source, /smurdy-lore-eye-reverse/);
+});
+
+test("Turnover poem uses redaction bars instead of the face artwork", () => {
+    const source = read("src/js/lore.js");
+    const css = read("styles/lore.css");
+    assert.doesNotMatch(source, /lore-turnover-face/);
+    assert.doesNotMatch(css, /lore-turnover-face/);
+    assert.match(source, /lore-turnover-redacted/);
+    assert.match(source, /lore-turnover-eye/);
+    assert.match(css, /\.lore-turnover\s*\{[\s\S]*background:\s*#0077cc/);
+    assert.match(css, /\.lore-turnover-redacted\s*\{[\s\S]*background:\s*#000;[\s\S]*color:\s*#000/);
+    assert.match(css, /\.lore-turnover-redacted::selection[\s\S]*color:\s*#fff/);
+    assert.match(css, /\.lore-turnover-eye\s*\{[\s\S]*background:\s*transparent/);
 });
 
 test("turnover poem text and inside-code vocabulary are preserved", () => {

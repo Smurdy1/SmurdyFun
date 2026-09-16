@@ -12,6 +12,7 @@
     const SHARE_STYLE_ID = "smurdy-quiz-completion-style-v1";
     const SHARE_SELECTOR = "[data-smurdy-share]";
     const DEFAULT_REVIEW_PAGE_SIZE = 6;
+    const PRACTICE_CONTINUATION_ID = "weak-spots-practice-next";
 
     function formatElapsed(milliseconds) {
         const totalSeconds = Math.floor(Math.max(0, Number(milliseconds) || 0) / 1000);
@@ -381,6 +382,41 @@
                 outline: 3px solid rgba(0,119,204,.28);
                 outline-offset: 2px;
             }
+            #weak-spots-practice-next {
+                width: 100%;
+                margin-top: 14px;
+                padding: 11px 12px;
+                border: 1px solid #d8dde2;
+                border-radius: 8px;
+                background: #f7f8fa;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                box-sizing: border-box;
+            }
+            #weak-spots-practice-next[hidden] { display: none; }
+            #weak-spots-practice-next strong { font-size: 13px; }
+            #weak-spots-practice-next span {
+                margin-right: auto;
+                color: #626262;
+                font-size: 12px;
+            }
+            #weak-spots-practice-next button {
+                flex: 0 0 auto;
+                padding: 8px 12px;
+                border: 1px solid #0077cc;
+                border-radius: 5px;
+                background: #0077cc;
+                color: #fff;
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            #weak-spots-practice-next button:hover { background: #005fa3; }
+            #weak-spots-practice-next button:focus-visible {
+                outline: 3px solid rgba(0,119,204,.28);
+                outline-offset: 2px;
+            }
             [data-smurdy-share] {
                 width: 100%;
                 margin-top: 18px;
@@ -423,11 +459,46 @@
                 opacity: .65;
             }
             @media (max-width: 700px) {
+                #weak-spots-practice-next { align-items: stretch; flex-direction: column; }
+                #weak-spots-practice-next span { margin-right: 0; }
+                #weak-spots-practice-next button { width: 100%; }
                 [data-smurdy-share] { align-items: stretch; flex-direction: column; }
                 [data-smurdy-share] .smurdy-share-button { width: 100%; }
             }
         `;
         document.head.appendChild(style);
+    }
+
+    function renderPracticeContinuation(container, stage, options = {}) {
+        if (!container || !stage) return null;
+        const document = container.ownerDocument || root?.document;
+        if (!document) return null;
+        injectShareStyles(document);
+
+        let section = document.getElementById(PRACTICE_CONTINUATION_ID);
+        if (!section) {
+            section = document.createElement("section");
+            section.id = PRACTICE_CONTINUATION_ID;
+        }
+
+        const count = Array.isArray(stage.names) ? stage.names.length : 0;
+        const title = document.createElement("strong");
+        title.textContent = "Next Weak Spots round";
+        const detail = document.createElement("span");
+        detail.textContent = `${stage.label} (${count} ${count === 1 ? "place" : "places"})`;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Continue";
+        button.addEventListener("click", () => {
+            if (typeof options.onContinue === "function") options.onContinue(stage);
+        });
+        section.replaceChildren(title, detail, button);
+
+        const before = options.before;
+        if (before && before.parentNode === container) container.insertBefore(section, before);
+        else if (section.parentNode !== container) container.appendChild(section);
+        section.hidden = false;
+        return section;
     }
 
     function renderShare(container, result, options = {}) {
@@ -704,6 +775,7 @@
         createAnalyticsReporter,
         renderReview,
         renderSummary,
+        renderPracticeContinuation,
         renderShare,
         hideShare,
         buildShareImageBlob,

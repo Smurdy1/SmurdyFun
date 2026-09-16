@@ -943,29 +943,14 @@ window.runNameQuiz = function runNameQuiz(config) {
 
     function showPracticeContinuation(stage) {
         if (!stage) return;
-
         const panel = document.getElementById("quiz-panel");
         if (!panel) return;
-
-        let section = document.getElementById("weak-spots-practice-next");
-        if (!section) {
-            section = document.createElement("section");
-            section.id = "weak-spots-practice-next";
-            const share = panel.querySelector("[data-smurdy-share]");
-            if (share && share.parentNode === panel) panel.insertBefore(section, share);
-            else panel.appendChild(section);
-        }
-
-        const count = Array.isArray(stage.names) ? stage.names.length : 0;
-        section.innerHTML =
-            '<strong>Next Weak Spots round</strong>' +
-            '<span>' + stage.label + ' (' + count + ' ' +
-                (count === 1 ? 'place' : 'places') + ')</span>' +
-            '<button type="button">Continue</button>';
-        section.querySelector("button").addEventListener("click", () => {
-            window.SmurdyWeakSpots?.openPracticeStage?.(stage);
+        completion.renderPracticeContinuation?.(panel, stage, {
+            before: panel.querySelector("[data-smurdy-share]"),
+            onContinue(nextStage) {
+                window.SmurdyWeakSpots?.openPracticeStage?.(nextStage);
+            }
         });
-        section.hidden = false;
     }
 
 

@@ -43,37 +43,13 @@ body[data-lore-page] {
     display: grid;
     place-items: center;
     overflow: hidden;
-    background: #000;
+    background: #0077cc;
 }
-
-.lore-turnover-face {
-    position: absolute;
-    width: min(62vw, 610px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: #030303;
-    box-shadow: inset 0 0 0 2px #050505;
-}
-
-.lore-turnover-face::before,
-.lore-turnover-face::after {
-    content: "";
-    position: absolute;
-    top: 36%;
-    width: 17%;
-    height: 8%;
-    border-radius: 50%;
-    background: #090909;
-}
-
-.lore-turnover-face::before { left: 24%; }
-.lore-turnover-face::after { right: 24%; }
 
 .lore-turnover-text {
     position: relative;
     z-index: 1;
     width: min(88vw, 760px);
-    color: #020202;
     font: 18px/2.05 Georgia, "Times New Roman", serif;
     letter-spacing: .11em;
     text-align: center;
@@ -81,16 +57,24 @@ body[data-lore-page] {
 }
 
 .lore-turnover-text p { margin: 0; }
-.lore-turnover-text ::selection {
+.lore-turnover-redacted {
+    background: #000;
     color: #000;
-    background: #e8e8e8;
 }
+.lore-turnover-redacted::selection {
+    background: #000;
+    color: #fff;
+}
+.lore-turnover-eye {
+    background: transparent;
+    color: initial;
+}
+.lore-turnover-eye::selection { background: rgba(0, 0, 0, .28); }
 
 .lore-turnover-end {
     position: fixed;
     right: 3px;
     bottom: 2px;
-    color: #fff;
     font-size: 1px;
     line-height: 1;
     letter-spacing: 0;

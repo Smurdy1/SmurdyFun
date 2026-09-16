@@ -198,21 +198,18 @@
         }
 
         function removePracticeContinuation() {
-            afterActions?.querySelector?.("[data-weak-spots-next]")?.remove();
+            document.getElementById("weak-spots-practice-next")?.remove();
         }
 
         function showPracticeContinuation(stage) {
             removePracticeContinuation();
-            if (!stage || !afterActions) return;
-            const button = document.createElement("button");
-            button.className = "flag-button";
-            button.type = "button";
-            button.dataset.weakSpotsNext = "";
-            button.textContent = `Continue: ${stage.label}`;
-            button.addEventListener("click", () => {
-                root.SmurdyWeakSpots?.openPracticeStage?.(stage);
+            if (!stage || !game) return;
+            completion.renderPracticeContinuation?.(game, stage, {
+                before: game.querySelector("[data-smurdy-share]") || afterActions,
+                onContinue(nextStage) {
+                    root.SmurdyWeakSpots?.openPracticeStage?.(nextStage);
+                }
             });
-            afterActions.prepend(button);
         }
 
 

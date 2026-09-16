@@ -131,9 +131,21 @@ html[data-smurdy-theme="dark"] .flag-progress-track {
 
 html[data-smurdy-theme="dark"] [data-smurdy-quiz-favorite][aria-pressed="true"],
 html[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"] {
-    border-color: #b99222;
-    background: #4a3c13;
-    color: #fff3c2;
+    border-color: #b99222 !important;
+    background: #4a3c13 !important;
+    color: #ffd54f !important;
+}
+
+html[data-smurdy-theme="dark"] .button-link {
+    border-color: #2489c9 !important;
+    background: #2489c9 !important;
+    color: #fff !important;
+}
+html[data-smurdy-theme="dark"] .button-link:hover,
+html[data-smurdy-theme="dark"] .button-link:focus-visible {
+    border-color: #3298d8 !important;
+    background: #3298d8 !important;
+    color: #fff !important;
 }
 
 html[data-smurdy-theme="dark"] #weak-spots-dialog,

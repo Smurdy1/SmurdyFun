@@ -329,13 +329,13 @@ function quizPage(groupId, group) {
   ${footerHtml}
   <script src="/src/js/analytics.js?v=20260823-quiz-analytics-1" defer></script>
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
-  <script src="/src/js/quiz_completion.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/quiz_completion.js?v=20260916-completion-2" defer></script>
   <script src="/src/js/quiz_suggestions.js?v=20260910-suggestions-1" defer></script>
   <script src="/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2" defer></script>
   <script src="/src/js/flag_catalog.js?v=20260909-editorial-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260910-ui-detail-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260909-editorial-1" defer></script>
-  <script src="/src/js/flag_quiz.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/flag_quiz.js?v=20260916-weakspots-parity-1" defer></script>
   ${landingScriptsHtml}
 </body>
 </html>`;

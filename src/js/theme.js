@@ -187,6 +187,13 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
     color: #ffd54f !important;
 }
 
+html[data-smurdy-theme="dark"] [data-smurdy-quiz-favorite][aria-pressed="true"],
+html[data-smurdy-theme="dark"] :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"] {
+    border-color: #b99222 !important;
+    background: #4a3c13 !important;
+    color: #ffd54f !important;
+}
+
 html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links {
     background: #20262b !important;
 }

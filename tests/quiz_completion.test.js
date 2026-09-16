@@ -150,7 +150,10 @@ test("both runners delegate completion flow instead of keeping a map-only share 
     assert.doesNotMatch(mapRunner, /navigator\.share/);
     assert.match(mapRunner, /completion\.retryMissed|renderReview/);
     assert.match(flagRunner, /completion\.retryMissed/);
-    assert.match(appCore, /quiz_completion\.js\?v=20260908-capitals-1/);
+    assert.match(mapRunner, /completion\.renderPracticeContinuation/);
+    assert.match(flagRunner, /completion\.renderPracticeContinuation/);
+    assert.doesNotMatch(flagRunner, /Continue: \${stage\.label}/);
+    assert.match(appCore, /quiz_completion\.js\?v=20260916-completion-2/);
 });
 
 
