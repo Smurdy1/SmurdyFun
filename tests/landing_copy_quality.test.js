@@ -80,7 +80,7 @@ test("subdivision prose stays grammatically natural", () => {
     assert.doesNotMatch(clickStates, /inside US States/);
 
     const findStates = read("quizzes/maps/find/subdivisions/us_states/index.html");
-    assert.match(findStates, /outer shape of the United States/);
+    assert.match(findStates, /outline of the United States|edge of the United States/);
     assert.doesNotMatch(findStates, /inside US States/);
 });
 
