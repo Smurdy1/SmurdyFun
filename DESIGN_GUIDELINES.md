@@ -1,3 +1,18 @@
+## Writing voice
+
+Smurdy copy should sound like one person who actually plays the site. Plain and a little uneven is better than polished template prose.
+
+Watch for these AI-heavy habits:
+- repeated em dashes, slogan-like colons, or tidy three-part lists
+- perfectly parallel bullets where every line has the same grammar
+- abstract helper words such as “anchor,” “framework,” “seamless,” “robust,” “enhance,” or “delve” when a concrete noun works
+- “not X, but Y,” “rather than,” “instead of,” and other contrast framing used just to make a sentence sound sharper
+- instructions that always read like “Do X, then Y”
+- paragraphs that end by restating the paragraph in cleaner words
+- every sentence having the same medium length and polished cadence
+
+Keep specific geography details. Let sentences be short sometimes. Lists do not need to be symmetrical, and the Oxford comma is optional when the meaning is clear.
+
 # Smurdy Design Guidelines
 
 Smurdy should feel like a deliberately built geography site, not a generic component-library demo or an AI-generated SaaS interface. Avoiding a "vibe-coded" look is a product requirement, not a minor stylistic preference.

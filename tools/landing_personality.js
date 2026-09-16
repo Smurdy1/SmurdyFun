@@ -16,9 +16,9 @@ const LANDING_PERSONALITY = {
     },
     africa: {
         overviewHeading: "A huge map with a dense middle",
-        exampleSentence: "Ghana, Kenya, Botswana, and the two Congos make useful anchors, but a lot of the work happens between those anchors.",
+        exampleSentence: "Ghana and Kenya are easy to find. The countries between the better-known shapes are where this set usually slows down.",
         challengeHeading: "The middle is harder than the outline",
-        studyTipHeading: "Learn a few anchor countries first"
+        studyTipHeading: "Learn a few big shapes first"
     },
     americas: {
         overviewHeading: "Two continents in one run",
@@ -35,8 +35,8 @@ const LANDING_PERSONALITY = {
     balkans: {
         overviewHeading: "Small borders, similar neighbors",
         exampleSentence: "Slovenia, Croatia, Bosnia and Herzegovina, Serbia, Montenegro, and North Macedonia sit close enough that a rough sense of direction is not enough.",
-        sectionHeading: "Names are only half the problem",
-        sectionBody: "The Balkans are a good test of whether you know the actual order of neighboring countries instead of only recognizing the names as a regional cluster.",
+        sectionHeading: "Neighbor order matters here",
+        sectionBody: "The Balkans make neighbor order matter. Recognizing the country names by themselves will not place them on this map.",
         challengeHeading: "A few kilometers on screen can matter",
         studyTipHeading: "Learn the neighbor chain"
     },
@@ -63,8 +63,8 @@ const LANDING_PERSONALITY = {
     east_africa: {
         overviewHeading: "The Horn, the lakes, and the coast",
         exampleSentence: "Ethiopia, Kenya, Uganda, Tanzania, and Somalia give you several strong shapes, then the smaller neighbors test the gaps between them.",
-        challengeHeading: "The landmarks are strong, the gaps are not",
-        studyTipHeading: "Use the Horn and the lakes as anchors"
+        challengeHeading: "The gaps are the hard part",
+        studyTipHeading: "Know the Horn and the Great Lakes"
     },
     eastern_europe: {
         overviewHeading: "A compact region with few easy coastlines",
@@ -75,7 +75,7 @@ const LANDING_PERSONALITY = {
     eurasia: {
         overviewHeading: "From the Atlantic edge to the Pacific",
         exampleSentence: "This set can put Portugal and Japan in the same run, with dozens of countries and several very different map scales between them.",
-        challengeHeading: "There is no single useful center",
+        challengeHeading: "The map never settles down",
         studyTipHeading: "Treat Eurasia as connected regions"
     },
     europe: {
@@ -87,7 +87,7 @@ const LANDING_PERSONALITY = {
         studyTipHeading: "Learn the small-country clusters"
     },
     european_union: {
-        overviewHeading: "A political set, not a geographic one",
+        overviewHeading: "Membership makes the map weird",
         exampleSentence: "Portugal, Finland, Cyprus, and Ireland belong together here because of membership, not because they form one neat region on the map.",
         challengeHeading: "The set has holes and outliers",
         studyTipHeading: "Learn membership and location together"
@@ -95,8 +95,8 @@ const LANDING_PERSONALITY = {
     former_soviet_union: {
         overviewHeading: "The Baltics to Central Asia",
         exampleSentence: "Estonia, Belarus, Georgia, Kazakhstan, and Tajikistan make this set stretch across several very different geographic bands.",
-        sectionHeading: "Think in bands, not one block",
-        sectionBody: "The Baltic states, eastern Europe, the Caucasus, and Central Asia are easier to remember as separate clusters connected by the history of the set.",
+        sectionHeading: "Four smaller maps work better here",
+        sectionBody: "The Baltics, the Caucasus and Central Asia each feel like their own little map. Learn them that way.",
         challengeHeading: "Central Asia is easy to rotate mentally",
         studyTipHeading: "Learn the four clusters separately"
     },
@@ -108,17 +108,17 @@ const LANDING_PERSONALITY = {
     },
     mena: {
         overviewHeading: "A band from Morocco to Iran",
-        exampleSentence: "Morocco, Egypt, Saudi Arabia, and Iran are strong anchors; the smaller states around the eastern Mediterranean and Gulf make the transitions harder.",
+        exampleSentence: "Morocco, Egypt, Saudi Arabia, and Iran are strong reference points; the smaller states around the eastern Mediterranean and Gulf make the transitions harder.",
         sectionHeading: "Two different map problems",
-        sectionBody: "North Africa is mostly a west-to-east sequence, while the Middle East depends much more on compact border relationships. Treating them the same usually makes the set harder.",
+        sectionBody: "North Africa is mostly a west-to-east sequence, while the Middle East depends much more on compact border relationships. The two halves really do need different map memory.",
         challengeHeading: "The eastern half gets crowded",
         studyTipHeading: "Learn North Africa and the Middle East separately"
     },
     middle_east: {
         overviewHeading: "Small Gulf states beside very large neighbors",
-        exampleSentence: "Turkey, Iran, and Saudi Arabia are easy anchors, while Bahrain, Qatar, Kuwait, Lebanon, and Israel demand much finer placement.",
+        exampleSentence: "Turkey, Iran and Saudi Arabia are hard to miss. The Gulf states and the Levant need much finer placement.",
         challengeHeading: "Scale is the main trap",
-        studyTipHeading: "Anchor the small states to a large neighbor"
+        studyTipHeading: "Place the small states around their neighbors"
     },
     north_america: {
         overviewHeading: "From Canada to the Caribbean",
@@ -134,9 +134,9 @@ const LANDING_PERSONALITY = {
     },
     oceania: {
         overviewHeading: "A few huge shapes and many tiny ones",
-        exampleSentence: "Australia and New Zealand are obvious anchors; the Pacific island states turn the same quiz into a search across enormous stretches of ocean.",
+        exampleSentence: "Australia and New Zealand are obvious. The Pacific island states are a completely different kind of question.",
         challengeHeading: "Ocean distance distorts your intuition",
-        studyTipHeading: "Learn the island groups, not just the dots"
+        studyTipHeading: "Learn the island groups first"
     },
     pacific_islands: {
         overviewHeading: "A quiz spread across half an ocean",
@@ -149,8 +149,8 @@ const LANDING_PERSONALITY = {
     small_island_countries: {
         overviewHeading: "The countries most likely to disappear at world zoom",
         exampleSentence: "The Bahamas, Mauritius, Malta, and the Maldives are memorable names, but their map targets are tiny and scattered far apart.",
-        challengeHeading: "Knowing the region is not enough",
-        studyTipHeading: "Pair every island with a nearby anchor"
+        challengeHeading: "Tiny islands punish rough guesses",
+        studyTipHeading: "Give each island a nearby reference point"
     },
     south_america: {
         overviewHeading: "A clean outline with a tricky northern edge",
@@ -160,7 +160,7 @@ const LANDING_PERSONALITY = {
     },
     south_and_central_asia: {
         overviewHeading: "Mountains and landlocked neighbors",
-        exampleSentence: "Kazakhstan and India are strong anchors, but Kyrgyzstan, Tajikistan, Nepal, Bhutan, and Bangladesh compress a lot of geography into narrow spaces.",
+        exampleSentence: "Kazakhstan and India are huge on the map. Kyrgyzstan, Tajikistan, Nepal and Bhutan are where the spacing gets tight.",
         challengeHeading: "The mountain belt packs countries together",
         studyTipHeading: "Build a west-to-east sequence"
     },
@@ -172,26 +172,26 @@ const LANDING_PERSONALITY = {
     },
     southern_europe: {
         overviewHeading: "Peninsulas, islands, and microstates",
-        exampleSentence: "Spain, Italy, and Greece are excellent anchors, but Malta, San Marino, Vatican City, and the Balkans make the small-scale details matter.",
+        exampleSentence: "Spain, Italy and Greece are easy to orient around. Malta, the microstates and the Balkans need much closer map memory.",
         challengeHeading: "The tiny states break the easy pattern",
         studyTipHeading: "Use the three big peninsulas first"
     },
     spanish_speaking: {
         overviewHeading: "A language set that crosses an ocean",
         exampleSentence: "Spain, Mexico, Argentina, the Caribbean, and Equatorial Guinea make this one of the least geographically compact sets on Smurdy.",
-        challengeHeading: "Language does not give you a map region",
+        challengeHeading: "The set is scattered across the world",
         studyTipHeading: "Learn the geographic clusters separately"
     },
     sub_saharan_africa: {
         overviewHeading: "A very large set with few obvious shortcuts",
-        exampleSentence: "Senegal, Ethiopia, South Africa, Madagascar, and the Democratic Republic of the Congo are useful anchors, but they leave a lot of map between them.",
+        exampleSentence: "Senegal, Ethiopia and South Africa are easy landmarks. There is still a lot of inland Africa between the obvious shapes.",
         challengeHeading: "The interior has fewer distinctive outlines",
-        studyTipHeading: "Build a network of anchor countries"
+        studyTipHeading: "Learn the region in smaller pieces"
     },
     tiny_countries: {
         overviewHeading: "The map's smallest targets",
         exampleSentence: "Monaco, Liechtenstein, San Marino, Vatican City, Nauru, and Tuvalu turn ordinary map knowledge into a precision exercise.",
-        sectionHeading: "Zoom is part of the challenge",
+        sectionHeading: "You will need to zoom",
         sectionBody: "This set is intentionally awkward at normal world-map scale. Knowing the correct neighborhood first matters more than trying to spot a microscopic shape from far away.",
         challengeHeading: "Precision matters more than recognition",
         studyTipHeading: "Memorize the neighborhood before the outline"
@@ -204,7 +204,7 @@ const LANDING_PERSONALITY = {
     },
     us_states: {
         overviewHeading: "Fifty familiar names, one internal map",
-        exampleSentence: "California and Texas are instant anchors; Delaware, Rhode Island, and several central states ask for much finer shape and neighbor memory.",
+        exampleSentence: "California and Texas are instant. Delaware, Rhode Island and the middle of the country take more work.",
         sectionHeading: "The rectangle trap",
         sectionBody: "Several western and central states look simple enough that it is tempting to remember them as interchangeable boxes. Their neighbors and relative position are usually the better clue.",
         challengeHeading: "The middle is harder than the coasts",
