@@ -217,7 +217,7 @@ function categoryBreadcrumb(category) {
             const studyTip = renderTemplate(
                 pageOverride.studyTip ||
                 groupCopy.studyTip ||
-                `Review nearby places together, then return to the full group for mixed practice.`,
+                `If this set is rough, spend a while on one of its smaller regional quizzes.`,
                 context
             );
 

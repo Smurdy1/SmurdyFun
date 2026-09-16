@@ -81,7 +81,7 @@ test("all public country quiz modes generate Spanish-speaking landing pages", ()
         assert.doesNotMatch(html, /noindex/);
     }
     const click = fs.readFileSync(path.join(root, "quizzes/maps/click/countries/spanish_speaking/index.html"), "utf8");
-    assert.match(click, /20 sovereign countries where Spanish is a national official or dominant language/);
+    assert.match(click, /20 sovereign countries where Spanish is an official or dominant national language/);
     const flags = fs.readFileSync(path.join(root, "quizzes/flags/type/countries/spanish_speaking/index.html"), "utf8");
     assert.match(flags, /same 20-country Spanish-speaking group/);
 });

@@ -9,13 +9,6 @@ function read(relativePath) {
     return fs.readFileSync(path.join(root, relativePath), "utf8");
 }
 
-function modeParagraph(html, heading) {
-    const match = html.match(
-        new RegExp("<h2>" + heading + "<\\/h2>\\s*<p>(.*?)<\\/p>", "s")
-    );
-    return match ? match[1] : "";
-}
-
 test("grammar-sensitive templates do not splice raw group labels into prose", () => {
     const descriptions = JSON.parse(read("src/data/quiz_page_descriptions.json"));
 
@@ -58,7 +51,7 @@ test("known awkward group names render naturally", () => {
     );
     assert.match(
         spanishCapital,
-        /Use this when you know the countries in this set and want to add capital-city recall without losing the geographic context of the map\./
+        /Capital mode makes the most sense once the countries or states themselves are familiar\./
     );
     assert.doesNotMatch(spanishCapital, /<h2>When this mode helps<\/h2>/);
     assert.doesNotMatch(
@@ -81,13 +74,13 @@ test("known awkward group names render naturally", () => {
     assert.match(americas, /knowledge of the Americas/);
 });
 
-test("subdivision prose refers to the parent geography, not the group title", () => {
+test("subdivision prose stays grammatically natural", () => {
     const clickStates = read("quizzes/maps/click/subdivisions/us_states/index.html");
-    assert.match(clickStates, /internal map of the United States/);
+    assert.match(clickStates, /50 US states/);
     assert.doesNotMatch(clickStates, /inside US States/);
 
     const findStates = read("quizzes/maps/find/subdivisions/us_states/index.html");
-    assert.match(findStates, /outer shape of the United States/);
+    assert.match(findStates, /outline of the United States|edge of the United States/);
     assert.doesNotMatch(findStates, /inside US States/);
 });
 
