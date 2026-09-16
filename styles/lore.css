@@ -52,7 +52,7 @@ body[data-lore-page] {
     width: min(88vw, 760px);
     font: 18px/2.05 Georgia, "Times New Roman", serif;
     letter-spacing: .11em;
-    text-align: center;
+    text-align: left;
     user-select: text;
 }
 
