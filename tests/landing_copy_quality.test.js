@@ -51,7 +51,7 @@ test("known awkward group names render naturally", () => {
     );
     assert.match(
         spanishCapital,
-        /Use this once the countries or states themselves are familiar and you want to add the capitals\./
+        /Capital mode makes the most sense once the countries or states themselves are familiar\./
     );
     assert.doesNotMatch(spanishCapital, /<h2>When this mode helps<\/h2>/);
     assert.doesNotMatch(
