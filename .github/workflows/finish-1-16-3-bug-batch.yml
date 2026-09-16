@@ -20,216 +20,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Patch shared sources and regressions
+      - name: Apply bugfix patch
         run: |
           python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          def replace(path, old, new, count=1):
-              p = Path(path)
-              text = p.read_text()
-              if old not in text:
-                  raise SystemExit(f"Expected text missing in {path}: {old[:120]!r}")
-              p.write_text(text.replace(old, new, count))
-
-          # 1. Canonical flag launch intents must resolve routes even though the
-          # launch-intent module loads before quiz_routes.js on flag pages.
-          replace(
-              "src/js/quiz_launch_intent.js",
-              '        const shared = routeApi?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);',
-              '        const liveRouteApi = root?.SmurdyQuizRoutes || routeApi;\n        const shared = liveRouteApi?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);'
+          import subprocess
+          old = subprocess.check_output([
+              "git", "show", "HEAD^:.github/workflows/finish-1-16-3-bug-batch.yml"
+          ], text=True)
+          marker = "          python3 - <<'PY'\n"
+          start = old.index(marker) + len(marker)
+          end = old.index("\n          PY", start)
+          block = old[start:end]
+          code = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in block.splitlines()
           )
-
-          # 1b. Autostart can also arrive before the flag controller mounts at
-          # DOMContentLoaded. Wait briefly for the controller instead of dropping
-          # a valid browser / Weak Spots launch.
-          p = Path("src/js/quiz_landing.js")
-          text = p.read_text()
-          marker = '''    async function launchQuiz(intent = null) {\n'''
-          helper = '''    function waitForFlagController(timeoutMs = 2000) {\n        const ready = window.SmurdyFlagQuizController;\n        if (ready?.launchQuiz) return Promise.resolve(ready);\n\n        return new Promise(resolve => {\n            const started = Date.now();\n            const check = () => {\n                const controller = window.SmurdyFlagQuizController;\n                if (controller?.launchQuiz) {\n                    resolve(controller);\n                    return;\n                }\n                if (Date.now() - started >= timeoutMs) {\n                    resolve(null);\n                    return;\n                }\n                window.setTimeout(check, 16);\n            };\n            check();\n        });\n    }\n\n'''
-          if marker not in text:
-              raise SystemExit("quiz_landing launch marker missing")
-          text = text.replace(marker, helper + marker, 1)
-          old_flag_launch = '''        if (modality === "flag") {\n            const controller = window.SmurdyFlagQuizController;\n            if (!controller?.launchQuiz) {\n                console.error("Flag quiz controller is not ready.");\n                return;\n            }\n            await controller.launchQuiz({ launchIntent: intent });\n            return;\n        }'''
-          new_flag_launch = '''        if (modality === "flag") {\n            const controller = await waitForFlagController();\n            if (!controller?.launchQuiz) {\n                console.error("Flag quiz controller is not ready.");\n                return;\n            }\n            await controller.launchQuiz({ launchIntent: intent });\n            return;\n        }'''
-          if old_flag_launch not in text:
-              raise SystemExit("quiz_landing flag launch block missing")
-          text = text.replace(old_flag_launch, new_flag_launch, 1)
-          text = text.replace('/src/js/quiz_launch_intent.js?v=20260903-final-unity-1', '/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2')
-          p.write_text(text)
-
-          # 2. Landing breadcrumbs get the same category level as directories.
-          p = Path("tools/quiz_page_shell.js")
-          text = p.read_text()
-          text = text.replace('const ASSET_VERSION = "20260914-routes-1";', 'const ASSET_VERSION = "20260915-bugfix-1";', 1)
-          old_fn = '''function renderLandingBreadcrumbs({\n    root = "",\n    modeHref,\n    modeLabel,\n    groupLabel\n} = {}) {\n    if (!modeHref || !modeLabel || !groupLabel) {\n        throw new Error("renderLandingBreadcrumbs requires modeHref, modeLabel, and groupLabel");\n    }\n\n    return `<nav class="breadcrumbs" aria-label="Breadcrumb">\n      <a href="${escapeHtml(joinRoot(root, "/"))}">Smurdy</a>\n      <span aria-hidden="true">›</span>\n      <a href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>\n      <span aria-hidden="true">›</span>\n      <a href="${escapeHtml(joinRoot(root, modeHref))}">${escapeHtml(modeLabel)}</a>\n      <span aria-hidden="true">›</span>\n      <span aria-current="page">${escapeHtml(groupLabel)}</span>\n    </nav>`;\n}'''
-          new_fn = '''function renderLandingBreadcrumbs({\n    root = "",\n    categoryHref,\n    categoryLabel,\n    modeHref,\n    modeLabel,\n    groupLabel\n} = {}) {\n    if (!categoryHref || !categoryLabel || !modeHref || !modeLabel || !groupLabel) {\n        throw new Error("renderLandingBreadcrumbs requires category, mode, and group breadcrumb data");\n    }\n\n    return `<nav class="breadcrumbs" aria-label="Breadcrumb">\n      <a href="${escapeHtml(joinRoot(root, "/"))}">Smurdy</a>\n      <span aria-hidden="true">›</span>\n      <a href="${escapeHtml(joinRoot(root, "/quizzes/"))}">All quizzes</a>\n      <span aria-hidden="true">›</span>\n      <a href="${escapeHtml(joinRoot(root, categoryHref))}">${escapeHtml(categoryLabel)}</a>\n      <span aria-hidden="true">›</span>\n      <a href="${escapeHtml(joinRoot(root, modeHref))}">${escapeHtml(modeLabel)}</a>\n      <span aria-hidden="true">›</span>\n      <span aria-current="page">${escapeHtml(groupLabel)}</span>\n    </nav>`;\n}'''
-          if old_fn not in text:
-              raise SystemExit("shared breadcrumb function did not match")
-          p.write_text(text.replace(old_fn, new_fn, 1))
-
-          # Category labels are intentionally identical to the directory pages.
-          p = Path("tools/generate_quiz_pages.js")
-          text = p.read_text()
-          anchor = '''function manifestIsComingSoon(entry) {\n    return String(entry?.status || "").trim().toLowerCase() === "coming-soon" ||\n        Boolean(entry?.config?.comingSoon);\n}\n'''
-          category_helper = '''function manifestIsComingSoon(entry) {\n    return String(entry?.status || "").trim().toLowerCase() === "coming-soon" ||\n        Boolean(entry?.config?.comingSoon);\n}\n\nfunction categoryBreadcrumb(category) {\n    const key = String(category || "").trim().toLowerCase();\n    if (key === "maps") return { href: "/quizzes/maps/", label: "Map Quizzes" };\n    if (key === "capitals") return { href: "/quizzes/capitals/", label: "Capital Quizzes" };\n    if (key === "flags") return { href: "/quizzes/flags/", label: "Flag Quizzes" };\n    return { href: "/quizzes/", label: "All quizzes" };\n}\n'''
-          if anchor not in text:
-              raise SystemExit("generate_quiz_pages helper anchor missing")
-          text = text.replace(anchor, category_helper, 1)
-
-          world_block = '''            if (\n                activeGroupSetId === "country_groups" &&\n                groupId === "world" &&\n                entries.length === 0\n            ) {\n                entries = worldCountryNames.slice();\n            }\n            const entryCount = entries.length;'''
-          world_fix = '''            if (\n                activeGroupSetId === "country_groups" &&\n                groupId === "world" &&\n                entries.length === 0\n            ) {\n                entries = worldCountryNames.slice();\n            }\n            // Country map gameplay currently collapses Palestine into Israel by\n            // sovereign key. Landing counts and included lists should describe\n            // the questions the map runner can actually surface.\n            if (\n                manifestEntry.category === "maps" &&\n                activeGroupSetId === "country_groups"\n            ) {\n                entries = entries.filter(name => String(name || "").trim().toLowerCase() !== "palestine");\n            }\n            const entryCount = entries.length;'''
-          if world_block not in text:
-              raise SystemExit("map landing entry-count block missing")
-          text = text.replace(world_block, world_fix, 1)
-
-          old_crumb_call = '''            const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({\n                root: publicRoot,\n                modeHref: `/quizzes/${manifestId}/`,\n                modeLabel: getModeDisplayName(manifestEntry),\n                groupLabel\n            });'''
-          new_crumb_call = '''            const categoryCrumb = categoryBreadcrumb(manifestEntry.category);\n            const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({\n                root: publicRoot,\n                categoryHref: categoryCrumb.href,\n                categoryLabel: categoryCrumb.label,\n                modeHref: `/quizzes/${manifestId}/`,\n                modeLabel: getModeDisplayName(manifestEntry),\n                groupLabel\n            });'''
-          if old_crumb_call not in text:
-              raise SystemExit("map/capital breadcrumb call missing")
-          p.write_text(text.replace(old_crumb_call, new_crumb_call, 1))
-
-          p = Path("tools/generate_flag_pages.js")
-          text = p.read_text()
-          old = '''    const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({\n        modeHref: "/quizzes/type-flag/",\n        modeLabel: "Type the Flags",\n        groupLabel: group.shortLabel\n    });'''
-          new = '''    const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({\n        categoryHref: "/quizzes/flags/",\n        categoryLabel: "Flag Quizzes",\n        modeHref: "/quizzes/type-flag/",\n        modeLabel: "Type the Flags",\n        groupLabel: group.shortLabel\n    });'''
-          if old not in text:
-              raise SystemExit("flag breadcrumb call missing")
-          text = text.replace(old, new, 1)
-          text = text.replace('/src/js/quiz_launch_intent.js?v=20260909-editorial-1', '/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2')
-          p.write_text(text)
-
-          # 3. Homepage browser map counts follow the current map runner's
-          # sovereign pool without altering raw flag/capital group membership.
-          p = Path("src/js/browse.js")
-          text = p.read_text()
-          old_count = '''    function memberCountForGroup(group) {\n        const members = Array.isArray(group?.members)\n            ? group.members\n            : (\n                Array.isArray(group?.countries)\n                    ? group.countries\n                    : []\n            );\n        const declaredCount = Number(group?.memberCount);\n        return Number.isFinite(declaredCount) && declaredCount > 0\n            ? declaredCount\n            : members.length;\n    }\n\n    function tagsForGroup(id, group, family) {\n        const tags = [];\n        const memberCount = memberCountForGroup(group);'''
-          new_count = '''    function memberCountForGroup(group, manifestItem = null, groupId = "") {\n        const members = Array.isArray(group?.members)\n            ? group.members\n            : (\n                Array.isArray(group?.countries)\n                    ? group.countries\n                    : []\n            );\n        const declaredCount = Number(group?.memberCount);\n        let count = Number.isFinite(declaredCount) && declaredCount > 0\n            ? declaredCount\n            : members.length;\n\n        if (categoryKeyForManifest(manifestItem) === "maps") {\n            const hasPalestine = members.some(\n                name => String(name || "").trim().toLowerCase() === "palestine"\n            );\n            if (hasPalestine) count -= 1;\n            else if (String(groupId) === "world" && members.length === 0 && count === 201) count -= 1;\n        }\n\n        return Math.max(0, count);\n    }\n\n    function tagsForGroup(id, group, family, memberCountOverride = null) {\n        const tags = [];\n        const memberCount = Number.isFinite(memberCountOverride)\n            ? memberCountOverride\n            : memberCountForGroup(group);'''
-          if old_count not in text:
-              raise SystemExit("browse memberCountForGroup block missing")
-          text = text.replace(old_count, new_count, 1)
-          old_card = '''            out.push({\n                id,\n                label: group.label || getFriendlyTypeLabel(id),\n                description: descriptionForCard(\n                    id,\n                    group,\n                    family,\n                    pageDescriptions,\n                    categoryKeyForManifest(manifestItem)\n                ),\n                tags: tagsForGroup(id, group, family),\n                meta: group,\n                manifest: manifestItem,\n                memberCount: memberCountForGroup(group),'''
-          new_card = '''            const memberCount = memberCountForGroup(group, manifestItem, id);\n\n            out.push({\n                id,\n                label: group.label || getFriendlyTypeLabel(id),\n                description: descriptionForCard(\n                    id,\n                    group,\n                    family,\n                    pageDescriptions,\n                    categoryKeyForManifest(manifestItem)\n                ),\n                tags: tagsForGroup(id, group, family, memberCount),\n                meta: group,\n                manifest: manifestItem,\n                memberCount,'''
-          if old_card not in text:
-              raise SystemExit("browse card member count block missing")
-          p.write_text(text.replace(old_card, new_card, 1))
-
-          # 4-6. Dark-mode fixes for favorites, Weak Spots review/practice, and
-          # post-quiz suggestions.
-          replace("src/js/theme.js", '    color: #ffe9a6 !important;', '    color: #ffd54f !important;')
-          p = Path("styles/theme.css")
-          text = p.read_text()
-          dark_fix = '''\n\n/* 1.16.3 dark-mode fixes for saved quizzes, Weak Spots, and suggestions */\nhtml[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {\n    border-color: #b99222 !important;\n    background: #4a3c13 !important;\n    color: #ffd54f !important;\n}\n\nhtml[data-smurdy-theme="dark"] .weak-spots-dialog-header,\nhtml[data-smurdy-theme="dark"] .weak-spots-dialog-footer,\nhtml[data-smurdy-theme="dark"] .weak-spot-item,\nhtml[data-smurdy-theme="dark"] #quiz-review {\n    border-color: #465159;\n}\n\nhtml[data-smurdy-theme="dark"] .weak-spot-item,\nhtml[data-smurdy-theme="dark"] .quiz-review-country,\nhtml[data-smurdy-theme="dark"] #weak-spots-practice-next {\n    background: #242b30;\n    color: #dfe4e7;\n}\n\nhtml[data-smurdy-theme="dark"] .weak-spot-name,\nhtml[data-smurdy-theme="dark"] .quiz-review-country,\nhtml[data-smurdy-theme="dark"] #weak-spots-practice-next strong {\n    color: #dfe4e7;\n}\n\nhtml[data-smurdy-theme="dark"] .weak-spot-meta,\nhtml[data-smurdy-theme="dark"] .quiz-review-country-detail,\nhtml[data-smurdy-theme="dark"] .quiz-review-summary,\nhtml[data-smurdy-theme="dark"] #weak-spots-practice-next span {\n    color: #aab3b9;\n}\n\nhtml[data-smurdy-theme="dark"] .quiz-review-country {\n    border-color: #465159;\n}\n\nhtml[data-smurdy-theme="dark"] .quiz-review-country:hover {\n    background: #30383e;\n}\n\nhtml[data-smurdy-theme="dark"] #weak-spots-clear {\n    border-color: #4a555d;\n    background: #30383e;\n    color: #ffaaa3;\n}\n\nhtml[data-smurdy-theme="dark"] #weak-spots-practice-next {\n    border-color: #465159;\n}\n\nhtml[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play {\n    border-color: #2489c9 !important;\n    background: #2489c9 !important;\n    color: #ffffff !important;\n}\n\nhtml[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play:hover,\nhtml[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play:focus-visible {\n    border-color: #3298d8 !important;\n    background: #3298d8 !important;\n    color: #ffffff !important;\n}\n\nhtml[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {\n    color: #cdd3d7 !important;\n}\n'''
-          if "1.16.3 dark-mode fixes" in text:
-              raise SystemExit("dark-mode fix block already present")
-          p.write_text(text.rstrip() + dark_fix + "\n")
-
-          # 7. Keep the About note direct and non-formulaic.
-          replace(
-              "about/index.html",
-              '<aside class="maker-note"><strong>One rule I keep coming back to:</strong> if a feature makes the normal quiz slower to start, it needs a good reason.</aside>',
-              '<aside class="maker-note">If a feature makes the normal quiz slower to start, it needs a good reason.</aside>'
-          )
-
-          # Release and cache versions.
-          replace("src/js/app_core.js", 'const APP_VERSION = "1.16.2";', 'const APP_VERSION = "1.16.3";')
-          replace("tools/apply_sharing.js", 'const THEME_ASSET_VERSION = "20260914-dark-mode-5";', 'const THEME_ASSET_VERSION = "20260915-dark-mode-6";')
-          replace("index.html", '/src/js/quiz_launch_intent.js?v=20260914-launch-intent-hotfix-1', '/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2')
-          replace("index.html", '/src/js/browse.js?v=20260909-editorial-1', '/src/js/browse.js?v=20260915-bugfix-1')
-
-          # Update existing regression expectations.
-          for test_file in ["tests/editorial_identity.test.js", "tests/runtime_memory.test.js"]:
-              p = Path(test_file)
-              s = p.read_text().replace('1\\.16\\.2', '1\\.16\\.3')
-              if test_file.endswith("runtime_memory.test.js"):
-                  s = s.replace('20260914-routes-1', '20260915-bugfix-1')
-              p.write_text(s)
-
-          p = Path("tests/theme.test.js")
-          s = p.read_text().replace('20260914-dark-mode-5', '20260915-dark-mode-6')
-          insert_before = '''test("share dialog action buttons use dark surfaces", () => {'''
-          regression = '''test("dark mode covers favorites, Weak Spots, and suggestion actions", () => {\n    const theme = read("src/js/theme.js");\n    const css = read("styles/theme.css");\n    assert.match(theme, /qb-favorite\\[aria-pressed="true"\\][\\s\\S]*#ffd54f/);\n    assert.match(css, /qb-favorite\\[aria-pressed="true"\\][\\s\\S]*#ffd54f/);\n    assert.match(css, /#weak-spots-practice-next[\\s\\S]*background:\\s*#242b30/);\n    assert.match(css, /\\.quiz-review-country[\\s\\S]*background:\\s*#242b30/);\n    assert.match(css, /\\.weak-spot-item[\\s\\S]*background:\\s*#242b30/);\n    assert.match(css, /\\.smurdy-quiz-suggestion-play[\\s\\S]*background:\\s*#2489c9/);\n    assert.match(css, /\\.smurdy-quiz-suggestion-play[\\s\\S]*color:\\s*#ffffff/);\n});\n\n'''
-          if insert_before not in s:
-              raise SystemExit("theme test insertion anchor missing")
-          p.write_text(s.replace(insert_before, regression + insert_before, 1))
-
-          # Replace breadcrumb tests with the five-level hierarchy expectations.
-          p = Path("tests/landing_breadcrumbs.test.js")
-          s = p.read_text()
-          s = s.replace(
-              '        modeHref: "/quizzes/maps/click/countries/",\n        modeLabel: "Click the Countries",',
-              '        categoryHref: "/quizzes/maps/",\n        categoryLabel: "Map Quizzes",\n        modeHref: "/quizzes/maps/click/countries/",\n        modeLabel: "Click the Countries",'
-          )
-          s = s.replace(
-              '/<a href="https:\\\/\\\/smurdy\\.fun\\\/">Smurdy<\\/a>[\\s\\S]*?<a href="https:\\\/\\\/smurdy\\.fun\\\/quizzes\\\/">All quizzes<\\/a>[\\s\\S]*?<a href="https:\\\/\\\/smurdy\\.fun\\\/quizzes\\\/maps\\\/click\\\/countries\\\/">Click the Countries<\\/a>[\\s\\S]*?<span aria-current="page">World<\\/span>/',
-              '/<a href="https:\\\/\\\/smurdy\\.fun\\\/">Smurdy<\\/a>[\\s\\S]*?<a href="https:\\\/\\\/smurdy\\.fun\\\/quizzes\\\/">All quizzes<\\/a>[\\s\\S]*?<a href="https:\\\/\\\/smurdy\\.fun\\\/quizzes\\\/maps\\\/">Map Quizzes<\\/a>[\\s\\S]*?<a href="https:\\\/\\\/smurdy\\.fun\\\/quizzes\\\/maps\\\/click\\\/countries\\\/">Click the Countries<\\/a>[\\s\\S]*?<span aria-current="page">World<\\/span>/'
-          )
-          s = s.replace('test("all quiz landing pages use Smurdy > All quizzes > mode > current group", () => {', 'test("all quiz landing pages use Smurdy > All quizzes > category > mode > current group", () => {')
-          s = s.replace('assert.equal(links.length, 3, relative + " should have exactly three clickable breadcrumb parents");', 'assert.equal(links.length, 4, relative + " should have exactly four clickable breadcrumb parents");')
-          old_checks = '''        assert.match(links[0].href, /\\/$/, relative);\n        assert.match(links[1].href, /\\/quizzes\\/$/, relative);\n        assert.match(\n            links[2].href,\n            new RegExp("/quizzes/" + escapeRegex(modeId) + "/$"),\n            relative + " mode breadcrumb should link to its quiz directory"\n        );'''
-          new_checks = '''        assert.match(links[0].href, /\\/$/, relative);\n        assert.match(links[1].href, /\\/quizzes\\/$/, relative);\n        const category = modeId.split("/")[0];\n        const categoryLabel = { maps: "Map Quizzes", capitals: "Capital Quizzes", flags: "Flag Quizzes" }[category];\n        assert.equal(links[2].label, categoryLabel, relative);\n        assert.match(links[2].href, new RegExp("/quizzes/" + escapeRegex(category) + "/$"), relative);\n        assert.match(\n            links[3].href,\n            new RegExp("/quizzes/" + escapeRegex(modeId) + "/$"),\n            relative + " mode breadcrumb should link to its quiz directory"\n        );'''
-          if old_checks not in s:
-              raise SystemExit("landing breadcrumb link checks missing")
-          s = s.replace(old_checks, new_checks, 1)
-          s = s.replace(
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Click the Countries<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/',
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Map Quizzes<\\/a>[\\s\\S]*?>Click the Countries<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/'
-          )
-          s = s.replace(
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Type the Capitals<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/',
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Capital Quizzes<\\/a>[\\s\\S]*?>Type the Capitals<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/'
-          )
-          s = s.replace(
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Type the Flags<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/',
-              '/>Smurdy<\\/a>[\\s\\S]*?>All quizzes<\\/a>[\\s\\S]*?>Flag Quizzes<\\/a>[\\s\\S]*?>Type the Flags<\\/a>[\\s\\S]*?aria-current="page">World<\\/span>/'
-          )
-          p.write_text(s)
-
-          # Launch-intent browser-load-order regression plus controller-wait source check.
-          p = Path("tests/quiz_launch_intent.test.js")
-          s = p.read_text()
-          s = s.replace('const assert = require("node:assert/strict");', 'const assert = require("node:assert/strict");\nconst fs = require("node:fs");\nconst path = require("node:path");\nconst vm = require("node:vm");', 1)
-          s += '''\n\ntest("canonical flag launch intents survive quiz_routes loading after the intent module", () => {\n    const source = fs.readFileSync(path.join(__dirname, "..", "src/js/quiz_launch_intent.js"), "utf8");\n    const storage = memoryStorage();\n    const window = {\n        location: { pathname: "/quizzes/flags/type/countries/world/" },\n        sessionStorage: storage\n    };\n    const context = vm.createContext({ window });\n    vm.runInContext(source, context);\n\n    window.SmurdyQuizRoutes = {\n        parsePath(pathname) {\n            return pathname === "/quizzes/flags/type/countries/world/"\n                ? { quizId: "type-flag", groupId: "world" }\n                : null;\n        }\n    };\n\n    assert.equal(window.SmurdyQuizLaunchIntent.store("type-flag", "world", "browser"), true);\n    assert.equal(window.SmurdyQuizLaunchIntent.peekCurrent().reason, "browser");\n});\n\ntest("flag landing autostart waits for the flag controller", () => {\n    const source = fs.readFileSync(path.join(__dirname, "..", "src/js/quiz_landing.js"), "utf8");\n    assert.match(source, /function waitForFlagController/);\n    assert.match(source, /await waitForFlagController\\(\\)/);\n});\n'''
-          p.write_text(s)
-
-          # About copy regression.
-          p = Path("tests/trust_pages.test.js")
-          s = p.read_text()
-          anchor = '    assert.doesNotMatch(copy, /not just|—/i);'
-          if anchor not in s:
-              raise SystemExit("trust copy test anchor missing")
-          s = s.replace(anchor, anchor + '\n    assert.doesNotMatch(copy, /one rule I keep coming back to/i);\n    assert.match(copy, /If a feature makes the normal quiz slower to start, it needs a good reason/);', 1)
-          p.write_text(s)
-
-          # Dedicated regression for displayed map counts and browser logic.
-          Path("tests/bugfix_1_16_3.test.js").write_text(r'''const fs = require("node:fs");
-const path = require("node:path");
-const test = require("node:test");
-const assert = require("node:assert/strict");
-
-const root = path.resolve(__dirname, "..");
-const read = file => fs.readFileSync(path.join(root, file), "utf8");
-
-test("map landing counts match the current playable sovereign pool", () => {
-    const expected = { world: 200, europe: 44, asia: 50, middle_east: 16, mena: 20, eurasia: 94 };
-    for (const [group, count] of Object.entries(expected)) {
-        const html = read(`quizzes/maps/click/countries/${group}/index.html`);
-        assert.match(html, new RegExp(`Click the Countries / [^<]+ / ${count} countries`), group);
-        assert.match(html, new RegExp(`Countries included in this quiz \\(${count}\\)`), group);
-    }
-    assert.doesNotMatch(read("quizzes/maps/click/countries/world/index.html"), /<li>Palestine<\/li>/);
-    assert.match(read("quizzes/flags/type/countries/world/index.html"), /201 flags/);
-});
-
-test("browser map counts apply the same Palestine sovereign merge without changing other categories", () => {
-    const browse = read("src/js/browse.js");
-    assert.match(browse, /categoryKeyForManifest\(manifestItem\) === "maps"/);
-    assert.match(browse, /toLowerCase\(\) === "palestine"/);
-    assert.match(browse, /groupId\) === "world"[\s\S]*count === 201/);
-    assert.match(browse, /memberCountForGroup\(group, manifestItem, id\)/);
-});
-''')
+          exec(compile(code, "bugfix_1_16_3.py", "exec"))
           PY
       - name: Install dependencies
         run: npm install --no-package-lock
@@ -245,7 +51,6 @@ test("browser map counts apply the same Palestine sovereign merge without changi
           python3 - <<'PY'
           from pathlib import Path
           import re
-
           roots = [Path("index.html"), Path("about/index.html"), Path("contact/index.html"), Path("privacy/index.html"), Path("404.html"), Path("quizzes")]
           files = []
           for root in roots:
