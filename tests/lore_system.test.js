@@ -97,6 +97,8 @@ test("Turnover poem uses redaction bars instead of the face artwork", () => {
     assert.match(source, /lore-turnover-redacted/);
     assert.match(source, /lore-turnover-eye/);
     assert.match(css, /\.lore-turnover\s*\{[\s\S]*background:\s*#0077cc/);
+    assert.match(css, /\.lore-turnover\s*\{[\s\S]*place-items:\s*center/);
+    assert.match(css, /\.lore-turnover-text\s*\{[\s\S]*text-align:\s*left/);
     assert.match(css, /\.lore-turnover-redacted\s*\{[\s\S]*background:\s*#000;[\s\S]*color:\s*#000/);
     assert.match(css, /\.lore-turnover-redacted::selection[\s\S]*color:\s*#fff/);
     assert.match(css, /\.lore-turnover-eye\s*\{[\s\S]*background:\s*transparent/);
