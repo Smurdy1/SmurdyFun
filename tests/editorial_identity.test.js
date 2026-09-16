@@ -35,7 +35,7 @@ test("generated landing pages expose region-specific editorial fingerprints", ()
     assert.match(europe, /standard Europe map quiz/);
     assert.match(europe, /crowded middle of the continent/);
     assert.match(westAfrica, /A compact coast with a wide Sahel/);
-    assert.match(westAfrica, /Senegal, Ghana, Niger, and Nigeria/);
+    assert.match(westAfrica, /Ghana is a useful coastal landmark/);
     assert.match(worldFlags, /Why World feels different/);
     assert.doesNotMatch(world, /What this World quiz covers/);
 });
