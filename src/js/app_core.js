@@ -48,6 +48,8 @@ const map = new maplibregl.Map({
     maxZoom: MODE.maxZoom,
     // Retain only two viewport zoom levels of tiles per source instead of MapLibre's default five.
     maxTileCacheZoomLevels: 2,
+    // Also place an absolute ceiling on old tiles retained per source.
+    maxTileCacheSize: 64,
     // Match the working menu map: use MapLibre's complete native gesture system.
     interactive: true,
     // disable built-in attribution control so we can show a compact, compliant mobile attribution
@@ -1670,6 +1672,7 @@ const SmurdyQuiz = {
                 zoom: Math.max( Math.min(MODE.mapZoom || 3, 6), 2 ),
                 // The menu map is temporary, so keep its retained tile window small.
                 maxTileCacheZoomLevels: 2,
+                maxTileCacheSize: 64,
                 interactive: true,
                 // Avoid an additional tile cross-fade after the style has loaded.
                 fadeDuration: 0,
@@ -1831,6 +1834,38 @@ const SmurdyQuiz = {
 }
 
 window.SmurdyQuiz = SmurdyQuiz;
+
+// The homepage uses a second, decorative MapLibre instance. When the tab is hidden
+// there is no reason to retain its workers, tile cache, or WebGL resources. Map.remove()
+// explicitly releases those resources; rebuild the decoration only if the user returns
+// while still on the homepage.
+let menuMapSuspendedForVisibility = false;
+function currentLocationUsesMenuMap() {
+    try {
+        const path = String(location.pathname || "/").replace(/\/+$/, "") || "/";
+        return (path === "/" || path === "/index.html") &&
+            !new URLSearchParams(location.search).has("quiz");
+    } catch (_) {
+        return false;
+    }
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        if (SmurdyQuiz._menuActive && SmurdyQuiz._menuMap) {
+            menuMapSuspendedForVisibility = true;
+            try { SmurdyQuiz.hideMainMenuMap(); } catch (_) {}
+        }
+        return;
+    }
+
+    if (!menuMapSuspendedForVisibility) return;
+    menuMapSuspendedForVisibility = false;
+    if (!currentLocationUsesMenuMap()) return;
+    requestAnimationFrame(() => {
+        try { SmurdyQuiz.showMainMenuMap(); } catch (_) {}
+    });
+});
  
 // Start the independent menu map immediately instead of waiting for the quiz
 // map's style, aliases, groups, country GeoJSON, and tiny-country data.
@@ -2323,7 +2358,7 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.16.5";
+const APP_VERSION = "1.16.6";
 
 function injectVersionBadge() {
     try {
