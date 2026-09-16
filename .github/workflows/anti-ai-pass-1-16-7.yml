@@ -2,6 +2,9 @@ name: Anti-AI copy pass 1.16.7
 on:
   push:
     branches: [polish/1.16.7-anti-ai-copy]
+concurrency:
+  group: anti-ai-copy-1-16-7
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -16,7 +19,9 @@ jobs:
         with:
           node-version: 22
       - name: Apply copy rewrite
-        run: python3 tools/anti_ai_copy_pass.py
+        run: |
+          python3 tools/anti_ai_copy_pass.py
+          sed -i 's/reference pointss/reference points/g' tools/landing_personality.js
       - name: Install dependencies
         run: npm install
       - name: Regenerate public quiz pages
