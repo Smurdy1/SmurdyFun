@@ -24,8 +24,9 @@ jobs:
         run: |
           python3 - <<'PY'
           import subprocess
+          from pathlib import Path
           old = subprocess.check_output([
-              "git", "show", "HEAD^:.github/workflows/finish-1-16-3-bug-batch.yml"
+              "git", "show", "bab9cea167f6d238636d1360782252320c80e355:.github/workflows/finish-1-16-3-bug-batch.yml"
           ], text=True)
           marker = "          python3 - <<'PY'\n"
           start = old.index(marker) + len(marker)
@@ -36,6 +37,13 @@ jobs:
               for line in block.splitlines()
           )
           exec(compile(code, "bugfix_1_16_3.py", "exec"))
+
+          lore_test = Path("tests/lore_system.test.js")
+          s = lore_test.read_text().replace(
+              'quiz_launch_intent\\.js\\?v=20260914-launch-intent-hotfix-1',
+              'quiz_launch_intent\\.js\\?v=20260915-launch-intent-2'
+          )
+          lore_test.write_text(s)
           PY
       - name: Install dependencies
         run: npm install --no-package-lock
