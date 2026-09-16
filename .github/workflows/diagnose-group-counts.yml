@@ -1,0 +1,58 @@
+name: Diagnose map group counts
+
+on:
+  push:
+    branches:
+      - fix/1.16.3-bug-batch-diagnostic
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Compare group members with playable map entities
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const groups = JSON.parse(fs.readFileSync('src/data/country_groups.json', 'utf8'));
+          const countries = JSON.parse(fs.readFileSync('src/data/countries.json', 'utf8'));
+          const aliases = JSON.parse(fs.readFileSync('src/data/aliases.json', 'utf8'));
+          const { getCanonicalCountryName } = require('./src/js/quiz_entities.js');
+
+          const norm = value => String(value || '')
+            .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+          const ignored = new Set(['siachen glacier']);
+          const canonical = [];
+          for (const feature of countries.features || []) {
+            const p = feature?.properties || {};
+            const candidates = [p.NAME,p.name,p.NAME_LONG,p.NAME_EN,p.ADMIN,p.GEOUNIT,p.SUBUNIT,p.SOVEREIGNT,p.BRK_NAME,p.FORMAL_EN];
+            if (candidates.some(v => ignored.has(norm(v)))) continue;
+            canonical.push(getCanonicalCountryName(feature));
+          }
+          const playable = new Set(canonical.map(norm));
+          const accepted = new Map();
+          for (const name of canonical) {
+            const set = new Set([norm(name)]);
+            const direct = aliases[name];
+            if (Array.isArray(direct)) direct.forEach(v => set.add(norm(v)));
+            accepted.set(norm(name), set);
+          }
+          function resolves(name) {
+            const n = norm(name);
+            if (playable.has(n)) return true;
+            for (const set of accepted.values()) if (set.has(n)) return true;
+            return false;
+          }
+          console.log('Playable world unique:', new Set(canonical.map(norm)).size);
+          for (const id of ['world','europe','asia','middle_east','africa','mena','eurasia']) {
+            const g = groups[id] || {};
+            const members = g.members || g.countries || [];
+            const unresolved = members.filter(name => !resolves(name));
+            const resolvedCount = members.filter(resolves).length;
+            console.log(JSON.stringify({id, declared:g.memberCount ?? null, raw:members.length, resolvedCount, unresolved}));
+          }
+          NODE
