@@ -55,11 +55,11 @@ test("polish keeps hierarchy without bringing back component-heavy cards", () =>
     assert.match(directory, /1\.14\.6 directory hierarchy/);
     assert.match(directory, /href\$=["']\\?\/world\//);
     assert.match(landing, /1\.14\.6 authored landing rhythm/);
-    assert.match(info, /\.maker-note/);
-    assert.match(about, /class="maker-note"/);
+    assert.doesNotMatch(info, /\.maker-note/);
+    assert.doesNotMatch(about, /class="maker-note"/);
     assert.doesNotMatch(directory, /\.directory-card\s*\{[^}]*box-shadow/s);
 });
 
 test("visible app version is current for this polish release", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.3"/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.4"/);
 });

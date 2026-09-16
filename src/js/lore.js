@@ -732,8 +732,6 @@
         increment("turnover_count");
         const main = pageRoot("lore-turnover");
         if (active1313() && roll("1313-hour-layout", 3)) main.classList.add("lore-alt");
-        const face = root.document.createElement("div");
-        face.className = "lore-turnover-face";
         const poem = root.document.createElement("div");
         poem.className = "lore-turnover-text";
         const lines = [
@@ -744,15 +742,34 @@
             "AETERNVM • AMBVLANS • ITERVM • EFFVGIAM",
             "DEPREHENSVM • PERFECI"
         ];
+
+        function appendRedactedText(node, text) {
+            const parts = String(text).split("👁️");
+            parts.forEach((part, index) => {
+                if (part) {
+                    const redacted = root.document.createElement("span");
+                    redacted.className = "lore-turnover-redacted";
+                    redacted.textContent = part;
+                    node.appendChild(redacted);
+                }
+                if (index < parts.length - 1) {
+                    const eye = root.document.createElement("span");
+                    eye.className = "lore-turnover-eye";
+                    eye.textContent = "👁️";
+                    node.appendChild(eye);
+                }
+            });
+        }
+
         for (const line of lines) {
             const p = root.document.createElement("p");
-            p.textContent = line;
+            appendRedactedText(p, line);
             poem.appendChild(p);
         }
         const end = root.document.createElement("span");
         end.className = "lore-turnover-end";
-        end.textContent = "The long con never ends";
-        main.append(face, poem, end);
+        appendRedactedText(end, "The long con never ends");
+        main.append(poem, end);
     }
 
     function renderJailtime() {

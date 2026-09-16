@@ -141,7 +141,7 @@
     loadScript("/src/js/quiz_entities.js", function() {
         loadScript("/src/js/modes.js", function() {
             loadScript("/src/js/quiz_suggestions.js", function() {
-                loadScript("/src/js/app_core.js", function() {
+                loadScript("/src/js/app_core.js?v=20260916-small-fixes-1", function() {
                     console.log("smurdy: bootstrap loaded quiz entities + modes + suggestions + app_core");
                 });
             });
