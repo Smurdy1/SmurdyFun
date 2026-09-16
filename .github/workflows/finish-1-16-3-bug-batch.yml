@@ -69,6 +69,8 @@ jobs:
               s = s.replace("20260914-dark-mode-5", "20260915-dark-mode-6")
               s = re.sub(r'quiz_launch_intent\.js\?v=[A-Za-z0-9._-]+', 'quiz_launch_intent.js?v=20260915-launch-intent-2', s)
               p.write_text(s)
+          theme = Path("styles/theme.css")
+          theme.write_text(theme.read_text().rstrip() + "\n")
           PY
       - name: Validate changed JavaScript
         run: |
