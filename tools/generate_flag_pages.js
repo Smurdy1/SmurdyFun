@@ -192,6 +192,8 @@ function quizPage(groupId, group) {
     const sharedStylesHtml = pageShell.renderSharedStyles();
     const brandHtml = pageShell.renderBrand({ className: "flag-brand" });
     const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({
+        categoryHref: "/quizzes/flags/",
+        categoryLabel: "Flag Quizzes",
         modeHref: "/quizzes/type-flag/",
         modeLabel: "Type the Flags",
         groupLabel: group.shortLabel
@@ -329,7 +331,7 @@ function quizPage(groupId, group) {
   <script src="/src/js/quiz_session.js?v=20260903-session-1" defer></script>
   <script src="/src/js/quiz_completion.js?v=20260909-editorial-1" defer></script>
   <script src="/src/js/quiz_suggestions.js?v=20260910-suggestions-1" defer></script>
-  <script src="/src/js/quiz_launch_intent.js?v=20260909-editorial-1" defer></script>
+  <script src="/src/js/quiz_launch_intent.js?v=20260915-launch-intent-2" defer></script>
   <script src="/src/js/flag_catalog.js?v=20260909-editorial-1" defer></script>
   <script src="/src/js/weak_spots.js?v=20260910-ui-detail-1" defer></script>
   <script src="/src/js/quiz_library.js?v=20260909-editorial-1" defer></script>

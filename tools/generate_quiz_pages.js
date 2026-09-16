@@ -12,6 +12,14 @@ function manifestIsComingSoon(entry) {
         Boolean(entry?.config?.comingSoon);
 }
 
+function categoryBreadcrumb(category) {
+    const key = String(category || "").trim().toLowerCase();
+    if (key === "maps") return { href: "/quizzes/maps/", label: "Map Quizzes" };
+    if (key === "capitals") return { href: "/quizzes/capitals/", label: "Capital Quizzes" };
+    if (key === "flags") return { href: "/quizzes/flags/", label: "Flag Quizzes" };
+    return { href: "/quizzes/", label: "All quizzes" };
+}
+
 (async function main() {
     const repoRoot = path.resolve(__dirname, "..");
     const manifestPath = path.join(repoRoot, "src", "js", "manifest.js");
@@ -118,6 +126,15 @@ function manifestIsComingSoon(entry) {
                 entries.length === 0
             ) {
                 entries = worldCountryNames.slice();
+            }
+            // Country map gameplay currently collapses Palestine into Israel by
+            // sovereign key. Landing counts and included lists should describe
+            // the questions the map runner can actually surface.
+            if (
+                manifestEntry.category === "maps" &&
+                activeGroupSetId === "country_groups"
+            ) {
+                entries = entries.filter(name => String(name || "").trim().toLowerCase() !== "palestine");
             }
             const entryCount = entries.length;
             const notable = Array.isArray(group.notable) && group.notable.length
@@ -378,8 +395,11 @@ const entryListHtml = entries.length
 
             const sharedStylesHtml = pageShell.renderSharedStyles(publicRoot);
             const brandHtml = pageShell.renderBrand({ root: publicRoot, className: "panel-brand" });
+            const categoryCrumb = categoryBreadcrumb(manifestEntry.category);
             const breadcrumbsHtml = pageShell.renderLandingBreadcrumbs({
                 root: publicRoot,
+                categoryHref: categoryCrumb.href,
+                categoryLabel: categoryCrumb.label,
                 modeHref: `/quizzes/${manifestId}/`,
                 modeLabel: getModeDisplayName(manifestEntry),
                 groupLabel

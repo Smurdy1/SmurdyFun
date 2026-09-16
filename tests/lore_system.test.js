@@ -37,7 +37,7 @@ test("lore bootstrap stays off the flag browser launch-intent critical path", ()
     assert.doesNotMatch(launch, /data-smurdy-lore-module|\/src\/js\/lore\.js/);
     assert.match(session, /data-smurdy-lore-module/);
     assert.match(session, /\/src\/js\/lore\.js\?v=20260915-lore-3/);
-    assert.match(home, /quiz_launch_intent\.js\?v=20260914-launch-intent-hotfix-1/);
+    assert.match(home, /quiz_launch_intent\.js\?v=20260915-launch-intent-2/);
     assert.match(home, /lore\.js\?v=20260915-lore-3/);
     assert.ok(home.indexOf("quiz_launch_intent.js") < home.indexOf("lore.js"));
 });

@@ -32,6 +32,8 @@ test("shared landing breadcrumbs make every parent level clickable", () => {
     const shell = require(path.join(root, "tools/quiz_page_shell.js"));
     const html = shell.renderLandingBreadcrumbs({
         root: "https://smurdy.fun",
+        categoryHref: "/quizzes/maps/",
+        categoryLabel: "Map Quizzes",
         modeHref: "/quizzes/maps/click/countries/",
         modeLabel: "Click the Countries",
         groupLabel: "World"
@@ -43,7 +45,7 @@ test("shared landing breadcrumbs make every parent level clickable", () => {
     );
 });
 
-test("all quiz landing pages use Smurdy > All quizzes > mode > current group", () => {
+test("all quiz landing pages use Smurdy > All quizzes > category > mode > current group", () => {
     const pages = allLandingPages();
     assert.ok(pages.length > 100, "Expected the generated landing page catalog");
 
@@ -56,13 +58,17 @@ test("all quiz landing pages use Smurdy > All quizzes > mode > current group", (
         const links = [...nav.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)]
             .map(match => ({ href: match[1], label: match[2] }));
 
-        assert.equal(links.length, 3, relative + " should have exactly three clickable breadcrumb parents");
+        assert.equal(links.length, 4, relative + " should have exactly four clickable breadcrumb parents");
         assert.equal(links[0].label, "Smurdy", relative);
         assert.equal(links[1].label, "All quizzes", relative);
         assert.match(links[0].href, /\/$/, relative);
         assert.match(links[1].href, /\/quizzes\/$/, relative);
+        const category = modeId.split("/")[0];
+        const categoryLabel = { maps: "Map Quizzes", capitals: "Capital Quizzes", flags: "Flag Quizzes" }[category];
+        assert.equal(links[2].label, categoryLabel, relative);
+        assert.match(links[2].href, new RegExp("/quizzes/" + escapeRegex(category) + "/$"), relative);
         assert.match(
-            links[2].href,
+            links[3].href,
             new RegExp("/quizzes/" + escapeRegex(modeId) + "/$"),
             relative + " mode breadcrumb should link to its quiz directory"
         );
@@ -99,14 +105,14 @@ test("representative landing breadcrumbs use the public mode names", () => {
 
     assert.match(
         click,
-        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Click the Countries<\/a>[\s\S]*?aria-current="page">World<\/span>/
+        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Map Quizzes<\/a>[\s\S]*?>Click the Countries<\/a>[\s\S]*?aria-current="page">World<\/span>/
     );
     assert.match(
         capitals,
-        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Type the Capitals<\/a>[\s\S]*?aria-current="page">World<\/span>/
+        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Capital Quizzes<\/a>[\s\S]*?>Type the Capitals<\/a>[\s\S]*?aria-current="page">World<\/span>/
     );
     assert.match(
         flags,
-        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Type the Flags<\/a>[\s\S]*?aria-current="page">World<\/span>/
+        />Smurdy<\/a>[\s\S]*?>All quizzes<\/a>[\s\S]*?>Flag Quizzes<\/a>[\s\S]*?>Type the Flags<\/a>[\s\S]*?aria-current="page">World<\/span>/
     );
 });

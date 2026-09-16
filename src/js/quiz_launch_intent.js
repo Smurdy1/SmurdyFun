@@ -18,7 +18,8 @@
     }
 
     function parseQuizPath(pathname) {
-        const shared = routeApi?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);
+        const liveRouteApi = root?.SmurdyQuizRoutes || routeApi;
+        const shared = liveRouteApi?.parsePath?.(pathname, root?.SmurdyQuizManifest || []);
         if (shared?.quizId && shared?.groupId) return { quizId: shared.quizId, groupId: shared.groupId };
         const match = String(pathname || "").match(/^\/quizzes\/([^/]+)\/([^/]+)\/?$/);
         if (!match) return null;

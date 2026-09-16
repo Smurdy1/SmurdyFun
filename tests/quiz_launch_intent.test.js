@@ -1,5 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
 const {
     createClient,
     parseQuizPath,
@@ -47,4 +50,33 @@ test("launch intents expire and parse canonical paths", () => {
         quizId: "type-flag",
         groupId: "us_states"
     });
+});
+
+
+test("canonical flag launch intents survive quiz_routes loading after the intent module", () => {
+    const source = fs.readFileSync(path.join(__dirname, "..", "src/js/quiz_launch_intent.js"), "utf8");
+    const storage = memoryStorage();
+    const window = {
+        location: { pathname: "/quizzes/flags/type/countries/world/" },
+        sessionStorage: storage
+    };
+    const context = vm.createContext({ window });
+    vm.runInContext(source, context);
+
+    window.SmurdyQuizRoutes = {
+        parsePath(pathname) {
+            return pathname === "/quizzes/flags/type/countries/world/"
+                ? { quizId: "type-flag", groupId: "world" }
+                : null;
+        }
+    };
+
+    assert.equal(window.SmurdyQuizLaunchIntent.store("type-flag", "world", "browser"), true);
+    assert.equal(window.SmurdyQuizLaunchIntent.peekCurrent().reason, "browser");
+});
+
+test("flag landing autostart waits for the flag controller", () => {
+    const source = fs.readFileSync(path.join(__dirname, "..", "src/js/quiz_landing.js"), "utf8");
+    assert.match(source, /function waitForFlagController/);
+    assert.match(source, /await waitForFlagController\(\)/);
 });

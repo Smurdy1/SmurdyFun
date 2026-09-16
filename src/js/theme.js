@@ -184,7 +184,7 @@ html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-pa
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
     border-color: #a98229 !important;
     background: #3d3217 !important;
-    color: #ffe9a6 !important;
+    color: #ffd54f !important;
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links {

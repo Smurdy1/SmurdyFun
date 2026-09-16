@@ -363,3 +363,72 @@ html[data-smurdy-theme="dark"] body[data-smurdy-404] nav {
 html[data-smurdy-theme="dark"] body[data-smurdy-404] img {
     filter: invert(1);
 }
+
+/* 1.16.3 dark-mode fixes for saved quizzes, Weak Spots, and suggestions */
+html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
+    border-color: #b99222 !important;
+    background: #4a3c13 !important;
+    color: #ffd54f !important;
+}
+
+html[data-smurdy-theme="dark"] .weak-spots-dialog-header,
+html[data-smurdy-theme="dark"] .weak-spots-dialog-footer,
+html[data-smurdy-theme="dark"] .weak-spot-item,
+html[data-smurdy-theme="dark"] #quiz-review {
+    border-color: #465159;
+}
+
+html[data-smurdy-theme="dark"] .weak-spot-item,
+html[data-smurdy-theme="dark"] .quiz-review-country,
+html[data-smurdy-theme="dark"] #weak-spots-practice-next {
+    background: #242b30;
+    color: #dfe4e7;
+}
+
+html[data-smurdy-theme="dark"] .weak-spot-name,
+html[data-smurdy-theme="dark"] .quiz-review-country,
+html[data-smurdy-theme="dark"] #weak-spots-practice-next strong {
+    color: #dfe4e7;
+}
+
+html[data-smurdy-theme="dark"] .weak-spot-meta,
+html[data-smurdy-theme="dark"] .quiz-review-country-detail,
+html[data-smurdy-theme="dark"] .quiz-review-summary,
+html[data-smurdy-theme="dark"] #weak-spots-practice-next span {
+    color: #aab3b9;
+}
+
+html[data-smurdy-theme="dark"] .quiz-review-country {
+    border-color: #465159;
+}
+
+html[data-smurdy-theme="dark"] .quiz-review-country:hover {
+    background: #30383e;
+}
+
+html[data-smurdy-theme="dark"] #weak-spots-clear {
+    border-color: #4a555d;
+    background: #30383e;
+    color: #ffaaa3;
+}
+
+html[data-smurdy-theme="dark"] #weak-spots-practice-next {
+    border-color: #465159;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play {
+    border-color: #2489c9 !important;
+    background: #2489c9 !important;
+    color: #ffffff !important;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play:hover,
+html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-play:focus-visible {
+    border-color: #3298d8 !important;
+    background: #3298d8 !important;
+    color: #ffffff !important;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-quiz-suggestion-close {
+    color: #cdd3d7 !important;
+}
