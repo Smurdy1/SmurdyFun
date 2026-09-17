@@ -1,0 +1,67 @@
+name: Homepage summary 1.16.8
+on:
+  push:
+    branches: [polish/1.16.8-home-summary]
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: polish/1.16.8-home-summary
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Update homepage copy and version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text()
+          old = 'Free geography quizzes for countries, capitals, flags, and US states. Pick a quiz below, save favorites, or use Weak Spots to practice the places you miss.'
+          new = 'Free geography quizzes for countries, capitals, flags, and US states. The quiz browser has the full list. Favorites and Weak Spots are there when you want to come back to something.'
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('src/js/app_core.js')
+          s = p.read_text()
+          assert 'const APP_VERSION = "1.16.7";' in s
+          p.write_text(s.replace('const APP_VERSION = "1.16.7";', 'const APP_VERSION = "1.16.8";', 1))
+
+          for name in ['tests/anti_ai_copy.test.js', 'tests/editorial_identity.test.js']:
+              p = Path(name)
+              s = p.read_text()
+              assert '1\\.16\\.7' in s
+              p.write_text(s.replace('1\\.16\\.7', '1\\.16\\.8'))
+
+          p = Path('tests/anti_ai_copy.test.js')
+          s = p.read_text()
+          marker = 'test("anti-AI copy pass is versioned", () => {'
+          addition = '''test("homepage summary does not imply the quiz browser is below or use the old three-action list", () => {\n    const homepage = read("index.html");\n    assert.match(homepage, /The quiz browser has the full list\./);\n    assert.doesNotMatch(homepage, /Pick a quiz below, save favorites, or use Weak Spots/);\n});\n\n'''
+          assert marker in s
+          assert 'homepage summary does not imply' not in s
+          p.write_text(s.replace(marker, addition + marker, 1))
+          PY
+      - name: Validate
+        run: |
+          node --check src/js/app_core.js
+          grep -Fq 'The quiz browser has the full list. Favorites and Weak Spots are there when you want to come back to something.' index.html
+          ! grep -Fq 'Pick a quiz below, save favorites, or use Weak Spots' index.html
+          grep -Fq 'const APP_VERSION = "1.16.8";' src/js/app_core.js
+          npm test
+          git diff --check
+      - name: Commit changes
+        run: |
+          rm -f .github/workflows/home-summary-1-16-8.yml
+          rm -f package-lock.json
+          git add -A
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git commit -m "Refine homepage summary copy"
+          git push origin HEAD:polish/1.16.8-home-summary
