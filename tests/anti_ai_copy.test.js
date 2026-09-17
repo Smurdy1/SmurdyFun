@@ -19,6 +19,12 @@ test("authored landing copy avoids the strongest recurring AI tells", () => {
     assert.doesNotMatch(source, /\banchor(?:s|ed|ing)?\b/i);
 });
 
+test("homepage summary does not imply the quiz browser is below or use the old three-action list", () => {
+    const homepage = read("index.html");
+    assert.match(homepage, /The quiz browser has the full list\./);
+    assert.doesNotMatch(homepage, /Pick a quiz below, save favorites, or use Weak Spots/);
+});
+
 test("anti-AI copy pass is versioned", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.7";/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.8";/);
 });
