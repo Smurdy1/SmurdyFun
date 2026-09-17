@@ -36,7 +36,8 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-title,
 html[data-smurdy-theme="dark"] #quiz-browser strong,
 html[data-smurdy-theme="dark"] #quiz-browser h1,
 html[data-smurdy-theme="dark"] #quiz-browser h2,
-html[data-smurdy-theme="dark"] #quiz-browser h3 {
+html[data-smurdy-theme="dark"] #quiz-browser h3,
+html[data-smurdy-theme="dark"] #qb-mobile-brand span {
     color: #dfe4e7 !important;
 }
 
@@ -63,7 +64,7 @@ html[data-smurdy-theme="dark"] #quiz-browser #qb-directory-links {
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser #qb-library-tabs {
-    gap: 18px !important;
+    gap: 24px !important;
     padding: 0 0 7px !important;
     border-bottom: 1px solid #424c54 !important;
     border-radius: 0 !important;
@@ -167,7 +168,7 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-directory-primary:hover {
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite,
-html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger) {
+html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger):not(.smurdy-theme-toggle) {
     border-color: #46515a !important;
     background: #1c2328 !important;
     color: #b9c1c6 !important;
@@ -175,7 +176,7 @@ html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-pa
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite:hover,
-html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger):hover {
+html[data-smurdy-theme="dark"] #quiz-browser button:not(.qb-play):not(.smurdy-page-share-trigger):not(.smurdy-theme-toggle):hover {
     border-color: #58656f !important;
     background: #2a3238 !important;
     color: #cdd3d7 !important;
@@ -231,6 +232,19 @@ html[data-smurdy-theme="dark"] .weak-spots-menu-button:hover {
     background: #313a41 !important;
 }
 
+html[data-smurdy-theme="dark"] #quiz-browser .smurdy-theme-toggle--mobile-browser {
+    border-color: #46515a !important;
+    background: #2a3238 !important;
+    color: #cdd3d7 !important;
+    box-shadow: none !important;
+}
+
+html[data-smurdy-theme="dark"] #quiz-browser .smurdy-theme-toggle--mobile-browser:hover {
+    border-color: #58656f !important;
+    background: #343e45 !important;
+    color: #e0e4e7 !important;
+}
+
 html[data-smurdy-theme="dark"] #quiz-stats {
     color: #cdd3d7 !important;
 }
@@ -248,18 +262,54 @@ html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-content {
         document.head.appendChild(style);
     }
 
+    function ensureMobileBrowserToggle() {
+        const weakSpots = document.getElementById("qb-mobile-weak-spots");
+        if (!weakSpots) return null;
+
+        let row = weakSpots.parentElement?.classList.contains("qb-mobile-quick-actions")
+            ? weakSpots.parentElement
+            : null;
+
+        if (!row) {
+            row = document.createElement("div");
+            row.className = "qb-mobile-quick-actions";
+            weakSpots.parentNode.insertBefore(row, weakSpots);
+            row.appendChild(weakSpots);
+        }
+
+        let toggle = row.querySelector("[data-smurdy-theme-toggle]");
+        if (!toggle) {
+            toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "smurdy-theme-toggle smurdy-theme-toggle--mobile-browser";
+            toggle.dataset.smurdyThemeToggle = "";
+            toggle.innerHTML = `
+                <span class="smurdy-theme-icon smurdy-theme-icon--moon" aria-hidden="true"></span>
+                <span class="smurdy-theme-icon smurdy-theme-icon--sun" aria-hidden="true"></span>
+            `;
+            row.appendChild(toggle);
+        }
+
+        return toggle;
+    }
+
+    function syncToggle(toggle, theme) {
+        if (!toggle) return;
+        const isDark = theme === DARK;
+        toggle.setAttribute("aria-pressed", String(isDark));
+        toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+        toggle.setAttribute("title", isDark ? "Light mode" : "Dark mode");
+    }
+
     function applyTheme(theme) {
         const next = theme === DARK ? DARK : LIGHT;
         document.documentElement.dataset.smurdyTheme = next;
         document.documentElement.style.colorScheme = next;
 
-        const toggle = document.querySelector("[data-smurdy-theme-toggle]");
-        if (toggle) {
-            const isDark = next === DARK;
-            toggle.setAttribute("aria-pressed", String(isDark));
-            toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
-            toggle.setAttribute("title", isDark ? "Light mode" : "Dark mode");
-        }
+        ensureMobileBrowserToggle();
+        document.querySelectorAll("[data-smurdy-theme-toggle]").forEach(toggle => {
+            syncToggle(toggle, next);
+        });
 
         return next;
     }
@@ -274,13 +324,37 @@ html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-content {
         return saveTheme(readStoredTheme() === DARK ? LIGHT : DARK);
     }
 
-    function installToggle() {
-        installRuntimeOverrides();
-        applyTheme(readStoredTheme());
-        const toggle = document.querySelector("[data-smurdy-theme-toggle]");
+    function wireToggle(toggle) {
         if (!toggle || toggle.dataset.smurdyThemeReady === "true") return;
         toggle.dataset.smurdyThemeReady = "true";
         toggle.addEventListener("click", toggleTheme);
+    }
+
+    function refreshToggles() {
+        installRuntimeOverrides();
+        const mobileToggle = ensureMobileBrowserToggle();
+        const current = readStoredTheme();
+        document.querySelectorAll("[data-smurdy-theme-toggle]").forEach(toggle => {
+            syncToggle(toggle, current);
+            wireToggle(toggle);
+        });
+        wireToggle(mobileToggle);
+    }
+
+    function installToggle() {
+        applyTheme(readStoredTheme());
+        refreshToggles();
+
+        let queued = false;
+        const observer = new MutationObserver(() => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(() => {
+                queued = false;
+                refreshToggles();
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     installRuntimeOverrides();
@@ -299,6 +373,7 @@ html[data-smurdy-theme="dark"] #mobile-map-attrib .mobile-attrib-content {
     window.SmurdyTheme = Object.freeze({
         get: readStoredTheme,
         set: saveTheme,
-        toggle: toggleTheme
+        toggle: toggleTheme,
+        refresh: refreshToggles
     });
 })();
