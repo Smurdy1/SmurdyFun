@@ -1,7 +1,8 @@
 name: Version badge 1.16.9
 on:
   push:
-    branches: [fix/1.16.9-version-badge]
+    branches:
+      - fix/1.16.9-version-badge
 permissions:
   contents: write
 jobs:
@@ -15,102 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies
-        run: npm install
-      - name: Fix version ownership and cache refresh
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import json
-
-          p = Path('src/js/app_core.js')
-          s = p.read_text()
-          assert 'const APP_VERSION = "1.16.8";' in s
-          s = s.replace('const APP_VERSION = "1.16.8";', 'const APP_VERSION = "1.16.9";', 1)
-          old = '''function injectVersionBadge() {\n    try {\n        if (document.getElementById("app-version")) return;\n        const el = document.createElement("div");\n        el.id = "app-version";\n        el.textContent = "v" + APP_VERSION;\n        el.setAttribute("aria-hidden", "true");'''
-          new = '''window.__SmurdyAppVersion = APP_VERSION;\n\nfunction applyVersionBadgeText(el, version) {\n    if (!el || !version) return;\n    el.dataset.appVersion = version;\n    window.__SmurdyAppVersion = version;\n    if (!el.dataset.versionOverride) el.textContent = "v" + version;\n}\n\nasync function refreshVersionBadge() {\n    try {\n        const response = await fetch(\n            "/src/data/app_version.json?t=" + Date.now(),\n            { cache: "no-store" }\n        );\n        if (!response.ok) return;\n        const payload = await response.json();\n        const version = String(payload?.version || "").trim();\n        if (!/^\\d+\\.\\d+\\.\\d+$/.test(version)) return;\n        applyVersionBadgeText(document.getElementById("app-version"), version);\n    } catch (_) { /* the bundled version remains a safe fallback */ }\n}\n\nfunction injectVersionBadge() {\n    try {\n        let el = document.getElementById("app-version");\n        if (!el) {\n            el = document.createElement("div");\n            el.id = "app-version";\n            el.setAttribute("aria-hidden", "true");\n        }\n        applyVersionBadgeText(el, APP_VERSION);'''
-          assert old in s
-          s = s.replace(old, new, 1)
-          old2 = '''        document.body.appendChild(el);\n    } catch (_) { /* tolerate errors */ }\n}\n\ntry { injectVersionBadge(); } catch (_) {}'''
-          new2 = '''        if (!el.isConnected) document.body.appendChild(el);\n        refreshVersionBadge();\n    } catch (_) { /* tolerate errors */ }\n}\n\ntry { injectVersionBadge(); } catch (_) {}'''
-          assert old2 in s
-          p.write_text(s.replace(old2, new2, 1))
-
-          p = Path('src/js/lore.js')
-          s = p.read_text()
-          old = '''    function installVersionBehavior() {\n        if (!root?.document) return;\n        function update() {\n            const badge = root.document.getElementById("app-version");\n            if (!badge) return;\n            const wanted = active505() ? "v37.32" : `v${RELEASE_VERSION}`;\n            if (badge.textContent !== wanted) badge.textContent = wanted;\n        }\n        update();\n        root.setInterval(update, 1000);\n    }'''
-          new = '''    function installVersionBehavior() {\n        if (!root?.document) return;\n        function update() {\n            const badge = root.document.getElementById("app-version");\n            if (!badge) return;\n            if (active505()) {\n                badge.dataset.versionOverride = "505";\n                if (badge.textContent !== "v37.32") badge.textContent = "v37.32";\n                return;\n            }\n            if (badge.dataset.versionOverride === "505") {\n                delete badge.dataset.versionOverride;\n                const current = String(\n                    badge.dataset.appVersion || root.__SmurdyAppVersion || ""\n                ).trim();\n                if (current) badge.textContent = `v${current}`;\n            }\n        }\n        update();\n        root.setInterval(update, 1000);\n    }'''
-          assert old in s
-          p.write_text(s.replace(old, new, 1))
-
-          Path('src/data/app_version.json').write_text(json.dumps({'version': '1.16.9'}, indent=2) + '\n')
-
-          p = Path('src/js/app.js')
-          s = p.read_text()
-          assert 'const ASSET_VERSION = "20260916-memory-2";' in s
-          s = s.replace('const ASSET_VERSION = "20260916-memory-2";', 'const ASSET_VERSION = "20260916-version-1";', 1)
-          s = s.replace('loadScript("/src/js/app_core.js?v=20260916-memory-2", function() {', 'loadScript("/src/js/app_core.js", function() {', 1)
-          p.write_text(s)
-
-          p = Path('index.html')
-          s = p.read_text()
-          assert '/src/js/app.js?v=20260916-small-fixes-1' in s
-          assert '/src/js/lore.js?v=20260916-lore-4' in s
-          s = s.replace('/src/js/app.js?v=20260916-small-fixes-1', '/src/js/app.js?v=20260916-version-1')
-          s = s.replace('/src/js/lore.js?v=20260916-lore-4', '/src/js/lore.js?v=20260916-version-1')
-          p.write_text(s)
-
-          p = Path('src/js/quiz_session.js')
-          s = p.read_text()
-          assert '/src/js/lore.js?v=20260916-lore-4' in s
-          p.write_text(s.replace('/src/js/lore.js?v=20260916-lore-4', '/src/js/lore.js?v=20260916-version-1'))
-
-          for p in Path('tests').glob('*.test.js'):
-              s = p.read_text().replace('1\\.16\\.8', '1\\.16\\.9')
-              p.write_text(s)
-
-          test_lines = [
-              'const fs = require("node:fs");',
-              'const path = require("node:path");',
-              'const test = require("node:test");',
-              'const assert = require("node:assert/strict");',
-              '',
-              'const root = path.resolve(__dirname, "..");',
-              'const read = relative => fs.readFileSync(path.join(root, relative), "utf8");',
-              '',
-              'test("visible version bypasses stale bundle caches", () => {',
-              '    const core = read("src/js/app_core.js");',
-              '    const version = JSON.parse(read("src/data/app_version.json")).version;',
-              '    const bundled = core.match(/const APP_VERSION = "([^\\"]+)";/)?.[1];',
-              '    assert.equal(version, "1.16.9");',
-              '    assert.equal(bundled, version);',
-              '    assert.match(core, /app_version\\.json\\?t=" \\+ Date\\.now\\(\\)/);',
-              '    assert.match(core, /cache: "no-store"/);',
-              '    assert.match(core, /dataset\\.appVersion/);',
-              '});',
-              '',
-              'test("lore does not replace the normal app version", () => {',
-              '    const lore = read("src/js/lore.js");',
-              '    assert.match(lore, /dataset\\.versionOverride = "505"/);',
-              '    assert.match(lore, /badge\\.dataset\\.appVersion \\|\\| root\\.__SmurdyAppVersion/);',
-              '    assert.doesNotMatch(lore, /const wanted = active505/);',
-              '});',
-              '',
-              'test("version fix scripts are cache-busted", () => {',
-              '    const home = read("index.html");',
-              '    const app = read("src/js/app.js");',
-              '    const session = read("src/js/quiz_session.js");',
-              '    assert.match(home, /app\\.js\\?v=20260916-version-1/);',
-              '    assert.match(home, /lore\\.js\\?v=20260916-version-1/);',
-              '    assert.match(app, /const ASSET_VERSION = "20260916-version-1"/);',
-              '    assert.match(app, /loadScript\\("\\/src\\/js\\/app_core\\.js"/);',
-              '    assert.doesNotMatch(app, /app_core\\.js\\?v=/);',
-              '    assert.match(session, /lore\\.js\\?v=20260916-version-1/);',
-              '});',
-              ''
-          ]
-          Path('tests/version_badge.test.js').write_text('\n'.join(test_lines))
-          PY
+      - run: npm install
+      - name: Apply fix
+        run: echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAppbXBvcnQganNvbgoKcCA9IFBhdGgoInNyYy9qcy9hcHBfY29yZS5qcyIpCnMgPSBwLnJlYWRfdGV4dCgpCmFzc2VydCAnY29uc3QgQVBQX1ZFUlNJT04gPSAiMS4xNi44IjsnIGluIHMKcyA9IHMucmVwbGFjZSgnY29uc3QgQVBQX1ZFUlNJT04gPSAiMS4xNi44IjsnLCAnY29uc3QgQVBQX1ZFUlNJT04gPSAiMS4xNi45IjsnLCAxKQpvbGQgPSAnJydmdW5jdGlvbiBpbmplY3RWZXJzaW9uQmFkZ2UoKSB7CiAgICB0cnkgewogICAgICAgIGlmIChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiYXBwLXZlcnNpb24iKSkgcmV0dXJuOwogICAgICAgIGNvbnN0IGVsID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiZGl2Iik7CiAgICAgICAgZWwuaWQgPSAiYXBwLXZlcnNpb24iOwogICAgICAgIGVsLnRleHRDb250ZW50ID0gInYiICsgQVBQX1ZFUlNJT047CiAgICAgICAgZWwuc2V0QXR0cmlidXRlKCJhcmlhLWhpZGRlbiIsICJ0cnVlIik7JycnCm5ldyA9ICcnJ3dpbmRvdy5fX1NtdXJkeUFwcFZlcnNpb24gPSBBUFBfVkVSU0lPTjsKCmZ1bmN0aW9uIGFwcGx5VmVyc2lvbkJhZGdlVGV4dChlbCwgdmVyc2lvbikgewogICAgaWYgKCFlbCB8fCAhdmVyc2lvbikgcmV0dXJuOwogICAgZWwuZGF0YXNldC5hcHBWZXJzaW9uID0gdmVyc2lvbjsKICAgIHdpbmRvdy5fX1NtdXJkeUFwcFZlcnNpb24gPSB2ZXJzaW9uOwogICAgaWYgKCFlbC5kYXRhc2V0LnZlcnNpb25PdmVycmlkZSkgZWwudGV4dENvbnRlbnQgPSAidiIgKyB2ZXJzaW9uOwp9Cgphc3luYyBmdW5jdGlvbiByZWZyZXNoVmVyc2lvbkJhZGdlKCkgewogICAgdHJ5IHsKICAgICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKAogICAgICAgICAgICAiL3NyYy9kYXRhL2FwcF92ZXJzaW9uLmpzb24/dD0iICsgRGF0ZS5ub3coKSwKICAgICAgICAgICAgeyBjYWNoZTogIm5vLXN0b3JlIiB9CiAgICAgICAgKTsKICAgICAgICBpZiAoIXJlc3BvbnNlLm9rKSByZXR1cm47CiAgICAgICAgY29uc3QgcGF5bG9hZCA9IGF3YWl0IHJlc3BvbnNlLmpzb24oKTsKICAgICAgICBjb25zdCB2ZXJzaW9uID0gU3RyaW5nKHBheWxvYWQ/LnZlcnNpb24gfHwgIiIpLnRyaW0oKTsKICAgICAgICBpZiAoIS9eXFxkK1xcLlxcZCtcXC5cXGQrJC8udGVzdCh2ZXJzaW9uKSkgcmV0dXJuOwogICAgICAgIGFwcGx5VmVyc2lvbkJhZGdlVGV4dChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiYXBwLXZlcnNpb24iKSwgdmVyc2lvbik7CiAgICB9IGNhdGNoIChfKSB7IC8qIHRoZSBidW5kbGVkIHZlcnNpb24gcmVtYWlucyBhIHNhZmUgZmFsbGJhY2sgKi8gfQp9CgpmdW5jdGlvbiBpbmplY3RWZXJzaW9uQmFkZ2UoKSB7CiAgICB0cnkgewogICAgICAgIGxldCBlbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJhcHAtdmVyc2lvbiIpOwogICAgICAgIGlmICghZWwpIHsKICAgICAgICAgICAgZWwgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJkaXYiKTsKICAgICAgICAgICAgZWwuaWQgPSAiYXBwLXZlcnNpb24iOwogICAgICAgICAgICBlbC5zZXRBdHRyaWJ1dGUoImFyaWEtaGlkZGVuIiwgInRydWUiKTsKICAgICAgICB9CiAgICAgICAgYXBwbHlWZXJzaW9uQmFkZ2VUZXh0KGVsLCBBUFBfVkVSU0lPTik7JycnCmFzc2VydCBvbGQgaW4gcwpzID0gcy5yZXBsYWNlKG9sZCwgbmV3LCAxKQpvbGQyID0gJycnICAgICAgICBkb2N1bWVudC5ib2R5LmFwcGVuZENoaWxkKGVsKTsKICAgIH0gY2F0Y2ggKF8pIHsgLyogdG9sZXJhdGUgZXJyb3JzICovIH0KfQoKdHJ5IHsgaW5qZWN0VmVyc2lvbkJhZGdlKCk7IH0gY2F0Y2ggKF8pIHt9JycnCm5ldzIgPSAnJycgICAgICAgIGlmICghZWwuaXNDb25uZWN0ZWQpIGRvY3VtZW50LmJvZHkuYXBwZW5kQ2hpbGQoZWwpOwogICAgICAgIHJlZnJlc2hWZXJzaW9uQmFkZ2UoKTsKICAgIH0gY2F0Y2ggKF8pIHsgLyogdG9sZXJhdGUgZXJyb3JzICovIH0KfQoKdHJ5IHsgaW5qZWN0VmVyc2lvbkJhZGdlKCk7IH0gY2F0Y2ggKF8pIHt9JycnCmFzc2VydCBvbGQyIGluIHMKcyA9IHMucmVwbGFjZShvbGQyLCBuZXcyLCAxKQpwLndyaXRlX3RleHQocykKCnAgPSBQYXRoKCJzcmMvanMvbG9yZS5qcyIpCnMgPSBwLnJlYWRfdGV4dCgpCm9sZCA9ICcnJyAgICBmdW5jdGlvbiBpbnN0YWxsVmVyc2lvbkJlaGF2aW9yKCkgewogICAgICAgIGlmICghcm9vdD8uZG9jdW1lbnQpIHJldHVybjsKICAgICAgICBmdW5jdGlvbiB1cGRhdGUoKSB7CiAgICAgICAgICAgIGNvbnN0IGJhZGdlID0gcm9vdC5kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiYXBwLXZlcnNpb24iKTsKICAgICAgICAgICAgaWYgKCFiYWRnZSkgcmV0dXJuOwogICAgICAgICAgICBjb25zdCB3YW50ZWQgPSBhY3RpdmU1MDUoKSA/ICJ2MzcuMzIiIDogYHYke1JFTEVBU0VfVkVSU0lPTn1gOwogICAgICAgICAgICBpZiAoYmFkZ2UudGV4dENvbnRlbnQgIT09IHdhbnRlZCkgYmFkZ2UudGV4dENvbnRlbnQgPSB3YW50ZWQ7CiAgICAgICAgfQogICAgICAgIHVwZGF0ZSgpOwogICAgICAgIHJvb3Quc2V0SW50ZXJ2YWwodXBkYXRlLCAxMDAwKTsKICAgIH0nJycKbmV3ID0gJycnICAgIGZ1bmN0aW9uIGluc3RhbGxWZXJzaW9uQmVoYXZpb3IoKSB7CiAgICAgICAgaWYgKCFyb290Py5kb2N1bWVudCkgcmV0dXJuOwogICAgICAgIGZ1bmN0aW9uIHVwZGF0ZSgpIHsKICAgICAgICAgICAgY29uc3QgYmFkZ2UgPSByb290LmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJhcHAtdmVyc2lvbiIpOwogICAgICAgICAgICBpZiAoIWJhZGdlKSByZXR1cm47CgogICAgICAgICAgICBpZiAoYWN0aXZlNTA1KCkpIHsKICAgICAgICAgICAgICAgIGJhZGdlLmRhdGFzZXQudmVyc2lvbk92ZXJyaWRlID0gIjUwNSI7CiAgICAgICAgICAgICAgICBpZiAoYmFkZ2UudGV4dENvbnRlbnQgIT09ICJ2MzcuMzIiKSBiYWRnZS50ZXh0Q29udGVudCA9ICJ2MzcuMzIiOwogICAgICAgICAgICAgICAgcmV0dXJuOwogICAgICAgICAgICB9CgogICAgICAgICAgICBpZiAoYmFkZ2UuZGF0YXNldC52ZXJzaW9uT3ZlcnJpZGUgPT09ICI1MDUiKSB7CiAgICAgICAgICAgICAgICBkZWxldGUgYmFkZ2UuZGF0YXNldC52ZXJzaW9uT3ZlcnJpZGU7CiAgICAgICAgICAgICAgICBjb25zdCBjdXJyZW50ID0gU3RyaW5nKAogICAgICAgICAgICAgICAgICAgIGJhZGdlLmRhdGFzZXQuYXBwVmVyc2lvbiB8fCByb290Ll9fU211cmR5QXBwVmVyc2lvbiB8fCAiIgogICAgICAgICAgICAgICAgKS50cmltKCk7CiAgICAgICAgICAgICAgICBpZiAoY3VycmVudCkgYmFkZ2UudGV4dENvbnRlbnQgPSBgdiR7Y3VycmVudH1gOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIHVwZGF0ZSgpOwogICAgICAgIHJvb3Quc2V0SW50ZXJ2YWwodXBkYXRlLCAxMDAwKTsKICAgIH0nJycKYXNzZXJ0IG9sZCBpbiBzCnAud3JpdGVfdGV4dChzLnJlcGxhY2Uob2xkLCBuZXcsIDEpKQoKUGF0aCgic3JjL2RhdGEvYXBwX3ZlcnNpb24uanNvbiIpLndyaXRlX3RleHQoanNvbi5kdW1wcyh7InZlcnNpb24iOiIxLjE2LjkifSwgaW5kZW50PTIpICsgIlxcbiIpCgpwID0gUGF0aCgic3JjL2pzL2FwcC5qcyIpCnMgPSBwLnJlYWRfdGV4dCgpCmFzc2VydCAnY29uc3QgQVNTRVRfVkVSU0lPTiA9ICIyMDI2MDkxNi1tZW1vcnktMiI7JyBpbiBzCnMgPSBzLnJlcGxhY2UoJ2NvbnN0IEFTU0VUX1ZFUlNJT04gPSAiMjAyNjA5MTYtbWVtb3J5LTIiOycsICdjb25zdCBBU1NFVF9WRVJTSU9OID0gIjIwMjYwOTE2LXZlcnNpb24tMSI7JywgMSkKYXNzZXJ0ICdsb2FkU2NyaXB0KCIvc3JjL2pzL2FwcF9jb3JlLmpzP3Y9MjAyNjA5MTYtbWVtb3J5LTIiLCBmdW5jdGlvbigpIHsnIGluIHMKcyA9IHMucmVwbGFjZSgnbG9hZFNjcmlwdCgiL3NyYy9qcy9hcHBfY29yZS5qcz92PTIwMjYwOTE2LW1lbW9yeS0yIiwgZnVuY3Rpb24oKSB7JywgJ2xvYWRTY3JpcHQoIi9zcmMvanMvYXBwX2NvcmUuanMiLCBmdW5jdGlvbigpIHsnLCAxKQpwLndyaXRlX3RleHQocykKCnAgPSBQYXRoKCJpbmRleC5odG1sIikKcyA9IHAucmVhZF90ZXh0KCkKYXNzZXJ0ICcvc3JjL2pzL2FwcC5qcz92PTIwMjYwOTE2LXNtYWxsLWZpeGVzLTEnIGluIHMKYXNzZXJ0ICcvc3JjL2pzL2xvcmUuanM/dj0yMDI2MDkxNi1sb3JlLTQnIGluIHMKcyA9IHMucmVwbGFjZSgnL3NyYy9qcy9hcHAuanM/dj0yMDI2MDkxNi1zbWFsbC1maXhlcy0xJywgJy9zcmMvanMvYXBwLmpzP3Y9MjAyNjA5MTYtdmVyc2lvbi0xJykKcyA9IHMucmVwbGFjZSgnL3NyYy9qcy9sb3JlLmpzP3Y9MjAyNjA5MTYtbG9yZS00JywgJy9zcmMvanMvbG9yZS5qcz92PTIwMjYwOTE2LXZlcnNpb24tMScpCnAud3JpdGVfdGV4dChzKQoKcCA9IFBhdGgoInNyYy9qcy9xdWl6X3Nlc3Npb24uanMiKQpzID0gcC5yZWFkX3RleHQoKQphc3NlcnQgJy9zcmMvanMvbG9yZS5qcz92PTIwMjYwOTE2LWxvcmUtNCcgaW4gcwpwLndyaXRlX3RleHQocy5yZXBsYWNlKCcvc3JjL2pzL2xvcmUuanM/dj0yMDI2MDkxNi1sb3JlLTQnLCAnL3NyYy9qcy9sb3JlLmpzP3Y9MjAyNjA5MTYtdmVyc2lvbi0xJykpCgpmb3IgcCBpbiBQYXRoKCJ0ZXN0cyIpLmdsb2IoIioudGVzdC5qcyIpOgogICAgcyA9IHAucmVhZF90ZXh0KCkucmVwbGFjZShyJzFcXC4xNlxcLjgnLCByJzFcXC4xNlxcLjknKQogICAgcC53cml0ZV90ZXh0KHMpCgp0ZXN0ID0gcicnJ2NvbnN0IGZzID0gcmVxdWlyZSgibm9kZTpmcyIpOwpjb25zdCBwYXRoID0gcmVxdWlyZSgibm9kZTpwYXRoIik7CmNvbnN0IHRlc3QgPSByZXF1aXJlKCJub2RlOnRlc3QiKTsKY29uc3QgYXNzZXJ0ID0gcmVxdWlyZSgibm9kZTphc3NlcnQvc3RyaWN0Iik7Cgpjb25zdCByb290ID0gcGF0aC5yZXNvbHZlKF9fZGlybmFtZSwgIi4uIik7CmNvbnN0IHJlYWQgPSByZWxhdGl2ZSA9PiBmcy5yZWFkRmlsZVN5bmMocGF0aC5qb2luKHJvb3QsIHJlbGF0aXZlKSwgInV0ZjgiKTsKCnRlc3QoInZpc2libGUgdmVyc2lvbiBieXBhc3NlcyBzdGFsZSBidW5kbGUgY2FjaGVzIiwgKCkgPT4gewogICAgY29uc3QgY29yZSA9IHJlYWQoInNyYy9qcy9hcHBfY29yZS5qcyIpOwogICAgY29uc3QgdmVyc2lvbiA9IEpTT04ucGFyc2UocmVhZCgic3JjL2RhdGEvYXBwX3ZlcnNpb24uanNvbiIpKS52ZXJzaW9uOwogICAgY29uc3QgYnVuZGxlZCA9IGNvcmUubWF0Y2goL2NvbnN0IEFQUF9WRVJTSU9OID0gIihbXiJdKykiOy8pPy5bMV07CiAgICBhc3NlcnQuZXF1YWwodmVyc2lvbiwgIjEuMTYuOSIpOwogICAgYXNzZXJ0LmVxdWFsKGJ1bmRsZWQsIHZlcnNpb24pOwogICAgYXNzZXJ0Lm1hdGNoKGNvcmUsIC9hcHBfdmVyc2lvblxcLmpzb25cXD90PSIgXFwrIERhdGVcXC5ub3dcXChcXCkvKTsKICAgIGFzc2VydC5tYXRjaChjb3JlLCAvY2FjaGU6ICJuby1zdG9yZSIvKTsKICAgIGFzc2VydC5tYXRjaChjb3JlLCAvZGF0YXNldFxcLmFwcFZlcnNpb24vKTsKfSk7Cgp0ZXN0KCJsb3JlIGRvZXMgbm90IHJlcGxhY2UgdGhlIG5vcm1hbCBhcHAgdmVyc2lvbiIsICgpID0+IHsKICAgIGNvbnN0IGxvcmUgPSByZWFkKCJzcmMvanMvbG9yZS5qcyIpOwogICAgYXNzZXJ0Lm1hdGNoKGxvcmUsIC9kYXRhc2V0XFwudmVyc2lvbk92ZXJyaWRlID0gIjUwNSIvKTsKICAgIGFzc2VydC5tYXRjaChsb3JlLCAvYmFkZ2VcXC5kYXRhc2V0XFwuYXBwVmVyc2lvbiBcXHxcXHwgcm9vdFxcLl9fU211cmR5QXBwVmVyc2lvbi8pOwogICAgYXNzZXJ0LmRvZXNOb3RNYXRjaChsb3JlLCAvY29uc3Qgd2FudGVkID0gYWN0aXZlNTA1Lyk7Cn0pOwoKdGVzdCgidmVyc2lvbiBmaXggc2NyaXB0cyBhcmUgY2FjaGUtYnVzdGVkIiwgKCkgPT4gewogICAgY29uc3QgaG9tZSA9IHJlYWQoImluZGV4Lmh0bWwiKTsKICAgIGNvbnN0IGFwcCA9IHJlYWQoInNyYy9qcy9hcHAuanMiKTsKICAgIGNvbnN0IHNlc3Npb24gPSByZWFkKCJzcmMvanMvcXVpel9zZXNzaW9uLmpzIik7CiAgICBhc3NlcnQubWF0Y2goaG9tZSwgL2FwcFxcLmpzXFw/dj0yMDI2MDkxNi12ZXJzaW9uLTEvKTsKICAgIGFzc2VydC5tYXRjaChob21lLCAvbG9yZVxcLmpzXFw/dj0yMDI2MDkxNi12ZXJzaW9uLTEvKTsKICAgIGFzc2VydC5tYXRjaChhcHAsIC9jb25zdCBBU1NFVF9WRVJTSU9OID0gIjIwMjYwOTE2LXZlcnNpb24tMSIvKTsKICAgIGFzc2VydC5tYXRjaChhcHAsIC9sb2FkU2NyaXB0XFwoIlxcL3NyY1xcL2pzXFwvYXBwX2NvcmVcXC5qcyIvKTsKICAgIGFzc2VydC5kb2VzTm90TWF0Y2goYXBwLCAvYXBwX2NvcmVcXC5qc1xcP3Y9Lyk7CiAgICBhc3NlcnQubWF0Y2goc2Vzc2lvbiwgL2xvcmVcXC5qc1xcP3Y9MjAyNjA5MTYtdmVyc2lvbi0xLyk7Cn0pOwonJycKUGF0aCgidGVzdHMvdmVyc2lvbl9iYWRnZS50ZXN0LmpzIikud3JpdGVfdGV4dCh0ZXN0KQo=' | base64 -d | python
       - name: Validate
         run: |
           node --check src/js/app_core.js
@@ -120,12 +28,11 @@ jobs:
           node -e 'JSON.parse(require("fs").readFileSync("src/data/app_version.json","utf8"))'
           npm test
           git diff --check
-      - name: Commit changes
+      - name: Commit
         run: |
-          rm -f .github/workflows/version-badge-1-16-9.yml
-          rm -f package-lock.json
+          rm -f .github/workflows/version-badge-1-16-9.yml package-lock.json
           git add -A
-          git config user.name "Smurdy"
-          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git config user.name Smurdy
+          git config user.email 110361649+Smurdy1@users.noreply.github.com
           git commit -m "Fix stale version badge updates"
           git push origin HEAD:fix/1.16.9-version-badge
