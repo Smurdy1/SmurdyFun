@@ -142,7 +142,7 @@ test("homepage browser hierarchy uses terse inline dimension labels", () => {
     );
 
     assert.match(home, /styles\/browser_hierarchy\.css/);
-    assert.match(home, /Pick a quiz below, save favorites, or use Weak Spots/);
+    assert.match(home, /The quiz browser has the full list\./);
     assert.doesNotMatch(home, /id="quiz-suggest"/);
     assert.doesNotMatch(hierarchy, /content:\s*["'](?:QUIZ TYPE|MODE|CONTENT)["']/);
     assert.match(hierarchy, /#qb-category-tabs::before[\s\S]*?content:\s*"Quiz"/);
