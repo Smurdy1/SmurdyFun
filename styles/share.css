@@ -32,7 +32,6 @@
     opacity: .65;
 }
 
-/* The quiz browser already has a real header, so Share belongs there. */
 #qb-header > .smurdy-page-share-trigger {
     margin-left: auto;
     min-height: 32px;
@@ -40,7 +39,6 @@
     font-size: 12px;
 }
 
-/* Active map quiz: keep Share with the brand, away from Back/Give Up/Restart. */
 .smurdy-share-quiz-topline {
     display: flex;
     align-items: flex-start;
@@ -60,7 +58,6 @@
     font-size: 11px;
 }
 
-/* Active flag quiz: Share is a small title utility, not a game-control button. */
 .flag-game-title-row:has(> .smurdy-page-share-trigger) {
     display: flex;
     align-items: center;
@@ -78,7 +75,6 @@
     font-size: 11px;
 }
 
-/* Quiz landing pages: a page utility beside breadcrumbs, separate from Play/Favorite/Home. */
 .smurdy-share-landing-topline,
 .smurdy-share-directory-topline {
     display: flex;
@@ -108,7 +104,6 @@
     margin-bottom: 21px;
 }
 
-/* About / Contact / Privacy: keep Share in the existing site header navigation. */
 .smurdy-share-header-actions {
     display: flex;
     align-items: center;
@@ -128,7 +123,6 @@
     margin-top: 10px;
 }
 
-/* Last-resort placement for unusual standalone pages. */
 .smurdy-page-share-inline-slot {
     display: flex;
     justify-content: flex-start;
@@ -283,7 +277,6 @@
     }
 }
 
-/* smurdy-share-icon-button-v2 */
 .smurdy-page-share-trigger,
 #qb-header > .smurdy-page-share-trigger,
 .smurdy-page-share-trigger--quiz-topline,
@@ -310,8 +303,8 @@
 
 .smurdy-page-share-trigger::before {
     content: "";
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
     display: block;
     flex: 0 0 auto;
     background: currentColor;
@@ -364,12 +357,13 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
     }
 
     .smurdy-page-share-trigger::before {
-        width: 18px;
-        height: 18px;
+        width: 19px;
+        height: 19px;
     }
 }
 
-/* 1.16.10: use the hand-drawn icon set anywhere the matching control already exists. */
+/* Unified icon convention: currentColor masks, never raster-color inversion. */
+.qb-library-tab[data-library-view="favorites"],
 .qb-library-tab[data-library-view="recent"],
 .weak-spots-menu-button,
 [data-weak-spots-open],
@@ -382,77 +376,171 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
     gap: 7px;
 }
 
+#qb-library-tabs {
+    gap: 24px !important;
+}
+
+.qb-library-tab[data-library-view="favorites"],
+.qb-library-tab[data-library-view="recent"] {
+    gap: 6px;
+}
+
+.qb-library-tab[data-library-view="favorites"]::before,
 .qb-library-tab[data-library-view="recent"]::before,
 .weak-spots-menu-button::before,
 [data-weak-spots-open]::before,
 #quiz-restart::before,
 [data-flag-restart]::before,
-.smurdy-page-share-actions button:not([data-share-action="native"])::before {
+.smurdy-page-share-actions button:not([data-share-action="native"])::before,
+.qb-favorite::before,
+#qb-mobile-collapse-arrow {
     content: "";
     display: inline-block;
     flex: 0 0 auto;
-    width: 17px;
-    height: 17px;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    background-image: none !important;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.qb-library-tab[data-library-view="favorites"]::before,
+.qb-favorite::before {
+    -webkit-mask-image: polygon(50% 4%, 61% 35%, 95% 36%, 68% 56%, 77% 89%, 50% 70%, 23% 89%, 32% 56%, 5% 36%, 39% 35%);
+}
+
+/* clip-path supplies the star shape because there is no separate star asset in the icon folder. */
+.qb-library-tab[data-library-view="favorites"]::before,
+.qb-favorite::before {
+    -webkit-mask-image: none;
+    mask-image: none;
+    clip-path: polygon(50% 4%, 61% 35%, 95% 36%, 68% 56%, 77% 89%, 50% 70%, 23% 89%, 32% 56%, 5% 36%, 39% 35%);
 }
 
 .qb-library-tab[data-library-view="recent"]::before {
-    background-image: url('/assets/icons/clock.png');
+    -webkit-mask-image: url('/assets/icons/clock.png');
+    mask-image: url('/assets/icons/clock.png');
 }
 
 .weak-spots-menu-button::before,
 [data-weak-spots-open]::before {
-    background-image: url('/assets/icons/crosshair.png');
+    width: 22px;
+    height: 22px;
+    -webkit-mask-image: url('/assets/icons/crosshair.png');
+    mask-image: url('/assets/icons/crosshair.png');
 }
 
 #quiz-restart::before,
 [data-flag-restart]::before {
-    background-image: url('/assets/icons/restart.png');
+    width: 21px;
+    height: 21px;
+    -webkit-mask-image: url('/assets/icons/restart.png');
+    mask-image: url('/assets/icons/restart.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="copy"]::before {
-    background-image: url('/assets/icons/link.png');
+    -webkit-mask-image: url('/assets/icons/link.png');
+    mask-image: url('/assets/icons/link.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="x"]::before {
-    background-image: url('/assets/icons/x_logo.png');
+    -webkit-mask-image: url('/assets/icons/x_logo.png');
+    mask-image: url('/assets/icons/x_logo.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="facebook"]::before {
-    background-image: url('/assets/icons/facebook_logo.png');
+    -webkit-mask-image: url('/assets/icons/facebook_logo.png');
+    mask-image: url('/assets/icons/facebook_logo.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="reddit"]::before {
-    background-image: url('/assets/icons/reddit_logo.png');
+    -webkit-mask-image: url('/assets/icons/reddit_logo.png');
+    mask-image: url('/assets/icons/reddit_logo.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="email"]::before {
-    background-image: url('/assets/icons/mail.png');
+    -webkit-mask-image: url('/assets/icons/mail.png');
+    mask-image: url('/assets/icons/mail.png');
+}
+
+.qb-favorite {
+    font-size: 0 !important;
+    color: #626262;
+}
+
+.qb-favorite::before {
+    width: 21px;
+    height: 21px;
+}
+
+.qb-favorite[aria-pressed="true"] {
+    color: #d49a00 !important;
 }
 
 #qb-mobile-collapse-arrow {
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
     font-size: 0 !important;
-    background: url('/assets/icons/up_arrow.png') center / contain no-repeat;
+    -webkit-mask-image: url('/assets/icons/up_arrow.png');
+    mask-image: url('/assets/icons/up_arrow.png');
     transform: none !important;
     transition: none !important;
 }
 
 #quiz-browser.qb-mobile-collapsed #qb-mobile-collapse-arrow {
-    background-image: url('/assets/icons/down_arrow.png');
+    -webkit-mask-image: url('/assets/icons/down_arrow.png');
+    mask-image: url('/assets/icons/down_arrow.png');
     transform: none !important;
 }
 
-html[data-smurdy-theme="dark"] :is(
-    .qb-library-tab[data-library-view="recent"],
-    .weak-spots-menu-button,
-    [data-weak-spots-open],
-    #quiz-restart,
-    [data-flag-restart]
-)::before,
+html[data-smurdy-theme="dark"] .qb-library-tab[data-library-view="favorites"]::before,
+html[data-smurdy-theme="dark"] .qb-library-tab[data-library-view="recent"]::before,
+html[data-smurdy-theme="dark"] :is(.weak-spots-menu-button, [data-weak-spots-open], #quiz-restart, [data-flag-restart])::before,
+html[data-smurdy-theme="dark"] .smurdy-page-share-actions button:not([data-share-action="native"])::before,
 html[data-smurdy-theme="dark"] #qb-mobile-collapse-arrow {
-    filter: invert(1);
+    filter: none !important;
+}
+
+html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
+    color: #ffd54f !important;
+}
+
+.qb-mobile-quick-actions {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .qb-mobile-quick-actions {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+        margin: 8px 0 0;
+    }
+
+    .qb-mobile-quick-actions #qb-mobile-weak-spots {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .smurdy-theme-toggle--mobile-browser {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        margin: 0;
+        border-radius: 9px;
+    }
+
+    .smurdy-theme-toggle--mobile-browser .smurdy-theme-icon {
+        width: 21px;
+        height: 21px;
+    }
 }
