@@ -34,16 +34,23 @@ jobs:
           assert 'const APP_VERSION = "1.16.7";' in s
           p.write_text(s.replace('const APP_VERSION = "1.16.7";', 'const APP_VERSION = "1.16.8";', 1))
 
-          for name in ['tests/anti_ai_copy.test.js', 'tests/editorial_identity.test.js']:
+          for name in ['tests/anti_ai_copy.test.js', 'tests/editorial_identity.test.js', 'tests/runtime_memory.test.js']:
               p = Path(name)
               s = p.read_text()
               assert '1\\.16\\.7' in s
               p.write_text(s.replace('1\\.16\\.7', '1\\.16\\.8'))
 
+          p = Path('tests/quiz_library.test.js')
+          s = p.read_text()
+          old = 'assert.match(home, /Pick a quiz below, save favorites, or use Weak Spots/);'
+          new = 'assert.match(home, /The quiz browser has the full list\\./);'
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+
           p = Path('tests/anti_ai_copy.test.js')
           s = p.read_text()
           marker = 'test("anti-AI copy pass is versioned", () => {'
-          addition = '''test("homepage summary does not imply the quiz browser is below or use the old three-action list", () => {\n    const homepage = read("index.html");\n    assert.match(homepage, /The quiz browser has the full list\./);\n    assert.doesNotMatch(homepage, /Pick a quiz below, save favorites, or use Weak Spots/);\n});\n\n'''
+          addition = '''test("homepage summary does not imply the quiz browser is below or use the old three-action list", () => {\n    const homepage = read("index.html");\n    assert.match(homepage, /The quiz browser has the full list\\./);\n    assert.doesNotMatch(homepage, /Pick a quiz below, save favorites, or use Weak Spots/);\n});\n\n'''
           assert marker in s
           assert 'homepage summary does not imply' not in s
           p.write_text(s.replace(marker, addition + marker, 1))
