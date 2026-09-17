@@ -879,7 +879,7 @@
     function renderOverlap() {
         const main = pageRoot();
         const wrap = root.document.createElement("div");
-        wrap.appendChild(artifact("/assets/lore/overlap.webp"));
+        wrap.appendChild(artifact("/assets/lore/overlap.png"));
         if (variant("overlap-caption", 2) === 1) wrap.appendChild(smallCopy("Overlap remained negligible."));
         main.appendChild(wrap);
     }
