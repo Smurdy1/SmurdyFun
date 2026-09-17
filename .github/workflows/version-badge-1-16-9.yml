@@ -1,0 +1,135 @@
+name: Version badge 1.16.9
+on:
+  push:
+    branches: [fix/1.16.9-version-badge]
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/1.16.9-version-badge
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Fix version ownership and cache refresh
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          # Version badge: app_core owns the real app version and refreshes it from a tiny
+          # cache-busted data file so a cached app bundle can still discover a newer release.
+          p = Path('src/js/app_core.js')
+          s = p.read_text()
+          assert 'const APP_VERSION = "1.16.8";' in s
+          s = s.replace('const APP_VERSION = "1.16.8";', 'const APP_VERSION = "1.16.9";', 1)
+          old = '''function injectVersionBadge() {\n    try {\n        if (document.getElementById("app-version")) return;\n        const el = document.createElement("div");\n        el.id = "app-version";\n        el.textContent = "v" + APP_VERSION;\n        el.setAttribute("aria-hidden", "true");'''
+          new = '''window.__SmurdyAppVersion = APP_VERSION;\n\nfunction applyVersionBadgeText(el, version) {\n    if (!el || !version) return;\n    el.dataset.appVersion = version;\n    window.__SmurdyAppVersion = version;\n    if (!el.dataset.versionOverride) el.textContent = "v" + version;\n}\n\nasync function refreshVersionBadge() {\n    try {\n        const response = await fetch(\n            "/src/data/app_version.json?t=" + Date.now(),\n            { cache: "no-store" }\n        );\n        if (!response.ok) return;\n        const payload = await response.json();\n        const version = String(payload?.version || "").trim();\n        if (!/^\\d+\\.\\d+\\.\\d+$/.test(version)) return;\n        applyVersionBadgeText(document.getElementById("app-version"), version);\n    } catch (_) { /* the bundled version remains a safe fallback */ }\n}\n\nfunction injectVersionBadge() {\n    try {\n        let el = document.getElementById("app-version");\n        if (!el) {\n            el = document.createElement("div");\n            el.id = "app-version";\n            el.setAttribute("aria-hidden", "true");\n        }\n        applyVersionBadgeText(el, APP_VERSION);'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old_append = '''        document.body.appendChild(el);\n    } catch (_) { /* tolerate errors */ }\n}\n\ntry { injectVersionBadge(); } catch (_) {}'''
+          new_append = '''        if (!el.isConnected) document.body.appendChild(el);\n        refreshVersionBadge();\n    } catch (_) { /* tolerate errors */ }\n}\n\ntry { injectVersionBadge(); } catch (_) {}'''
+          assert old_append in s
+          s = s.replace(old_append, new_append, 1)
+          p.write_text(s)
+
+          # Lore may temporarily spoof the badge at 5:05, but it must never write its
+          # own release/schema version into the ordinary app badge.
+          p = Path('src/js/lore.js')
+          s = p.read_text()
+          old = '''    function installVersionBehavior() {\n        if (!root?.document) return;\n        function update() {\n            const badge = root.document.getElementById("app-version");\n            if (!badge) return;\n            const wanted = active505() ? "v37.32" : `v${RELEASE_VERSION}`;\n            if (badge.textContent !== wanted) badge.textContent = wanted;\n        }\n        update();\n        root.setInterval(update, 1000);\n    }'''
+          new = '''    function installVersionBehavior() {\n        if (!root?.document) return;\n        function update() {\n            const badge = root.document.getElementById("app-version");\n            if (!badge) return;\n\n            if (active505()) {\n                badge.dataset.versionOverride = "505";\n                if (badge.textContent !== "v37.32") badge.textContent = "v37.32";\n                return;\n            }\n\n            if (badge.dataset.versionOverride === "505") {\n                delete badge.dataset.versionOverride;\n                const current = String(\n                    badge.dataset.appVersion || root.__SmurdyAppVersion || ""\n                ).trim();\n                if (current) badge.textContent = `v${current}`;\n            }\n        }\n        update();\n        root.setInterval(update, 1000);\n    }'''
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+
+          # Authoritative lightweight version endpoint.
+          Path('src/data/app_version.json').write_text(json.dumps({"version": "1.16.9"}, indent=2) + '\n')
+
+          # Make sure browsers fetch this release's bootstrap and fixed lore immediately.
+          p = Path('src/js/app.js')
+          s = p.read_text()
+          assert 'const ASSET_VERSION = "20260916-memory-2";' in s
+          s = s.replace('const ASSET_VERSION = "20260916-memory-2";', 'const ASSET_VERSION = "20260916-version-1";', 1)
+          s = s.replace('loadScript("/src/js/app_core.js?v=20260916-memory-2", function() {', 'loadScript("/src/js/app_core.js", function() {', 1)
+          p.write_text(s)
+
+          p = Path('index.html')
+          s = p.read_text()
+          s = s.replace('/src/js/app.js?v=20260916-small-fixes-1', '/src/js/app.js?v=20260916-version-1')
+          s = s.replace('/src/js/lore.js?v=20260916-lore-4', '/src/js/lore.js?v=20260916-version-1')
+          p.write_text(s)
+
+          p = Path('src/js/quiz_session.js')
+          s = p.read_text()
+          assert '/src/js/lore.js?v=20260916-lore-4' in s
+          p.write_text(s.replace('/src/js/lore.js?v=20260916-lore-4', '/src/js/lore.js?v=20260916-version-1'))
+
+          # Update existing hard-coded current-version assertions.
+          for p in Path('tests').glob('*.test.js'):
+              s = p.read_text()
+              s = s.replace('1\\.16\\.8', '1\\.16\\.9')
+              p.write_text(s)
+
+          Path('tests/version_badge.test.js').write_text(r'''const fs = require("node:fs");
+const path = require("node:path");
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+const root = path.resolve(__dirname, "..");
+const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+
+test("visible version has one current source and bypasses stale browser caches", () => {
+    const core = read("src/js/app_core.js");
+    const version = JSON.parse(read("src/data/app_version.json")).version;
+    const bundled = core.match(/const APP_VERSION = "([^"]+)";/)?.[1];
+    assert.equal(version, "1.16.9");
+    assert.equal(bundled, version);
+    assert.match(core, /app_version\.json\?t=" \+ Date\.now\(\)/);
+    assert.match(core, /cache: "no-store"/);
+    assert.match(core, /dataset\.appVersion/);
+});
+
+test("lore can spoof 5:05 without replacing the normal app version", () => {
+    const lore = read("src/js/lore.js");
+    assert.match(lore, /dataset\.versionOverride = "505"/);
+    assert.match(lore, /badge\.dataset\.appVersion \|\| root\.__SmurdyAppVersion/);
+    assert.doesNotMatch(lore, /const wanted = active505\(\) \? "v37\.32" : `v\$\{RELEASE_VERSION\}`/);
+});
+
+test("version fix assets are cache-busted and app_core gets one version parameter", () => {
+    const home = read("index.html");
+    const app = read("src/js/app.js");
+    const session = read("src/js/quiz_session.js");
+    assert.match(home, /app\.js\?v=20260916-version-1/);
+    assert.match(home, /lore\.js\?v=20260916-version-1/);
+    assert.match(app, /const ASSET_VERSION = "20260916-version-1"/);
+    assert.match(app, /loadScript\("\/src\/js\/app_core\.js"/);
+    assert.doesNotMatch(app, /app_core\.js\?v=.*loadScript/);
+    assert.match(session, /lore\.js\?v=20260916-version-1/);
+});
+''')
+          PY
+      - name: Validate
+        run: |
+          node --check src/js/app_core.js
+          node --check src/js/lore.js
+          node --check src/js/app.js
+          node --check src/js/quiz_session.js
+          node -e 'JSON.parse(require("fs").readFileSync("src/data/app_version.json","utf8"))'
+          npm test
+          git diff --check
+      - name: Commit changes
+        run: |
+          rm -f .github/workflows/version-badge-1-16-9.yml
+          rm -f package-lock.json
+          git add -A
+          git config user.name "Smurdy"
+          git config user.email "110361649+Smurdy1@users.noreply.github.com"
+          git commit -m "Fix stale version badge updates"
+          git push origin HEAD:fix/1.16.9-version-badge
