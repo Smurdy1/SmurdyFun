@@ -368,3 +368,91 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
         height: 18px;
     }
 }
+
+/* 1.16.10: use the hand-drawn icon set anywhere the matching control already exists. */
+.qb-library-tab[data-library-view="recent"],
+.weak-spots-menu-button,
+[data-weak-spots-open],
+#quiz-restart,
+[data-flag-restart],
+.smurdy-page-share-actions button:not([data-share-action="native"]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.qb-library-tab[data-library-view="recent"]::before,
+.weak-spots-menu-button::before,
+[data-weak-spots-open]::before,
+#quiz-restart::before,
+[data-flag-restart]::before,
+.smurdy-page-share-actions button:not([data-share-action="native"])::before {
+    content: "";
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 17px;
+    height: 17px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.qb-library-tab[data-library-view="recent"]::before {
+    background-image: url('/assets/icons/clock.png');
+}
+
+.weak-spots-menu-button::before,
+[data-weak-spots-open]::before {
+    background-image: url('/assets/icons/crosshair.png');
+}
+
+#quiz-restart::before,
+[data-flag-restart]::before {
+    background-image: url('/assets/icons/restart.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="copy"]::before {
+    background-image: url('/assets/icons/link.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="x"]::before {
+    background-image: url('/assets/icons/x_logo.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="facebook"]::before {
+    background-image: url('/assets/icons/facebook_logo.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="reddit"]::before {
+    background-image: url('/assets/icons/reddit_logo.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="email"]::before {
+    background-image: url('/assets/icons/mail.png');
+}
+
+#qb-mobile-collapse-arrow {
+    width: 20px;
+    height: 20px;
+    font-size: 0 !important;
+    background: url('/assets/icons/up_arrow.png') center / contain no-repeat;
+    transform: none !important;
+    transition: none !important;
+}
+
+#quiz-browser.qb-mobile-collapsed #qb-mobile-collapse-arrow {
+    background-image: url('/assets/icons/down_arrow.png');
+    transform: none !important;
+}
+
+html[data-smurdy-theme="dark"] :is(
+    .qb-library-tab[data-library-view="recent"],
+    .weak-spots-menu-button,
+    [data-weak-spots-open],
+    #quiz-restart,
+    [data-flag-restart]
+)::before,
+html[data-smurdy-theme="dark"] #qb-mobile-collapse-arrow {
+    filter: invert(1);
+}
