@@ -2358,15 +2358,40 @@ if (!hasInitialQuiz) {
 //   changes an existing user workflow
 // - major (2.0.0): changes Smurdy's fundamental product structure/identity
 // - no change: a commit that does not change the user experience (e.g. build, test, or documentation changes)
-const APP_VERSION = "1.16.8";
+const APP_VERSION = "1.16.9";
+
+window.__SmurdyAppVersion = APP_VERSION;
+
+function applyVersionBadgeText(el, version) {
+    if (!el || !version) return;
+    el.dataset.appVersion = version;
+    window.__SmurdyAppVersion = version;
+    if (!el.dataset.versionOverride) el.textContent = "v" + version;
+}
+
+async function refreshVersionBadge() {
+    try {
+        const response = await fetch(
+            "/src/data/app_version.json?t=" + Date.now(),
+            { cache: "no-store" }
+        );
+        if (!response.ok) return;
+        const payload = await response.json();
+        const version = String(payload?.version || "").trim();
+        if (!/^\d+\.\d+\.\d+$/.test(version)) return;
+        applyVersionBadgeText(document.getElementById("app-version"), version);
+    } catch (_) { /* the bundled version remains a safe fallback */ }
+}
 
 function injectVersionBadge() {
     try {
-        if (document.getElementById("app-version")) return;
-        const el = document.createElement("div");
-        el.id = "app-version";
-        el.textContent = "v" + APP_VERSION;
-        el.setAttribute("aria-hidden", "true");
+        let el = document.getElementById("app-version");
+        if (!el) {
+            el = document.createElement("div");
+            el.id = "app-version";
+            el.setAttribute("aria-hidden", "true");
+        }
+        applyVersionBadgeText(el, APP_VERSION);
 
         // Visual styling: inset from safe-area with a subtle floating card look.
         el.style.position = "fixed";
@@ -2384,7 +2409,8 @@ function injectVersionBadge() {
         el.style.userSelect = "none";
         el.style.fontFamily = "system-ui, Arial, sans-serif";
 
-        document.body.appendChild(el);
+        if (!el.isConnected) document.body.appendChild(el);
+        refreshVersionBadge();
     } catch (_) { /* tolerate errors */ }
 }
 

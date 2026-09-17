@@ -276,8 +276,20 @@
         function update() {
             const badge = root.document.getElementById("app-version");
             if (!badge) return;
-            const wanted = active505() ? "v37.32" : `v${RELEASE_VERSION}`;
-            if (badge.textContent !== wanted) badge.textContent = wanted;
+
+            if (active505()) {
+                badge.dataset.versionOverride = "505";
+                if (badge.textContent !== "v37.32") badge.textContent = "v37.32";
+                return;
+            }
+
+            if (badge.dataset.versionOverride === "505") {
+                delete badge.dataset.versionOverride;
+                const current = String(
+                    badge.dataset.appVersion || root.__SmurdyAppVersion || ""
+                ).trim();
+                if (current) badge.textContent = `v${current}`;
+            }
         }
         update();
         root.setInterval(update, 1000);

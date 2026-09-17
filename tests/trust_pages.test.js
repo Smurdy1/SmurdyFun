@@ -15,10 +15,10 @@ test("About and Contact pages have unique canonical metadata", () => {
 
     assert.match(about, /<title>About Smurdy \| Geography Quiz Project<\/title>/);
     assert.match(about, /rel="canonical" href="https:\/\/smurdy\.fun\/about\/"/);
-    assert.match(about, /Flag quizzes for the world, regions, specialty groups, and US states/);
+    assert.match(about, /Flag quizzes for the world and US states/);
     assert.match(about, /Country capitals and all 50 US state capitals/);
-    assert.match(about, /It started as a map quiz I wanted to play/);
-    assert.match(about, /I like geography and programming/);
+    assert.match(about, /It started as a map quiz I made to teach myself geography/);
+    assert.match(about, /I'm quite a big fan of geography and programming/);
 
     assert.match(contact, /<title>Contact and Feedback \| Smurdy<\/title>/);
     assert.match(contact, /rel="canonical" href="https:\/\/smurdy\.fun\/contact\/"/);
@@ -30,7 +30,7 @@ test("trust-page copy keeps the creator's direct voice", () => {
 
     assert.match(copy, /I go by Smurdy online/);
     assert.match(copy, /the easiest way to tell me/);
-    assert.match(copy, /people also send useful corrections/);
+    assert.match(copy, /people also regularly send useful corrections and really cool ideas/);
     assert.doesNotMatch(copy, /not just|—/i);
     assert.doesNotMatch(copy, /one rule I keep coming back to/i);
     assert.doesNotMatch(copy, /If a feature makes the normal quiz slower to start, it needs a good reason/);
