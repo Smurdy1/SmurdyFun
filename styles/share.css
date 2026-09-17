@@ -544,3 +544,33 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
         height: 21px;
     }
 }
+
+/* 1.16.13 icon rendering: preserve raster detail while presenting a monochrome system. */
+#quiz-browser .qb-library-tab[data-library-view="recent"]::before,
+body .weak-spots-menu-button::before,
+body [data-weak-spots-open]::before,
+#quiz-panel #quiz-restart::before,
+body [data-flag-restart]::before,
+#quiz-browser #qb-mobile-collapse-arrow {
+    filter: grayscale(1) contrast(1000%) !important;
+    mix-blend-mode: multiply !important;
+}
+
+html[data-smurdy-theme="dark"] body #quiz-browser .qb-library-tab[data-library-view="recent"]::before,
+html[data-smurdy-theme="dark"] body .weak-spots-menu-button::before,
+html[data-smurdy-theme="dark"] body [data-weak-spots-open]::before,
+html[data-smurdy-theme="dark"] body #quiz-panel #quiz-restart::before,
+html[data-smurdy-theme="dark"] body [data-flag-restart]::before,
+html[data-smurdy-theme="dark"] body #quiz-browser #qb-mobile-collapse-arrow {
+    filter: grayscale(1) contrast(1000%) invert(1) !important;
+    mix-blend-mode: screen !important;
+}
+
+/* Make the whole selected favorite control read as active, not only the star glyph. */
+html[data-smurdy-theme="dark"] body [data-smurdy-quiz-favorite][aria-pressed="true"],
+html[data-smurdy-theme="dark"] body :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"],
+html[data-smurdy-theme="dark"] body #quiz-browser .qb-favorite[aria-pressed="true"] {
+    border-color: #d4aa32 !important;
+    background: #514316 !important;
+    color: #ffd54f !important;
+}
