@@ -535,6 +535,10 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
     color: #ffd54f !important;
 }
 
+html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"]::before {
+    background-color: #ffd54f !important;
+}
+
 html[data-smurdy-theme="dark"] .smurdy-page-share-close,
 html[data-smurdy-theme="dark"] #weak-spots-close {
     color: #cdd3d7 !important;
