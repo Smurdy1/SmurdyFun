@@ -209,9 +209,14 @@ html body #quiz-browser #qb-category-tabs {
     html body #quiz-browser #qb-curtain-body {
         display: flex;
         min-height: 0;
+        max-height: 620px;
         flex: 1 1 auto;
         flex-direction: column;
         overflow: hidden;
+        opacity: 1;
+        transition:
+            max-height 260ms cubic-bezier(.22,.8,.25,1),
+            opacity 180ms ease;
     }
 
     html body #quiz-browser #qb-library-tabs {
@@ -406,7 +411,9 @@ html body #quiz-browser #qb-category-tabs {
     }
 
     html body #quiz-browser.qb-mobile-collapsed #qb-curtain-body {
-        display: none !important;
+        max-height: 0 !important;
+        opacity: 0;
+        pointer-events: none;
     }
 
     html body #quiz-browser.qb-mobile-collapsed #qb-header {
