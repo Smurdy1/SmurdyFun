@@ -26,5 +26,5 @@ test("homepage summary does not imply the quiz browser is below or use the old t
 });
 
 test("anti-AI copy pass is versioned", () => {
-    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.16";/);
+    assert.match(read("src/js/app_core.js"), /const APP_VERSION = "1\.16\.17";/);
 });
