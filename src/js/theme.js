@@ -274,21 +274,13 @@ html[data-smurdy-theme="dark"] .directory-card:focus-visible {
     }
 
     function ensureMobileBrowserToggle() {
-        const weakSpots = document.getElementById("qb-mobile-weak-spots");
-        if (!weakSpots) return null;
+        const header = document.getElementById("qb-header");
+        if (!header) return null;
 
-        let row = weakSpots.parentElement?.classList.contains("qb-mobile-quick-actions")
-            ? weakSpots.parentElement
-            : null;
+        let toggle = document.querySelector(
+            "#quiz-browser [data-smurdy-theme-toggle]"
+        );
 
-        if (!row) {
-            row = document.createElement("div");
-            row.className = "qb-mobile-quick-actions";
-            weakSpots.parentNode.insertBefore(row, weakSpots);
-            row.appendChild(weakSpots);
-        }
-
-        let toggle = row.querySelector("[data-smurdy-theme-toggle]");
         if (!toggle) {
             toggle = document.createElement("button");
             toggle.type = "button";
@@ -298,7 +290,10 @@ html[data-smurdy-theme="dark"] .directory-card:focus-visible {
                 <span class="smurdy-theme-icon smurdy-theme-icon--moon" aria-hidden="true"></span>
                 <span class="smurdy-theme-icon smurdy-theme-icon--sun" aria-hidden="true"></span>
             `;
-            row.appendChild(toggle);
+        }
+
+        if (toggle.parentElement !== header) {
+            header.appendChild(toggle);
         }
 
         return toggle;
