@@ -167,7 +167,7 @@
             <div class="smurdy-page-share-panel">
                 <header>
                     <h2 id="smurdy-page-share-title">Share</h2>
-                    <button type="button" class="smurdy-page-share-close">Close</button>
+                    <button type="button" class="smurdy-page-share-close" aria-label="Close" title="Close"></button>
                 </header>
                 <div class="smurdy-page-share-preview">
                     <img data-smurdy-page-share-image alt="" loading="eager">
