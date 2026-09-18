@@ -1217,7 +1217,8 @@
                     <a href="/quizzes/click-country/africa/">Africa</a>
                     <a href="/quizzes/click-country/us_states/">US States</a>
                 </div>
-                <div class="qb-mobile-info-links" aria-label="Smurdy information">
+                <div class="qb-mobile-info-links" aria-label="Smurdy navigation">
+                    <a href="/quizzes/">All quizzes</a>
                     <a href="/about/">About</a>
                     <a href="/contact/">Contact</a>
                     <a href="/privacy/">Privacy</a>
@@ -2618,31 +2619,36 @@
                 </a>
             </div>
 
-            ${renderLibraryTabs()}
-            ${renderBrowseFilters()}
+            <div id="qb-curtain-body">
+                ${renderLibraryTabs()}
+                ${renderBrowseFilters()}
 
-            <button
-                id="qb-mobile-weak-spots"
-                type="button"
-                data-weak-spots-open
-            >
-                <span>Weak Spots</span>
-                <span
-                    class="weak-spots-count"
-                    data-weak-spots-count
-                    hidden
-                ></span>
-            </button>
+                <div id="qb-mobile-tools">
+                    ${renderSearchControls()}
 
-            ${renderSearchControls()}
-
-            <div id="qb-list">
-                <div class="qb-loading">
-                    Loading quizzes...
+                    <button
+                        id="qb-mobile-weak-spots"
+                        type="button"
+                        data-weak-spots-open
+                    >
+                        <span>Weak Spots</span>
+                        <span
+                            class="weak-spots-count"
+                            data-weak-spots-count
+                            hidden
+                        ></span>
+                    </button>
                 </div>
+
+                <div id="qb-list">
+                    <div class="qb-loading">
+                        Loading quizzes...
+                    </div>
+                </div>
+
+                ${renderDirectoryLinks()}
             </div>
 
-            ${renderDirectoryLinks()}
             ${renderMobileCollapseHandle()}
         `;
 
