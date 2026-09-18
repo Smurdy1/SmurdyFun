@@ -135,6 +135,15 @@ html body #quiz-browser #qb-category-tabs {
 }
 
 
+#qb-curtain-body,
+#qb-mobile-tools {
+    display: contents;
+}
+
+.smurdy-theme-toggle--mobile-browser {
+    display: none !important;
+}
+
 /* 1.16.19 mobile quiz browser: fixed header with retractable body. */
 @media (max-width: 700px) {
     html body #quiz-browser {
@@ -182,6 +191,7 @@ html body #quiz-browser #qb-category-tabs {
     }
 
     html body #quiz-browser #qb-header > .smurdy-theme-toggle--mobile-browser {
+        display: inline-flex !important;
         order: 3;
     }
 
