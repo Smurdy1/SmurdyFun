@@ -884,21 +884,13 @@
 
         @media (max-width: 700px) {
             html body #quiz-browser {
-                transition:
-                    transform 320ms cubic-bezier(.22, .8, .25, 1),
-                    box-shadow 320ms ease !important;
-                will-change: transform;
+                transition: box-shadow 220ms ease !important;
+                will-change: auto;
             }
 
             html body #quiz-browser.qb-mobile-collapsed {
-                /*
-                 * Slide the whole panel upward while leaving its final
-                 * 40px visible as a reopening handle.
-                 */
-                transform:
-                    translate(-50%, calc(-100% + 40px))
-                    !important;
-                box-shadow: 0 5px 18px rgba(0,0,0,.16) !important;
+                transform: none !important;
+                box-shadow: 0 3px 10px rgba(0,0,0,.14) !important;
             }
 
             #qb-mobile-weak-spots {
