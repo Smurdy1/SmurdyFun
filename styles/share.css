@@ -362,7 +362,7 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
     }
 }
 
-/* Unified icon convention: currentColor masks, never raster-color inversion. */
+/* Unified icon system: monochrome UI assets are currentColor masks. */
 .qb-library-tab[data-library-view="favorites"],
 .qb-library-tab[data-library-view="recent"],
 .weak-spots-menu-button,
@@ -393,14 +393,16 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
 [data-flag-restart]::before,
 .smurdy-page-share-actions button:not([data-share-action="native"])::before,
 .qb-favorite::before,
-#qb-mobile-collapse-arrow {
+#qb-mobile-collapse-arrow,
+.smurdy-page-share-close::before,
+#weak-spots-close::before {
     content: "";
     display: inline-block;
     flex: 0 0 auto;
     width: 20px;
     height: 20px;
     background-color: currentColor;
-    background-image: none !important;
+    background-image: none;
     -webkit-mask-position: center;
     mask-position: center;
     -webkit-mask-repeat: no-repeat;
@@ -411,15 +413,13 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
 
 .qb-library-tab[data-library-view="favorites"]::before,
 .qb-favorite::before {
-    -webkit-mask-image: polygon(50% 4%, 61% 35%, 95% 36%, 68% 56%, 77% 89%, 50% 70%, 23% 89%, 32% 56%, 5% 36%, 39% 35%);
+    -webkit-mask-image: url('/assets/icons/star_open.png');
+    mask-image: url('/assets/icons/star_open.png');
 }
 
-/* clip-path supplies the star shape because there is no separate star asset in the icon folder. */
-.qb-library-tab[data-library-view="favorites"]::before,
-.qb-favorite::before {
-    -webkit-mask-image: none;
-    mask-image: none;
-    clip-path: polygon(50% 4%, 61% 35%, 95% 36%, 68% 56%, 77% 89%, 50% 70%, 23% 89%, 32% 56%, 5% 36%, 39% 35%);
+.qb-favorite[aria-pressed="true"]::before {
+    -webkit-mask-image: url('/assets/icons/star_filled.png');
+    mask-image: url('/assets/icons/star_filled.png');
 }
 
 .qb-library-tab[data-library-view="recent"]::before {
@@ -448,24 +448,32 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
     mask-image: url('/assets/icons/link.png');
 }
 
+.smurdy-page-share-actions button[data-share-action="email"]::before {
+    -webkit-mask-image: url('/assets/icons/mail_black.png');
+    mask-image: url('/assets/icons/mail_black.png');
+}
+
+.smurdy-page-share-actions button[data-share-action="x"]::before,
+.smurdy-page-share-actions button[data-share-action="facebook"]::before,
+.smurdy-page-share-actions button[data-share-action="reddit"]::before {
+    background-color: transparent;
+    -webkit-mask-image: none;
+    mask-image: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
 .smurdy-page-share-actions button[data-share-action="x"]::before {
-    -webkit-mask-image: url('/assets/icons/x_logo.png');
-    mask-image: url('/assets/icons/x_logo.png');
+    background-image: url('/assets/icons/x_logo.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="facebook"]::before {
-    -webkit-mask-image: url('/assets/icons/facebook_logo.png');
-    mask-image: url('/assets/icons/facebook_logo.png');
+    background-image: url('/assets/icons/facebook_logo.png');
 }
 
 .smurdy-page-share-actions button[data-share-action="reddit"]::before {
-    -webkit-mask-image: url('/assets/icons/reddit_logo.png');
-    mask-image: url('/assets/icons/reddit_logo.png');
-}
-
-.smurdy-page-share-actions button[data-share-action="email"]::before {
-    -webkit-mask-image: url('/assets/icons/mail.png');
-    mask-image: url('/assets/icons/mail.png');
+    background-image: url('/assets/icons/reddit_logo.png');
 }
 
 .qb-favorite {
@@ -495,19 +503,41 @@ html[data-smurdy-theme="dark"] body .smurdy-page-share-trigger:hover {
 #quiz-browser.qb-mobile-collapsed #qb-mobile-collapse-arrow {
     -webkit-mask-image: url('/assets/icons/down_arrow.png');
     mask-image: url('/assets/icons/down_arrow.png');
-    transform: none !important;
 }
 
-html[data-smurdy-theme="dark"] .qb-library-tab[data-library-view="favorites"]::before,
-html[data-smurdy-theme="dark"] .qb-library-tab[data-library-view="recent"]::before,
-html[data-smurdy-theme="dark"] :is(.weak-spots-menu-button, [data-weak-spots-open], #quiz-restart, [data-flag-restart])::before,
-html[data-smurdy-theme="dark"] .smurdy-page-share-actions button:not([data-share-action="native"])::before,
-html[data-smurdy-theme="dark"] #qb-mobile-collapse-arrow {
-    filter: none !important;
+.smurdy-page-share-close,
+#weak-spots-close {
+    display: inline-flex;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 7px !important;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid currentColor !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: #555;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+.smurdy-page-share-close::before,
+#weak-spots-close::before {
+    width: 18px;
+    height: 18px;
+    -webkit-mask-image: url('/assets/icons/x.png');
+    mask-image: url('/assets/icons/x.png');
 }
 
 html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
     color: #ffd54f !important;
+}
+
+html[data-smurdy-theme="dark"] .smurdy-page-share-close,
+html[data-smurdy-theme="dark"] #weak-spots-close {
+    color: #cdd3d7 !important;
 }
 
 .qb-mobile-quick-actions {
@@ -545,28 +575,7 @@ html[data-smurdy-theme="dark"] #quiz-browser .qb-favorite[aria-pressed="true"] {
     }
 }
 
-/* 1.16.13 icon rendering: preserve raster detail while presenting a monochrome system. */
-#quiz-browser .qb-library-tab[data-library-view="recent"]::before,
-body .weak-spots-menu-button::before,
-body [data-weak-spots-open]::before,
-#quiz-panel #quiz-restart::before,
-body [data-flag-restart]::before,
-#quiz-browser #qb-mobile-collapse-arrow {
-    filter: grayscale(1) contrast(1000%) !important;
-    mix-blend-mode: multiply !important;
-}
-
-html[data-smurdy-theme="dark"] body #quiz-browser .qb-library-tab[data-library-view="recent"]::before,
-html[data-smurdy-theme="dark"] body .weak-spots-menu-button::before,
-html[data-smurdy-theme="dark"] body [data-weak-spots-open]::before,
-html[data-smurdy-theme="dark"] body #quiz-panel #quiz-restart::before,
-html[data-smurdy-theme="dark"] body [data-flag-restart]::before,
-html[data-smurdy-theme="dark"] body #quiz-browser #qb-mobile-collapse-arrow {
-    filter: grayscale(1) contrast(1000%) invert(1) !important;
-    mix-blend-mode: screen !important;
-}
-
-/* Make the whole selected favorite control read as active, not only the star glyph. */
+/* Selected favorite control: the icon and its container share the active state. */
 html[data-smurdy-theme="dark"] body [data-smurdy-quiz-favorite][aria-pressed="true"],
 html[data-smurdy-theme="dark"] body :is(.quiz-button, .qb-btn, .flag-button).favorite[aria-pressed="true"],
 html[data-smurdy-theme="dark"] body #quiz-browser .qb-favorite[aria-pressed="true"] {
