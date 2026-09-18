@@ -10,7 +10,7 @@ test("visible version bypasses stale bundle caches", () => {
     const core = read("src/js/app_core.js");
     const version = JSON.parse(read("src/data/app_version.json")).version;
     const bundled = core.match(/const APP_VERSION = "([^"]+)";/)?.[1];
-    assert.equal(version, "1.16.16");
+    assert.equal(version, "1.16.17");
     assert.equal(bundled, version);
     assert.match(core, /app_version\.json\?t=" \+ Date\.now\(\)/);
     assert.match(core, /cache: "no-store"/);
