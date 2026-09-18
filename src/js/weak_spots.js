@@ -586,7 +586,7 @@
             '<div class="weak-spots-dialog-card">' +
                 '<header class="weak-spots-dialog-header">' +
                     '<div><h2 id="weak-spots-title">Weak Spots</h2></div>' +
-                    '<button id="weak-spots-close" type="button">Close</button>' +
+                    '<button id="weak-spots-close" type="button" aria-label="Close" title="Close"></button>' +
                 "</header>" +
                 '<ol id="weak-spots-list" class="weak-spots-list"></ol>' +
                 '<footer class="weak-spots-dialog-footer">' +
