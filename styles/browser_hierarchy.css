@@ -202,6 +202,8 @@ html body #quiz-browser #qb-category-tabs {
         min-height: 36px !important;
         margin-top: 0 !important;
         border-radius: 6px !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     html body #quiz-browser #qb-curtain-body {
@@ -231,7 +233,7 @@ html body #quiz-browser #qb-category-tabs {
         min-height: 37px;
         margin: 0 !important;
         padding: 3px 0 !important;
-        align-items: center;
+        align-items: center !important;
     }
 
     html body #quiz-browser #qb-category-tabs {
@@ -242,13 +244,16 @@ html body #quiz-browser #qb-category-tabs {
     html body #quiz-browser #qb-mode-tabs::before,
     html body #quiz-browser #qb-family-tabs::before {
         flex: 0 0 42px !important;
+        align-self: center !important;
         font-size: 12px !important;
+        line-height: 31px !important;
     }
 
     html body #quiz-browser :is(.qb-category-tab,.qb-mode-tab,.qb-family-tab) {
         min-height: 31px !important;
         padding: 5px 0 4px !important;
         font-size: 12px !important;
+        line-height: 22px !important;
     }
 
     html body #quiz-browser #qb-mobile-tools {
@@ -367,7 +372,7 @@ html body #quiz-browser #qb-category-tabs {
     html body #quiz-browser .qb-mobile-info-links {
         display: flex !important;
         justify-content: center;
-        gap: 0;
+        gap: 14px;
         margin: 0;
         font-size: 11px;
         white-space: nowrap;
@@ -377,14 +382,6 @@ html body #quiz-browser #qb-category-tabs {
         color: inherit;
         text-decoration: underline;
         text-underline-offset: 2px;
-    }
-
-    html body #quiz-browser .qb-mobile-info-links a + a::before {
-        content: "·";
-        display: inline-block;
-        margin: 0 7px;
-        color: currentColor;
-        text-decoration: none;
     }
 
     html body #quiz-browser #qb-mobile-collapse {
