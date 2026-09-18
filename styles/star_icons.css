@@ -1,0 +1,22 @@
+/* Use the hand-drawn favorite assets instead of generated/Unicode stars. */
+html body #quiz-browser .qb-library-tab[data-library-view="favorites"]::before,
+html body #quiz-browser .qb-favorite::before {
+    content: "" !important;
+    display: inline-block !important;
+    flex: 0 0 auto;
+    width: 21px !important;
+    height: 21px !important;
+    background-color: transparent !important;
+    background-image: url('/assets/icons/star_open.png') !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: contain !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    clip-path: none !important;
+    filter: none !important;
+}
+
+html body #quiz-browser .qb-favorite[aria-pressed="true"]::before {
+    background-image: url('/assets/icons/star_filled.png') !important;
+}
