@@ -995,33 +995,6 @@
             }
         }
 
-        /* Mobile / narrow-screen adjustments: centered and inset with safe-area padding + extra margin */
-        @media (max-width: 700px) {
-            /* add an extra 12px margin inside safe-area so panel always appears floating */
-            #quiz-browser {
-                position: fixed !important;
-                left: calc(env(safe-area-inset-left, 12px) + 12px) !important;
-                right: calc(env(safe-area-inset-right, 12px) + 12px) !important;
-                top: calc(env(safe-area-inset-top, 12px) + 6px) !important;
-                width: auto !important;
-                /* ensure there's extra horizontal breathing room beyond safe-area */
-                max-width: calc(100% - (env(safe-area-inset-left, 12px) + env(safe-area-inset-right, 12px) + 48px));
-                max-height: calc(100vh - 36px);
-                max-height: calc(100dvh - 36px);
-                overflow: auto !important;
-                margin: 0 auto;
-                border-radius: 10px;
-                padding: 10px !important;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            }
-
-            /* limit list height and make touch targets larger */
-            #qb-list { max-height: calc(3 * 76px); overflow: auto; }
-            .qb-card { padding:14px 14px; }
-            .qb-play { padding:10px 12px; font-size:15px; }
-        }
-
-
         /* 1.14.2 flatter browser controls */
         #quiz-browser {
             border-radius: 8px;
