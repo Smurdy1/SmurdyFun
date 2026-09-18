@@ -1217,6 +1217,11 @@
                     <a href="/quizzes/click-country/africa/">Africa</a>
                     <a href="/quizzes/click-country/us_states/">US States</a>
                 </div>
+                <div class="qb-mobile-info-links" aria-label="Smurdy information">
+                    <a href="/about/">About</a>
+                    <a href="/contact/">Contact</a>
+                    <a href="/privacy/">Privacy</a>
+                </div>
             </nav>
         `;
     }
