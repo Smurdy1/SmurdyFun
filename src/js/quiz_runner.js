@@ -396,6 +396,34 @@ window.runNameQuiz = function runNameQuiz(config) {
     });
     let lastCompletionResult = null;
 
+    function resetRunCompletionUi() {
+        const panel = document.getElementById("quiz-panel");
+        if (panel) {
+            completion.hideShare(panel);
+            panel.querySelectorAll("[data-smurdy-share]").forEach(section => {
+                section.hidden = true;
+                section._smurdyResult = null;
+            });
+        }
+
+        const review = document.getElementById("quiz-review");
+        if (review) {
+            review.hidden = true;
+            review.replaceChildren();
+        }
+
+        document.getElementById("weak-spots-practice-next")?.remove();
+
+        const resultNode = document.getElementById("quiz-result");
+        if (resultNode) resultNode.textContent = "";
+
+        lastCompletionResult = null;
+    }
+
+    // A retry or restart should look like a fresh run, not a continuation of
+    // the previous completion screen.
+    resetRunCompletionUi();
+
     let timerInterval = null;
     let lastTimerDisplay = "";
 

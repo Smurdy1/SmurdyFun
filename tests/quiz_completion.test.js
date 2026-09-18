@@ -157,6 +157,19 @@ test("both runners delegate completion flow instead of keeping a map-only share 
 });
 
 
+test("new map runs clear completion UI before Retry Missed begins", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.join(__dirname, "..");
+    const mapRunner = fs.readFileSync(path.join(root, "src/js/quiz_runner.js"), "utf8");
+
+    assert.match(mapRunner, /function resetRunCompletionUi\(\)[\s\S]*?completion\.hideShare\(panel\)/);
+    assert.match(mapRunner, /querySelectorAll\("\[data-smurdy-share\]"\)[\s\S]*?section\.hidden = true/);
+    assert.match(mapRunner, /document\.getElementById\("quiz-review"\)[\s\S]*?review\.hidden = true/);
+    assert.match(mapRunner, /document\.getElementById\("weak-spots-practice-next"\)\?\.remove\(\)/);
+    assert.match(mapRunner, /resetRunCompletionUi\(\);/);
+});
+
 test("Retry Missed has one owner and map retries preserve their current mode", () => {
     const fs = require("node:fs");
     const path = require("node:path");
